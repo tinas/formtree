@@ -40,8 +40,9 @@ The second argument holds options for this submit alone, such as `onInvalid`;
 
 A submit always runs the same steps, in the same order:
 
-1. If the node is already submitting, return `'skipped'`. A double click or an Enter key that
-   lands together with a click submits once.
+1. If the node is already submitting or is in an inactive branch, return `'skipped'` without
+   calling the handler. A double click or an Enter key that lands together with a click submits
+   once, and a branch the data turned off never hands over an output.
 2. Mark the node as submitting and validate its subtree. Pending asynchronous checks are awaited,
    and checks that have not run yet run now.
 3. If anything in the subtree is invalid, reveal those errors, move focus to the first one, call

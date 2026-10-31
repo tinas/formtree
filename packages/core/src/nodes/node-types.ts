@@ -17,7 +17,7 @@ export const SUBMIT_OUTCOME = {
   invalid: 'invalid',
   /** The handler returned errors. */
   rejected: 'rejected',
-  /** The node was already submitting. */
+  /** The node was already submitting, or it is in an inactive branch; the handler did not run. */
   skipped: 'skipped',
 } as const
 

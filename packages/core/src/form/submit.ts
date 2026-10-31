@@ -20,7 +20,7 @@ import { beginSubmit, endSubmit } from '../state/submit-transitions'
 import { startAsyncWithin } from '../validation/async-validation'
 import { buildOutput } from '../validation/output'
 import { commitWithValidation, pendingSchemaRunsWithin } from '../validation/validation-pass'
-import { refreshSnapshotsWithin, SNAPSHOT_TRIGGER } from '../validation/visibility'
+import { isActiveNode, refreshSnapshotsWithin, SNAPSHOT_TRIGGER } from '../validation/visibility'
 import { activeErrorsWithin } from './error-operations'
 import { focusElementById, focusFirstInDocumentOrder } from './focus'
 import { commitState } from './form-runtime'
@@ -55,7 +55,7 @@ export async function validateNode(runtime: FormRuntime, nodeId: string): Promis
 }
 
 export async function submitNode({ runtime, nodeId, onValid, options = {} }: NodeSubmission): Promise<SubmitOutcome> {
-  if (runtime.state.submitting.has(nodeId)) {
+  if (runtime.state.submitting.has(nodeId) || !isActiveNode(runtime.state, nodeId)) {
     return SUBMIT_OUTCOME.skipped
   }
   commitState(runtime, beginSubmit(runtime.state, nodeId))

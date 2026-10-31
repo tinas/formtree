@@ -102,6 +102,18 @@ describe('submit', () => {
     expect(cell.state.submitCount).toBe(1)
   })
 
+  test('submitting an inactive branch is skipped without calling the handler', async () => {
+    const form = createAllocationForm()
+    form.field('kpi.kpi').setValue('CPA')
+    const attribution = form.group('kpi.attribution')
+    const onValid = vi.fn()
+
+    await expect(attribution.handleSubmit(onValid)()).resolves.toBe('skipped')
+
+    expect(onValid).not.toHaveBeenCalled()
+    expect(attribution.state.submitCount).toBe(0)
+  })
+
   test('onInvalid receives the errors and validate() reveals nothing', async () => {
     const form = createAllocationForm()
     const onInvalid = vi.fn()

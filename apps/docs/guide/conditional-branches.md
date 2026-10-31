@@ -63,7 +63,8 @@ run again after every change, so a branch follows the value while the user types
 An inactive branch is not validated, so its errors do not block a submit. It is not part of the
 output, so it cannot leak into the payload. Its values are kept: a customer who picks invoice,
 types a company name, switches to card and comes back finds the company name still there.
-Errors inside an inactive branch, whoever produced them, are ignored until it is active again.
+Errors inside an inactive branch, whoever produced them, are ignored until it is active again,
+and submitting a node inside it returns `'skipped'` without calling the handler.
 
 The output type says the same thing. A child with an `activeWhen` is optional in the output:
 
