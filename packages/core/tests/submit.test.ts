@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from 'vite-plus/test'
+import { z } from 'zod'
 
-import { createForm } from '../src'
+import { createForm, defineGroup } from '../src'
 import { promotionGroup, maxDiscountField } from './fixtures/promotion'
 import { PROMOTION_DEPS, createPromotionForm } from './fixtures/create-promotion-form'
 
@@ -112,6 +113,38 @@ describe('submit', () => {
 
     expect(onValid).not.toHaveBeenCalled()
     expect(limits.state.submitCount).toBe(0)
+  })
+
+  test('a root submit after a step submit reuses the results of the step', async () => {
+    const validateStep = vi.fn(() => undefined)
+    const checkStep = vi.fn(async () => undefined)
+    const stepGroup = defineGroup({
+      schema: z.object({ name: z.string() }),
+      validate: validateStep,
+      validateAsync: { on: 'submit', run: checkStep },
+    })
+    const form = createForm(defineGroup({ children: { step: stepGroup } }), {
+      initialValue: { step: { name: 'Ada' } },
+    })
+
+    await form.group('step').handleSubmit(vi.fn())()
+    validateStep.mockClear()
+    await expect(form.handleSubmit(vi.fn())()).resolves.toBe('success')
+
+    expect(validateStep).not.toHaveBeenCalled()
+    expect(checkStep).toHaveBeenCalledTimes(1)
+  })
+
+  test('server errors from a step submit block a root submit until their value changes', async () => {
+    const stepGroup = defineGroup({ schema: z.object({ name: z.string() }) })
+    const form = createForm(defineGroup({ children: { step: stepGroup } }), {
+      initialValue: { step: { name: 'Ada' } },
+    })
+    await form.group('step').handleSubmit(() => [{ path: 'name', code: 'server.taken' }])()
+
+    await expect(form.handleSubmit(vi.fn())()).resolves.toBe('invalid')
+    form.field('step.name').setValue('Grace')
+    await expect(form.handleSubmit(vi.fn())()).resolves.toBe('success')
   })
 
   test('onInvalid receives the errors and validate() reveals nothing', async () => {
