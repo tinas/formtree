@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { injectFormNode, provideFormNode } from '@formtree/vue'
+import { provideFormNode, useFormNode } from '@formtree/vue'
 
 import TextField from '../components/text-field.vue'
 import { checkoutGroup } from '../forms/checkout'
@@ -7,7 +7,7 @@ import LineItemRow from './line-item-row.vue'
 
 const emit = defineEmits<{ complete: [] }>()
 
-const cart = provideFormNode(injectFormNode(checkoutGroup).group('cart'))
+const cart = provideFormNode(useFormNode(checkoutGroup).group('cart'))
 const lineItems = cart.array('lineItems')
 
 const onSubmit = cart.handleSubmit(() => emit('complete'))

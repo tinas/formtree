@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { injectFormNode, provideFormNode } from '@formtree/vue'
+import { provideFormNode, useFormNode } from '@formtree/vue'
 import { computed } from 'vue'
 
 import { PRODUCTS, saveLineItem } from '../api'
@@ -20,7 +20,7 @@ const PRODUCT_OPTIONS = PRODUCTS.map(product => {
   }
 })
 
-const lineItems = injectFormNode(cartGroup).array('lineItems')
+const lineItems = useFormNode(cartGroup).array('lineItems')
 const row = provideFormNode(lineItems.items[props.index])
 
 const isSaved = computed(() => row.state.value.id != undefined)

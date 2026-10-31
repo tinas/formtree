@@ -6,7 +6,7 @@ import { inject, provide } from 'vue'
 type AnyRecord = Record<string, unknown>
 
 /**
- * The loosely typed node {@link injectFormNode} returns without a definition.
+ * The loosely typed node {@link useFormNode} returns without a definition.
  *
  * @category Node Context
  */
@@ -38,17 +38,17 @@ export function provideFormNode<Node extends object>(node: Node): Node {
  *
  * @category Node Context
  */
-export function injectFormNode<NodeDefinition extends Definition>(definition: NodeDefinition): NodeOf<NodeDefinition>
+export function useFormNode<NodeDefinition extends Definition>(definition: NodeDefinition): NodeOf<NodeDefinition>
 /** Returns the nearest provided node of any definition, loosely typed. Throws when no ancestor provided one. */
-export function injectFormNode(): AnyGroupNode
-export function injectFormNode(definition?: Definition): unknown {
+export function useFormNode(): AnyGroupNode
+export function useFormNode(definition?: Definition): unknown {
   const context = inject(NODE_CONTEXT, undefined)
   const found = definition == undefined ? context : findContext(context, definition)
   if (found == undefined) {
     throw new Error(
       definition == undefined
-        ? '[formtree] injectFormNode() found no provided node. Call provideFormNode() in an ancestor component.'
-        : '[formtree] injectFormNode(definition) found no provided node for this definition.',
+        ? '[formtree] useFormNode() found no provided node. Call provideFormNode() in an ancestor component.'
+        : '[formtree] useFormNode(definition) found no provided node for this definition.',
     )
   }
   return found.node

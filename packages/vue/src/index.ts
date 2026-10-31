@@ -4,7 +4,7 @@
  * @module @formtree/vue
  */
 export * from '@formtree/core'
-export { injectFormNode, provideFormNode } from './node-context'
+export { provideFormNode, useFormNode } from './node-context'
 export type { AnyGroupNode } from './node-context'
 export { useField } from './use-field'
 export type { FieldBindingAttributes, FieldView } from './use-field'

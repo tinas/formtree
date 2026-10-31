@@ -69,7 +69,7 @@ messages a schema library writes by default.
 A business component that knows its definition can bind a typed node instead of a name:
 
 ```ts
-const delivery = injectFormNode(deliveryGroup)
+const delivery = useFormNode(deliveryGroup)
 
 const method = useField(delivery.field('method'))
 // method.model: 'shipping' | 'pickup' | undefined

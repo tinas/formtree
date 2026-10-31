@@ -2,19 +2,19 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, test } from 'vite-plus/test'
 import { defineComponent, h } from 'vue'
 
-import { injectFormNode, provideFormNode, useField, useForm } from '../src'
+import { provideFormNode, useField, useForm, useFormNode } from '../src'
 import { addressGroup, PROFILE_DEPS, profileGroup } from './fixtures/profile'
 
 interface Captured {
   form?: ReturnType<typeof useForm<typeof profileGroup>>
-  address?: ReturnType<typeof injectFormNode<typeof addressGroup>>
-  root?: ReturnType<typeof injectFormNode<typeof profileGroup>>
+  address?: ReturnType<typeof useFormNode<typeof addressGroup>>
+  root?: ReturnType<typeof useFormNode<typeof profileGroup>>
 }
 
 function mountProfile(Leaf: ReturnType<typeof defineComponent>, captured: Captured) {
   const AddressSection = defineComponent({
     setup() {
-      provideFormNode(injectFormNode(profileGroup).group('address'))
+      provideFormNode(useFormNode(profileGroup).group('address'))
       return () => h(Leaf)
     },
   })
@@ -28,12 +28,12 @@ function mountProfile(Leaf: ReturnType<typeof defineComponent>, captured: Captur
 }
 
 describe('node context', () => {
-  test('injectFormNode finds the nearest provided node of a definition', () => {
+  test('useFormNode finds the nearest provided node of a definition', () => {
     const captured: Captured = {}
     const Leaf = defineComponent({
       setup() {
-        captured.address = injectFormNode(addressGroup)
-        captured.root = injectFormNode(profileGroup)
+        captured.address = useFormNode(addressGroup)
+        captured.root = useFormNode(profileGroup)
         return () => h('span')
       },
     })
@@ -44,16 +44,16 @@ describe('node context', () => {
     expect(captured.root).toBe(captured.form)
   })
 
-  test('injectFormNode throws when no ancestor provided the definition', () => {
+  test('useFormNode throws when no ancestor provided the definition', () => {
     const Lonely = defineComponent({
       setup() {
-        injectFormNode(addressGroup)
+        useFormNode(addressGroup)
         return () => h('span')
       },
     })
 
     expect(() => mount(Lonely)).toThrow(
-      '[formtree] injectFormNode(definition) found no provided node for this definition.',
+      '[formtree] useFormNode(definition) found no provided node for this definition.',
     )
   })
 
@@ -90,7 +90,7 @@ describe('node context', () => {
     const captured: Captured = {}
     const NameInput = defineComponent({
       setup() {
-        const name = useField(injectFormNode(profileGroup).field('name'))
+        const name = useField(useFormNode(profileGroup).field('name'))
         name.model = 'Ada'
         return () => h('span', name.state.value)
       },

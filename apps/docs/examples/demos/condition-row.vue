@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { injectFormNode, provideFormNode } from '@formtree/vue'
+import { provideFormNode, useFormNode } from '@formtree/vue'
 
 import SelectField from '../components/select-field.vue'
 import TextField from '../components/text-field.vue'
@@ -14,7 +14,7 @@ const OPERATOR_OPTIONS = [
   { value: OPERATOR.isNot, label: 'is not' },
 ]
 
-const conditions = injectFormNode(conditionTreeGroup).array('conditions')
+const conditions = useFormNode(conditionTreeGroup).array('conditions')
 provideFormNode(conditions.items[props.index]!)
 </script>
 

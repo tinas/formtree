@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { injectFormNode, provideFormNode, useField } from '@formtree/vue'
+import { provideFormNode, useField, useFormNode } from '@formtree/vue'
 
 import SelectField from '../components/select-field.vue'
 import TextField from '../components/text-field.vue'
@@ -12,7 +12,7 @@ const PAYMENT_OPTIONS = [
   { value: PAYMENT_METHOD.invoice, label: 'Invoice' },
 ]
 
-const checkout = injectFormNode(checkoutGroup)
+const checkout = useFormNode(checkoutGroup)
 const payment = provideFormNode(checkout.group('payment'))
 const acceptTerms = useField(checkout.field('acceptTerms'))
 

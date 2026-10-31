@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { injectFormNode, provideFormNode } from '@formtree/vue'
+import { provideFormNode, useFormNode } from '@formtree/vue'
 
 import { COUNTRIES } from '../api'
 import SelectField from '../components/select-field.vue'
@@ -21,7 +21,7 @@ const COUNTRY_OPTIONS = COUNTRIES.map(country => {
   }
 })
 
-const delivery = provideFormNode(injectFormNode(checkoutGroup).group('delivery'))
+const delivery = provideFormNode(useFormNode(checkoutGroup).group('delivery'))
 
 const onSubmit = delivery.handleSubmit(() => emit('complete'))
 </script>

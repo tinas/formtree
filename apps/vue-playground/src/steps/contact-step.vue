@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { injectFormNode, provideFormNode } from '@formtree/vue'
+import { provideFormNode, useFormNode } from '@formtree/vue'
 
 import TextField from '../components/text-field.vue'
 import { checkoutGroup } from '../forms/checkout'
 
 const emit = defineEmits<{ complete: [] }>()
 
-const contact = provideFormNode(injectFormNode(checkoutGroup).group('contact'))
+const contact = provideFormNode(useFormNode(checkoutGroup).group('contact'))
 
 const onSubmit = contact.handleSubmit(() => emit('complete'))
 </script>

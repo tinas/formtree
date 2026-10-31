@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NotificationChannel } from '../forms/checkout'
 
-import { injectFormNode, useField } from '@formtree/vue'
+import { useField, useFormNode } from '@formtree/vue'
 
 import { checkoutGroup, NOTIFICATION_CHANNEL } from '../forms/checkout'
 
@@ -13,7 +13,7 @@ const NOTIFICATION_CHOICES = [
   { value: NOTIFICATION_CHANNEL.push, label: 'Push notification' },
 ]
 
-const notifyBy = useField(injectFormNode(checkoutGroup).field('notifyBy'))
+const notifyBy = useField(useFormNode(checkoutGroup).field('notifyBy'))
 
 const onSubmit = notifyBy.node.handleSubmit(() => emit('complete'))
 

@@ -1,7 +1,7 @@
 # Node Context
 
 A checkout page owns the form, and each step is a component of its own. The steps need their
-part of the form, and their inputs need the step. `provideFormNode` and `injectFormNode` pass
+part of the form, and their inputs need the step. `provideFormNode` and `useFormNode` pass
 nodes down the component tree without props.
 
 ## provideFormNode
@@ -22,33 +22,33 @@ itself, so a form in a dialog cannot quietly replace the page's form for the com
 
 Any node can be provided: the root, a step, an array item.
 
-## injectFormNode
+## useFormNode
 
 ```vue
 <!-- delivery-step.vue -->
 <script setup lang="ts">
-import { injectFormNode, provideFormNode } from '@formtree/vue'
+import { provideFormNode, useFormNode } from '@formtree/vue'
 import { checkoutGroup } from './forms/checkout'
 
 const emit = defineEmits<{ next: [] }>()
 
-const delivery = provideFormNode(injectFormNode(checkoutGroup).group('delivery'))
+const delivery = provideFormNode(useFormNode(checkoutGroup).group('delivery'))
 
 const submit = delivery.handleSubmit(() => emit('next'))
 </script>
 ```
 
-`injectFormNode(definition)` returns the nearest provided node of that definition, typed by it.
+`useFormNode(definition)` returns the nearest provided node of that definition, typed by it.
 If no ancestor provided one, it throws. It does not fall back to another node.
 
 A component deeper down can then ask for the delivery step by its own definition, without
 knowing that it sits inside a checkout:
 
 ```ts
-const delivery = injectFormNode(deliveryGroup)
+const delivery = useFormNode(deliveryGroup)
 ```
 
-`injectFormNode()` without an argument returns the nearest provided node of any definition, with
+`useFormNode()` without an argument returns the nearest provided node of any definition, with
 a loose type. Generic input components use it through `useField(name)`.
 
 ## Lists
@@ -58,12 +58,12 @@ A row component receives its index, injects the list's parent and provides its o
 ```vue
 <!-- line-item-row.vue -->
 <script setup lang="ts">
-import { injectFormNode, provideFormNode } from '@formtree/vue'
+import { provideFormNode, useFormNode } from '@formtree/vue'
 import { checkoutGroup } from './forms/checkout'
 
 const props = defineProps<{ index: number }>()
 
-const lineItems = injectFormNode(checkoutGroup).array('lineItems')
+const lineItems = useFormNode(checkoutGroup).array('lineItems')
 const row = provideFormNode(lineItems.items[props.index]!)
 </script>
 ```

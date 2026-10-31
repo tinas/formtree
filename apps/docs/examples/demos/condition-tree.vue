@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { injectFormNode, provideFormNode } from '@formtree/vue'
+import { provideFormNode, useFormNode } from '@formtree/vue'
 
 import SelectField from '../components/select-field.vue'
 import { conditionTreeGroup, MATCH } from '../forms/segment'
@@ -14,7 +14,7 @@ const MATCH_OPTIONS = [
   { value: MATCH.any, label: 'Any of these' },
 ]
 
-const parent = injectFormNode(conditionTreeGroup)
+const parent = useFormNode(conditionTreeGroup)
 const tree = props.index === undefined ? parent : provideFormNode(parent.array('groups').items[props.index]!)
 const conditions = tree.array('conditions')
 const groups = tree.array('groups')

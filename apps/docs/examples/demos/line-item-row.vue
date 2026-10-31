@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { injectFormNode, provideFormNode } from '@formtree/vue'
+import { provideFormNode, useFormNode } from '@formtree/vue'
 import { computed } from 'vue'
 
 import NumberField from '../components/number-field.vue'
@@ -15,7 +15,7 @@ const PRODUCT_OPTIONS = [
   { value: 'CAP-03', label: 'Cap' },
 ]
 
-const lineItems = injectFormNode(lineItemsArray)
+const lineItems = useFormNode(lineItemsArray)
 const row = provideFormNode(lineItems.items[props.index]!)
 
 const status = computed(() => {

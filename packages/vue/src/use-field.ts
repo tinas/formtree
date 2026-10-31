@@ -4,7 +4,7 @@ import type { AnyGroupNode } from './node-context'
 
 import { computed, toValue } from 'vue'
 
-import { injectFormNode } from './node-context'
+import { useFormNode } from './node-context'
 
 /**
  * Attributes for `v-bind` on an input: the field's attributes with `undefined` for absent ones, and a blur handler.
@@ -49,7 +49,7 @@ export function useField<Value, Output>(source: MaybeRefOrGetter<FieldNode<Value
  */
 export function useField<Value>(name: MaybeRefOrGetter<string>): FieldView<Value | undefined, unknown>
 export function useField(source: MaybeRefOrGetter<FieldSource>): FieldView<unknown, unknown> {
-  const base = typeof toValue(source) == 'string' ? injectFormNode() : undefined
+  const base = typeof toValue(source) == 'string' ? useFormNode() : undefined
   const node = computed(() => resolveFieldNode(base, toValue(source)))
   return createFieldView(node)
 }
