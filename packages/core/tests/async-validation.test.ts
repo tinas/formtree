@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vite-plus/tes
 import { z } from 'zod'
 
 import { ASYNC_FAILED_CODE, createForm, defineField } from '../src'
-import { nameChecks } from './fixtures/budget-allocation'
-import { createAllocationForm } from './fixtures/create-allocation-form'
+import { nameChecks } from './fixtures/promotion'
+import { createPromotionForm } from './fixtures/create-promotion-form'
 
 describe('async validation', () => {
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe('async validation', () => {
   })
 
   test('a blur-triggered check is debounced and receives the output and deps', async () => {
-    const name = createAllocationForm().field('setup.name')
+    const name = createPromotionForm().field('setup.name')
 
     name.setValue('  Q4  ')
     expect(nameChecks).toHaveLength(0)
@@ -24,12 +24,12 @@ describe('async validation', () => {
     expect(name.state.validating).toBe(true)
     await vi.advanceTimersByTimeAsync(300)
 
-    expect(nameChecks).toEqual([expect.objectContaining({ name: 'Q4', campaignGroupId: 42 })])
+    expect(nameChecks).toEqual([expect.objectContaining({ name: 'Q4', storeId: 42 })])
     expect(name.state.validating).toBe(false)
   })
 
   test('a check does not run while the schema fails', async () => {
-    const name = createAllocationForm().field('setup.name')
+    const name = createPromotionForm().field('setup.name')
 
     name.setValue('   ')
     name.blur()
@@ -39,14 +39,12 @@ describe('async validation', () => {
   })
 
   test('results become async errors and are cached per value', async () => {
-    const name = createAllocationForm().field('setup.name')
+    const name = createPromotionForm().field('setup.name')
 
     name.setValue('Taken')
     name.blur()
     await vi.advanceTimersByTimeAsync(300)
-    expect(name.state.errors).toEqual([
-      expect.objectContaining({ code: 'budget_allocation.create.name.taken', source: 'async' }),
-    ])
+    expect(name.state.errors).toEqual([expect.objectContaining({ code: 'This name is already used', source: 'async' })])
 
     name.setValue('Other')
     expect(name.state.errors).toEqual([])
@@ -54,15 +52,15 @@ describe('async validation', () => {
     await vi.advanceTimersByTimeAsync(300)
 
     name.setValue('Taken')
-    expect(name.state.errors).toEqual([expect.objectContaining({ code: 'budget_allocation.create.name.taken' })])
+    expect(name.state.errors).toEqual([expect.objectContaining({ code: 'This name is already used' })])
     expect(nameChecks).toHaveLength(2)
   })
 
   test('submit runs a check that has not run yet and waits for it', async () => {
-    const form = createAllocationForm()
+    const form = createPromotionForm()
     const setup = form.group('setup')
     setup.field('name').setValue('Taken')
-    setup.field('app').setValue({ appId: 7 })
+    setup.field('product').setValue({ productId: 7 })
 
     await expect(setup.handleSubmit(vi.fn())()).resolves.toBe('invalid')
 

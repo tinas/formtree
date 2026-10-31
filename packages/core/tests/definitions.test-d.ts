@@ -5,45 +5,45 @@ import { z } from 'zod'
 
 import { arrayOf, createForm, defineField, defineGroup, defineGroupWithDeps } from '../src'
 import {
-  budgetAllocationGroup,
+  promotionGroup,
   conditionTreeGroup,
-  kpiStepGroup,
-  scheduleRowGroup,
-  totalBudgetField,
-} from './fixtures/budget-allocation'
+  rewardStepGroup,
+  slotRowGroup,
+  maxDiscountField,
+} from './fixtures/promotion'
 
-type Kpi = 'CPA' | 'CPI' | 'CPG'
-type AttributedTime = 'INSTALL_TIME' | 'EVENT_TIME'
-type KpiWindow = 'D1' | 'D7'
+type Reward = 'FIXED' | 'PERCENT' | 'GIFT'
+type GiftDelivery = 'SEPARATE' | 'WITH_ORDER'
+type Wrapping = 'PAPER' | 'BOX'
 
-declare const form: Form<typeof budgetAllocationGroup>
+declare const form: Form<typeof promotionGroup>
 
 describe('definition types', () => {
   test('a field drafts its schema input and outputs its schema output', () => {
-    expectTypeOf<DraftOf<typeof totalBudgetField>>().toEqualTypeOf<number | undefined>()
-    expectTypeOf<InputOf<typeof totalBudgetField>>().toEqualTypeOf<number>()
-    expectTypeOf<OutputOf<typeof totalBudgetField>>().toEqualTypeOf<number>()
+    expectTypeOf<DraftOf<typeof maxDiscountField>>().toEqualTypeOf<number | undefined>()
+    expectTypeOf<InputOf<typeof maxDiscountField>>().toEqualTypeOf<number>()
+    expectTypeOf<OutputOf<typeof maxDiscountField>>().toEqualTypeOf<number>()
   })
 
   test('declared structure is required in the draft, schema values may be empty', () => {
-    expectTypeOf<DraftOf<typeof kpiStepGroup>>().toEqualTypeOf<{
-      kpi?: Kpi
-      attribution: { reAttrType?: 'EXCLUDE' | 'INCLUDE'; claimType?: 'CLICK' | 'VIEW' }
-      goal: { goalId?: number; attributedTime?: AttributedTime; kpiWindow?: KpiWindow | undefined }
+    expectTypeOf<DraftOf<typeof rewardStepGroup>>().toEqualTypeOf<{
+      type?: Reward
+      limits: { usage?: 'ONCE' | 'REPEAT'; scope?: 'CART' | 'ITEM' }
+      gift: { giftId?: number; delivery?: GiftDelivery; wrapping?: Wrapping | undefined }
     }>()
   })
 
   test('children listed in activeWhen are optional in the output', () => {
-    expectTypeOf<OutputOf<typeof kpiStepGroup>>().toEqualTypeOf<{
-      kpi: Kpi
-      attribution?: { reAttrType: 'EXCLUDE' | 'INCLUDE'; claimType: 'CLICK' | 'VIEW' }
-      goal?: { goalId: number; attributedTime: AttributedTime; kpiWindow?: KpiWindow }
+    expectTypeOf<OutputOf<typeof rewardStepGroup>>().toEqualTypeOf<{
+      type: Reward
+      limits?: { usage: 'ONCE' | 'REPEAT'; scope: 'CART' | 'ITEM' }
+      gift?: { giftId: number; delivery: GiftDelivery; wrapping?: Wrapping }
     }>()
   })
 
   test('declared arrays are always present in the draft', () => {
-    expectTypeOf<DraftOf<typeof budgetAllocationGroup>['budget']['schedules']>().toEqualTypeOf<
-      Array<DraftOf<typeof scheduleRowGroup>>
+    expectTypeOf<DraftOf<typeof promotionGroup>['spending']['slots']>().toEqualTypeOf<
+      Array<DraftOf<typeof slotRowGroup>>
     >()
   })
 
@@ -93,22 +93,22 @@ describe('definition types', () => {
 
   test('a key may not be declared in both schema and children', () => {
     // @ts-expect-error amount is in both
-    defineGroup({ schema: z.object({ amount: z.number() }), children: { amount: totalBudgetField } })
+    defineGroup({ schema: z.object({ amount: z.number() }), children: { amount: maxDiscountField } })
   })
 })
 
 describe('createForm types', () => {
   test('deps are required when the root definition needs them', () => {
     // @ts-expect-error deps missing
-    createForm(budgetAllocationGroup)
-    createForm(budgetAllocationGroup, { deps: { campaignGroupId: 1, metrics: [] } })
-    createForm(totalBudgetField)
+    createForm(promotionGroup)
+    createForm(promotionGroup, { deps: { storeId: 1, attributes: [] } })
+    createForm(maxDiscountField)
   })
 
   test('initialValue is a partial draft', () => {
-    createForm(budgetAllocationGroup, {
-      deps: { campaignGroupId: 1, metrics: [] },
-      initialValue: { guardrails: { operator: 'AND' } },
+    createForm(promotionGroup, {
+      deps: { storeId: 1, attributes: [] },
+      initialValue: { eligibility: { operator: 'AND' } },
     })
   })
 })
@@ -116,40 +116,40 @@ describe('createForm types', () => {
 describe('node navigation types', () => {
   test('paths resolve to typed field nodes', () => {
     expectTypeOf(form.field('setup.name')).toEqualTypeOf<FieldNode<string | undefined, string>>()
-    expectTypeOf(form.field('kpi.goal.kpiWindow')).toEqualTypeOf<FieldNode<KpiWindow | undefined, KpiWindow>>()
-    expectTypeOf(form.field('campaignIdList')).toEqualTypeOf<FieldNode<Array<number> | undefined, Array<number>>>()
+    expectTypeOf(form.field('reward.gift.wrapping')).toEqualTypeOf<FieldNode<Wrapping | undefined, Wrapping>>()
+    expectTypeOf(form.field('categoryIds')).toEqualTypeOf<FieldNode<Array<number> | undefined, Array<number>>>()
   })
 
   test('unknown paths and wrong views are rejected', () => {
     // @ts-expect-error unknown key
     form.field('setup.nmae')
     // @ts-expect-error a list is not a group
-    form.group('campaignIdList')
+    form.group('categoryIds')
     // @ts-expect-error a leaf is not an array
-    form.array('budget.strategy')
+    form.array('spending.period')
   })
 
   test('declared array items are typed by their definition', () => {
-    const row = form.array('budget.schedules').items[0]
+    const row = form.array('spending.slots').items[0]
     expectTypeOf(row.key).toEqualTypeOf<string>()
-    expectTypeOf(row.field('totalBudget')).toEqualTypeOf<FieldNode<number | undefined, number>>()
-    expectTypeOf(row.handleSubmit).parameter(0).parameter(0).toEqualTypeOf<OutputOf<typeof scheduleRowGroup>>()
+    expectTypeOf(row.field('amount')).toEqualTypeOf<FieldNode<number | undefined, number>>()
+    expectTypeOf(row.handleSubmit).parameter(0).parameter(0).toEqualTypeOf<OutputOf<typeof slotRowGroup>>()
   })
 
   test('recursive definitions keep navigating', () => {
-    const nested = form.group('guardrails').array('groups').items[0]
+    const nested = form.group('eligibility').array('groups').items[0]
     expectTypeOf(nested.field('operator').state.value).toEqualTypeOf<'AND' | 'OR' | undefined>()
-    nested.array('conditions').push({ metric: 'cpa' })
+    nested.array('conditions').push({ attribute: 'orders' })
     expectTypeOf<OutputOf<typeof conditionTreeGroup>['groups']>().toEqualTypeOf<
       Array<{
         operator: 'AND' | 'OR'
-        conditions: Array<InputOf<typeof import('./fixtures/budget-allocation').conditionGroup>>
-        groups: Array<import('./fixtures/budget-allocation').ConditionTreeInput>
+        conditions: Array<InputOf<typeof import('./fixtures/promotion').conditionGroup>>
+        groups: Array<import('./fixtures/promotion').ConditionTreeInput>
       }>
     >()
   })
 
   test('a field definition can be a root', () => {
-    expectTypeOf(createForm(totalBudgetField).state.value).toEqualTypeOf<number | undefined>()
+    expectTypeOf(createForm(maxDiscountField).state.value).toEqualTypeOf<number | undefined>()
   })
 })

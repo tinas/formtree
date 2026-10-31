@@ -52,7 +52,7 @@ Components never receive nodes through props: business components call `injectFo
 
 ## Docs (apps/docs)
 
-VitePress 2 (alpha) site in English, styled after usewagen.dev: `guide/` (core concepts), `vue/` (adapter), `examples/` (live Vue demos with "Show code"). Examples are generic (checkout, account roles, segment builder, price cell), and so are both playgrounds (a checkout wizard); never use search-ads-ui domain terms in docs or playgrounds.
+VitePress 2 (alpha) site in English, styled after usewagen.dev: `guide/` (core concepts), `vue/` (adapter), `examples/` (live Vue demos with "Show code"). Examples are generic (checkout, account roles, segment builder, price cell), and so are both playgrounds (a checkout wizard); never use search-ads-ui domain terms in docs, playgrounds or tests. Core tests use a store promotion (`packages/core/tests/fixtures/promotion.ts`): reward branches, a gift with a nested branch, spending slots, recursive eligibility rules.
 
 | Path                        | Role                                                                                                                                                                                                                   |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -84,7 +84,6 @@ Changesets 3 (`.changeset/config.json`): `@formtree/*` is a `fixed` group, so ev
 ## Open work
 
 - Hover types are hard to read: nested drafts and outputs show as `Simplify<DraftObject<…> & {} & {…}>`, group nodes as `GroupNode<GroupDefinitionOf<…>>`. Until that is fixed, docs use `//    ^?` only where the type reads well.
-- Core test fixtures (`packages/core/tests/fixtures/budget-allocation.ts`, used by all six test files) still use the budget-allocation domain and its translation keys; moving them to checkout definitions is undecided.
 - React adapter with the same contract: `useSyncExternalStore`, a hook that reads the node from context (React has no `inject` verb, so it needs its own name) and `useField`.
 - Playgrounds and docs demos have only been checked with scripted headless Chrome flows.
 - Once the repo has a GitHub remote: drop `disableSources` in `apps/docs/typedoc.json` and consider `@changesets/changelog-github`.
