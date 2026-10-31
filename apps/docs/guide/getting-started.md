@@ -19,8 +19,8 @@ yarn add @formtree/core zod
 :::
 
 formtree validates with any [Standard Schema](https://standardschema.dev) library, such as Zod,
-Valibot or ArkType. The examples here use Zod. For Vue, install `@formtree/vue` instead; it
-re-exports everything from the core.
+Valibot or ArkType. The examples here use Zod. For Vue or React, install `@formtree/vue` or
+`@formtree/react` instead; each re-exports everything from the core.
 
 ## Define the form
 
@@ -143,4 +143,4 @@ render()
 from a schema carries the schema's message as its `code`: a readable message, as here, or a
 translation key that the UI [translates](/guide/errors-and-focus#translating-errors).
 
-With Vue, the [adapter](/vue/) does this wiring.
+With [Vue](/vue/) or [React](/react/), the adapter does this wiring.

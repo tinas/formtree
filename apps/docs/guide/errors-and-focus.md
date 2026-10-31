@@ -47,8 +47,9 @@ quantity.subscribe(() => {
 server errors return `{ code, params }` themselves and are translated the same way.
 
 Translate when rendering, not when the error is created. The form keeps the keys, so switching
-the language updates every visible message without validating again. In Vue, the generic input
-does it: see [Field Bindings](/vue/field-bindings#translating-errors).
+the language updates every visible message without validating again. In an adapter, the generic input
+does it: see Field Bindings for [Vue](/vue/field-bindings#translating-errors) and
+[React](/react/field-bindings#translating-errors).
 
 A rule without its own message reports the schema library's default, which is an English
 sentence, not a key. Give every rule an `error`, or map issues to keys once with the library's
@@ -108,7 +109,7 @@ email.descriptionId // 'checkout:email:description'
 ```
 
 Give the error message element `errorId`. While an error is visible, `aria-describedby` points at
-it and `aria-invalid` is `'true'`. A `null` attribute is one to remove. The Vue adapter maps it to
+it and `aria-invalid` is `'true'`. A `null` attribute is one to remove. The adapters map it to
 `undefined` for you.
 
 ## Error summary

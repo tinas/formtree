@@ -1,6 +1,10 @@
 {
   "$schema": "https://typedoc-plugin-markdown.org/schema.json",
-  "entryPoints": ["../../packages/core/src/index.ts", "../../packages/vue/src/index.ts"],
+  "entryPoints": [
+    "../../packages/core/src/index.ts",
+    "../../packages/vue/src/index.ts",
+    "../../packages/react/src/index.ts"
+  ],
   "tsconfig": "./tsconfig.typedoc.json",
   "out": "./api",
   "docsRoot": ".",
@@ -34,6 +38,7 @@
     "Errors",
     "Types",
     "Node Context",
+    "Node State",
     "Field Bindings",
     "*"
   ],

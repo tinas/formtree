@@ -30,6 +30,7 @@ export default defineConfig({
     nav: [
       { text: 'Guide', link: '/guide/', activeMatch: '/guide/' },
       { text: 'Vue', link: '/vue/', activeMatch: '/vue/' },
+      { text: 'React', link: '/react/', activeMatch: '/react/' },
       { text: 'Examples', link: '/examples/', activeMatch: '/examples/' },
       { text: 'API', link: '/api/', activeMatch: '/api/' },
     ],
@@ -85,6 +86,17 @@ export default defineConfig({
             { text: 'Overview', link: '/vue/' },
             { text: 'Node Context', link: '/vue/node-context' },
             { text: 'Field Bindings', link: '/vue/field-bindings' },
+          ],
+        },
+      ],
+
+      '/react/': [
+        {
+          text: 'React',
+          items: [
+            { text: 'Overview', link: '/react/' },
+            { text: 'Node Context', link: '/react/node-context' },
+            { text: 'Field Bindings', link: '/react/field-bindings' },
           ],
         },
       ],

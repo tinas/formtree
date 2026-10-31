@@ -62,8 +62,8 @@ function renderAddress(address: NodeOf<typeof addressGroup>) {
 ```
 
 The same component works in a checkout, in an account page and in a returns form, as long as
-the address comes from `addressGroup`. In Vue, [`injectFormNode(addressGroup)`](/vue/node-context)
-gives the component this node without a prop.
+the address comes from `addressGroup`. In Vue and React, `useFormNode(addressGroup)` gives the component this
+node without a prop: see Node Context for [Vue](/vue/node-context) and [React](/react/node-context).
 
 ## Trade-offs
 

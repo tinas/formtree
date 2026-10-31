@@ -133,6 +133,6 @@ definition of its own.
 
 Each node has a DOM id built from the form id and its path, such as `checkout:contact.email`,
 and ids derived from it: a field's error message and description, a group's or an array's error
-summary. Pass `id` to `createForm` to choose the prefix; otherwise a counter is used, and the Vue
-adapter uses `useId()`. These ids are the only link between the core and the DOM: they connect
+summary. Pass `id` to `createForm` to choose the prefix; otherwise a counter is used, and the
+adapters use `useId()`. These ids are the only link between the core and the DOM: they connect
 labels, `aria-describedby` and error focus.

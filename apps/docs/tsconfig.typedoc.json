@@ -1,4 +1,7 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["../../packages/core/src", "../../packages/vue/src"]
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  },
+  "include": ["../../packages/core/src", "../../packages/vue/src", "../../packages/react/src"]
 }

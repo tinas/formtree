@@ -136,8 +136,8 @@ fetchShippingCountries().then(countries => {
 })
 ```
 
-In Vue, `useForm` accepts a ref or a getter and calls `setDeps` when it changes. See
-[Vue](/vue/#dependencies).
+The adapters call `setDeps` for you: in Vue, `useForm` follows a ref or a getter
+([Vue](/vue/#dependencies)); in React, it receives each new `deps` value ([React](/react/#dependencies)).
 
 ## When dependencies change
 
