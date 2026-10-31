@@ -63,17 +63,31 @@ export const deliveryGroup = defineGroupWithDeps<{ countries: ReadonlyArray<stri
 })
 ```
 
+`childDeps` has one entry per child that needs dependencies. Each entry is a function that
+receives `{ value, deps }` and returns that child's dependencies, typed by what the child
+declared:
+
+- `deps` holds the group's own dependencies. A group can only pass on what it has, so
+  `deliveryGroup` declares `countries` although only its address reads them. A child that needs
+  exactly the group's dependencies gets them with `({ deps }) => deps`.
+- `value` is the draft of the group's own schema, without its children, as in `activeWhen`.
+
 `childDeps` is required as soon as a child needs dependencies, and it lists exactly those
 children. Leaving it out is a type error, so a definition cannot end up in a form that forgets to
 provide what it needs. Children without dependencies are not listed.
 
-For an array, the entry in `childDeps` gives the same dependencies to every item. The array's
-own `validate` receives none; a rule that needs them goes on the parent group.
+The functions run again after every change, for active children only. A result equal key by key
+to the previous one keeps the previous object, so a function that returns a new object each time
+rebuilds nothing below it.
+
+For an array, the entry in `childDeps` gives the same dependencies to every item. An item cannot
+get dependencies of its own: a value that differs per item belongs in the item's schema. The
+array's own `validate` receives none; a rule that needs them goes on the parent group.
 
 ## Dependencies from the parent's value
 
-`childDeps` also receives the parent's own draft. A parent can turn one of its values into a
-dependency of a child, which keeps the child unaware of where the value came from.
+A parent can turn one of its values into a dependency of a child, which keeps the child unaware
+of where the value came from.
 
 ```ts twoslash
 import { defineFieldWithDeps, defineGroup } from '@formtree/core'
