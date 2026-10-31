@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    <title>Formtree playground</title>
+  </head>
+  <body>
+    <main class="layout">
+      <header class="intro">
+        <h1>Checkout</h1>
+        <p>
+          Formtree core without a framework. Every step, row and field below is a node of one form; each submits on its
+          own.
+        </p>
+      </header>
+
+      <ol id="steps" class="steps"></ol>
+
+      <section class="wizard">
+        <form id="cart-step" class="step" novalidate>
+          <h2>Cart</h2>
+          <div class="line-items">
+            <p class="hint">Each row saves on its own. Saved rows stay clean until they change.</p>
+            <div id="line-items"></div>
+            <p id="line-items-error" class="error"></p>
+            <button id="add-item" type="button" class="secondary">Add product</button>
+          </div>
+          <div class="field">
+            <label id="promo-code-label">Promo code</label>
+            <input id="promo-code" autocomplete="off" />
+            <span id="promo-code-checking" class="hint" hidden>Checking code…</span>
+            <span class="hint">Try welcome10 or freeship.</span>
+            <p id="promo-code-error" class="error"></p>
+          </div>
+        </form>
+
+        <form id="contact-step" class="step" novalidate>
+          <h2>Contact</h2>
+          <div class="field">
+            <label id="full-name-label">Full name</label>
+            <input id="full-name" autocomplete="off" />
+            <p id="full-name-error" class="error"></p>
+          </div>
+          <div class="field">
+            <label id="email-label">Email</label>
+            <input id="email" type="email" autocomplete="off" />
+            <p id="email-error" class="error"></p>
+          </div>
+        </form>
+
+        <form id="delivery-step" class="step" novalidate>
+          <h2>Delivery</h2>
+          <div class="field">
+            <label id="delivery-method-label">Method</label>
+            <select id="delivery-method"></select>
+            <p id="delivery-method-error" class="error"></p>
+          </div>
+          <fieldset id="address">
+            <legend>Shipping address</legend>
+            <div class="field">
+              <label id="street-label">Street</label>
+              <input id="street" autocomplete="off" />
+              <p id="street-error" class="error"></p>
+            </div>
+            <div class="field">
+              <label id="city-label">City</label>
+              <input id="city" autocomplete="off" />
+              <p id="city-error" class="error"></p>
+            </div>
+            <div class="field">
+              <label id="country-label">Country</label>
+              <select id="country"></select>
+              <p id="country-error" class="error"></p>
+            </div>
+            <div id="us-state-field" class="field">
+              <label id="us-state-label">State</label>
+              <input id="us-state" autocomplete="off" />
+              <p id="us-state-error" class="error"></p>
+            </div>
+          </fieldset>
+          <div id="store-field" class="field">
+            <label id="store-label">Pickup store</label>
+            <select id="store"></select>
+            <p id="store-error" class="error"></p>
+          </div>
+        </form>
+
+        <form id="updates-step" class="step" novalidate>
+          <h2>Updates</h2>
+          <fieldset id="notify-by" tabindex="-1">
+            <legend>Send order updates by</legend>
+          </fieldset>
+          <p id="notify-by-error" class="error"></p>
+        </form>
+
+        <form id="payment-step" class="step" novalidate>
+          <h2>Payment</h2>
+          <div class="field">
+            <label id="payment-method-label">Method</label>
+            <select id="payment-method"></select>
+            <p id="payment-method-error" class="error"></p>
+          </div>
+          <fieldset id="card">
+            <legend>Card</legend>
+            <div class="field">
+              <label id="card-holder-label">Cardholder</label>
+              <input id="card-holder" autocomplete="off" />
+              <p id="card-holder-error" class="error"></p>
+            </div>
+            <div class="field">
+              <label id="card-number-label">Card number</label>
+              <input id="card-number" inputmode="numeric" autocomplete="off" />
+              <p id="card-number-error" class="error"></p>
+            </div>
+          </fieldset>
+          <fieldset id="invoice">
+            <legend>Invoice</legend>
+            <div class="field">
+              <label id="company-label">Company</label>
+              <input id="company" autocomplete="off" />
+              <p id="company-error" class="error"></p>
+            </div>
+            <div class="field">
+              <label id="tax-id-label">Tax ID</label>
+              <input id="tax-id" autocomplete="off" />
+              <p id="tax-id-error" class="error"></p>
+            </div>
+          </fieldset>
+          <label class="choice">
+            <input id="accept-terms" type="checkbox" />
+            I accept the terms of sale
+          </label>
+          <p id="accept-terms-error" class="error"></p>
+        </form>
+
+        <footer class="wizard-footer">
+          <button id="back" type="button" class="secondary">Back</button>
+          <button id="continue" type="submit">Continue</button>
+        </footer>
+      </section>
+
+      <aside class="inspector">
+        <h2>Form state</h2>
+        <pre id="state"></pre>
+        <h2>Last submitted output</h2>
+        <pre id="output">Nothing submitted yet.</pre>
+      </aside>
+    </main>
+
+    <template id="line-item-row">
+      <div class="line-item">
+        <select class="product"></select>
+        <input class="quantity" type="number" min="1" placeholder="Qty" />
+        <button class="save" type="button">Save</button>
+        <button class="remove secondary" type="button">Remove</button>
+        <span class="status hint"></span>
+        <p class="error product-error"></p>
+        <p class="error quantity-error"></p>
+      </div>
+    </template>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
