@@ -103,7 +103,7 @@ document.querySelector('form')?.addEventListener('submit', submit)
 
 `handleSubmit` returns a function that takes an optional event, prevents its default action,
 validates the node and calls the handler with the validated output. It resolves to an outcome
-that [Submitting](/guide/submitting#the-pipeline) explains.
+that [Lifecycle](/guide/lifecycle#a-submit) explains.
 
 ## Render
 

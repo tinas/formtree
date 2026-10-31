@@ -21,15 +21,8 @@ apart.
 
 ## What happens on a change
 
-1. The value is written, and the node is marked dirty if it differs from its initial value.
-2. The scopes that contain the node are validated again: their schemas and `validate` rules.
-   Results are cached by value and dependencies, so a subtree that did not change is not
-   validated again.
-3. Asynchronous checks that run on change are scheduled, with their debounce.
-4. External errors whose `clearOn` is `'change'` are cleared for the changed node.
-5. Subscribers are notified once.
-
-Validation always runs. Nothing about it depends on what the user can see.
+A change validates every node it touched before `setValue` returns, whatever the user can see.
+[Lifecycle](/guide/lifecycle#a-change) lists the steps in order.
 
 ## Display modes
 

@@ -25,7 +25,7 @@ of the library follows from them.
 8. **An array item is identified by its key, not its index.** When a row moves, its errors,
    touched state and cached checks move with it.
 9. **A submit runs a fixed pipeline.** A node that is already submitting, or that is in an
-   inactive branch, returns `'skipped'`. See [Submitting](/guide/submitting#the-pipeline).
+   inactive branch, returns `'skipped'`. See [Lifecycle](/guide/lifecycle#a-submit).
 10. **Dependencies flow down, explicitly.** From parent to child, never between siblings and never
     upwards, so a definition's options show everything its rules depend on.
 

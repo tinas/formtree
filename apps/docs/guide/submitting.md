@@ -38,23 +38,9 @@ The second argument holds options for this submit alone, such as `onInvalid`;
 
 ## The pipeline
 
-A submit always runs the same steps, in the same order:
-
-1. If the node is already submitting or is in an inactive branch, return `'skipped'` without
-   calling the handler. A double click or an Enter key that lands together with a click submits
-   once, and a branch the data turned off never hands over an output.
-2. Mark the node as submitting and validate its subtree. Pending asynchronous checks are awaited,
-   and checks that have not run yet run now.
-3. If anything in the subtree is invalid, reveal those errors, move focus to the first one, call
-   `onInvalid` and return `'invalid'`.
-4. Call the handler with the output of the node.
-5. If the handler returns errors, store them as server errors relative to the node, move focus
-   to the first one and return `'rejected'`.
-6. Otherwise return `'success'`.
-
-`state.submitting` is `true` from step 2 until the end, and `state.submitCount` counts the
-submits that got past step 1. If the handler throws, `submitting` ends and the error is thrown
-from the submit function.
+A submit runs the same steps every time, and its outcome says where it stopped:
+[Lifecycle](/guide/lifecycle#a-submit) lists them in order, and
+[What a submit covers](/guide/lifecycle#what-a-submit-covers) shows which errors count.
 
 ## Submitting part of the form
 

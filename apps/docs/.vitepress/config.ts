@@ -63,6 +63,7 @@ export default defineConfig({
         {
           text: 'Behaviour',
           items: [
+            { text: 'Lifecycle', link: '/guide/lifecycle' },
             { text: 'Validation', link: '/guide/validation' },
             { text: 'Submitting', link: '/guide/submitting' },
             { text: 'Errors and Focus', link: '/guide/errors-and-focus' },
