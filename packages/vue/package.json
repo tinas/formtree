@@ -1,0 +1,47 @@
+{
+  "name": "@formtree/vue",
+  "version": "0.0.0",
+  "description": "Vue adapter for @formtree/core: reactive nodes, explicit node context, field bindings for v-model.",
+  "keywords": [
+    "form",
+    "headless",
+    "standard-schema",
+    "validation",
+    "vue"
+  ],
+  "license": "MIT",
+  "author": "Ahmet Tinastepe <ahmettinastepe0@gmail.com>",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "vp test",
+    "check": "vp check",
+    "prepublishOnly": "vp run build"
+  },
+  "dependencies": {
+    "@formtree/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@vue/test-utils": "catalog:",
+    "happy-dom": "catalog:",
+    "typescript": "catalog:",
+    "vite-plus": "catalog:",
+    "vue": "catalog:",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  }
+}

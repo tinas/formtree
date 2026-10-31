@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "paths": {
+      "@formtree/core": ["../core/src/index.ts"]
+    }
+  },
+  "include": ["src", "tests", "vite.config.ts"]
+}
