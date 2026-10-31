@@ -1,0 +1,110 @@
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vite-plus/test'
+import { z } from 'zod'
+
+import { ASYNC_FAILED_CODE, createForm, defineField } from '../src'
+import { nameChecks } from './fixtures/budget-allocation'
+import { createAllocationForm } from './fixtures/create-allocation-form'
+
+describe('async validation', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    nameChecks.length = 0
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  test('a blur-triggered check is debounced and receives the output and deps', async () => {
+    const name = createAllocationForm().field('setup.name')
+
+    name.setValue('  Q4  ')
+    expect(nameChecks).toHaveLength(0)
+    name.blur()
+    expect(name.state.validating).toBe(true)
+    await vi.advanceTimersByTimeAsync(300)
+
+    expect(nameChecks).toEqual([expect.objectContaining({ name: 'Q4', campaignGroupId: 42 })])
+    expect(name.state.validating).toBe(false)
+  })
+
+  test('a check does not run while the schema fails', async () => {
+    const name = createAllocationForm().field('setup.name')
+
+    name.setValue('   ')
+    name.blur()
+    await vi.advanceTimersByTimeAsync(300)
+
+    expect(nameChecks).toHaveLength(0)
+  })
+
+  test('results become async errors and are cached per value', async () => {
+    const name = createAllocationForm().field('setup.name')
+
+    name.setValue('Taken')
+    name.blur()
+    await vi.advanceTimersByTimeAsync(300)
+    expect(name.state.errors).toEqual([
+      expect.objectContaining({ code: 'budget_allocation.create.name.taken', source: 'async' }),
+    ])
+
+    name.setValue('Other')
+    expect(name.state.errors).toEqual([])
+    name.blur()
+    await vi.advanceTimersByTimeAsync(300)
+
+    name.setValue('Taken')
+    expect(name.state.errors).toEqual([expect.objectContaining({ code: 'budget_allocation.create.name.taken' })])
+    expect(nameChecks).toHaveLength(2)
+  })
+
+  test('submit runs a check that has not run yet and waits for it', async () => {
+    const form = createAllocationForm()
+    const setup = form.group('setup')
+    setup.field('name').setValue('Taken')
+    setup.field('app').setValue({ appId: 7 })
+
+    await expect(setup.handleSubmit(vi.fn())()).resolves.toBe('invalid')
+
+    expect(nameChecks).toHaveLength(1)
+  })
+
+  test('a change-triggered check is aborted by the next change', async () => {
+    const signals: Array<AbortSignal> = []
+    const lookupField = defineField({
+      schema: z.string(),
+      validateAsync: {
+        on: 'change',
+        debounceMs: 100,
+        run: (_value, { signal }) => {
+          signals.push(signal)
+          return new Promise<undefined>(() => undefined)
+        },
+      },
+    })
+    const lookup = createForm(lookupField, { initialValue: 'initial' })
+
+    expect(signals).toHaveLength(0)
+    lookup.setValue('a')
+    await vi.advanceTimersByTimeAsync(100)
+    expect(signals).toHaveLength(1)
+    lookup.setValue('b')
+
+    expect(signals[0].aborted).toBe(true)
+  })
+
+  test('a failing check becomes an error instead of throwing', async () => {
+    const lookupField = defineField({
+      schema: z.string(),
+      validateAsync: {
+        on: 'submit',
+        run: () => Promise.reject(new Error('offline')),
+      },
+    })
+    const lookup = createForm(lookupField, { initialValue: 'value' })
+
+    await expect(lookup.handleSubmit(vi.fn())()).resolves.toBe('invalid')
+
+    expect(lookup.state.errors).toEqual([expect.objectContaining({ code: ASYNC_FAILED_CODE, source: 'async' })])
+  })
+})

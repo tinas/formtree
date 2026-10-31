@@ -1,0 +1,75 @@
+import { describe, expect, test, vi } from 'vite-plus/test'
+
+import { createForm } from '../src'
+import { totalBudgetField } from './fixtures/budget-allocation'
+import { createAllocationForm } from './fixtures/create-allocation-form'
+
+describe('createForm', () => {
+  test('builds the declared structure and leaves schema values empty', () => {
+    const form = createAllocationForm()
+
+    expect(form.state.value).toEqual({
+      setup: {},
+      kpi: { attribution: {}, goal: {} },
+      budget: { schedules: [] },
+      guardrails: { operator: 'AND', conditions: [], groups: [] },
+    })
+  })
+
+  test('any definition can be a root, a field included', () => {
+    const cell = createForm(totalBudgetField, { initialValue: 10 })
+
+    expect(cell.state.value).toBe(10)
+    expect(cell.state.valid).toBe(true)
+    cell.setValue(-1)
+    expect(cell.state.valid).toBe(false)
+  })
+
+  test('nodes are stable objects per position, whatever view reaches them', () => {
+    const form = createAllocationForm()
+
+    expect(form.field('setup.name')).toBe(form.field('setup.name'))
+    expect(form.field('kpi')).toBe(form.group('kpi'))
+    expect(form.group('setup').field('name')).toBe(form.field('setup.name'))
+  })
+
+  test('ids derive from the form id and the path', () => {
+    const form = createAllocationForm()
+    const name = form.field('setup.name')
+
+    expect(form.id).toBe('allocation')
+    expect(name.id).toBe('allocation:setup.name')
+    expect(name.errorId).toBe('allocation:setup.name:error')
+    expect(name.getAttributes()).toEqual({
+      id: 'allocation:setup.name',
+      name: 'setup.name',
+      'aria-invalid': 'false',
+      'aria-describedby': null,
+    })
+    name.blur()
+    expect(name.getAttributes()['aria-describedby']).toBe('allocation:setup.name:error')
+  })
+
+  test('subscribers are notified once per batch', () => {
+    const form = createAllocationForm()
+    const listener = vi.fn()
+    form.subscribe(listener)
+
+    form.batch(() => {
+      form.field('setup.name').setValue('Q4')
+      form.field('budget.totalBudget').setValue(5)
+    })
+
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  test('node state keeps its reference while nothing about the node changes', () => {
+    const form = createAllocationForm()
+    const name = form.field('setup.name')
+    const before = name.state
+
+    form.field('budget.totalBudget').setValue(5)
+
+    expect(name.state).toBe(before)
+  })
+})
