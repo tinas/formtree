@@ -5,6 +5,11 @@ server. A promo code is checked against a cart id. An admin needs a longer passw
 member. These values are dependencies, `deps` for short: the form does not edit them, but its
 rules read them.
 
+Dependencies work like the parameters of a function. A definition declares what it takes, and
+the place that uses it passes it in: `createForm` for the root, the parent's `childDeps` for a
+child. A value belongs in dependencies when the form reads it, the user never edits it and it
+is not part of the output. A value the user edits belongs in a schema.
+
 ## Declaring what a definition needs
 
 A definition that reads dependencies says so in its type, with the `WithDeps` variant of its
@@ -35,17 +40,8 @@ it can be used in any form that provides them.
 
 ## Where dependencies are read
 
-| Option              | Receives                     | Use                                                 |
-| ------------------- | ---------------------------- | --------------------------------------------------- |
-| `schema`            | `{ deps }`                   | build the schema from configuration                 |
-| `validate`          | `{ value, deps }`            | rules that compare values with configuration        |
-| `validateAsync.run` | `(output, { signal, deps })` | ask a server about the value, with ids from outside |
-| `activeWhen`        | `{ value, deps }`            | branches that exist only for some configurations    |
-| `childDeps`         | `{ value, deps }`            | pass dependencies down to children                  |
-
-A schema built from dependencies is rebuilt only when those dependencies change, compared key by
-key, so a function that returns a new object each time does not rebuild it. The nodes it covers
-are validated again with the new schema.
+Every function in the options of `defineFieldWithDeps` and `defineGroupWithDeps` receives the
+definition's `deps`.
 
 ## Passing dependencies down
 
@@ -71,7 +67,8 @@ export const deliveryGroup = defineGroupWithDeps<{ countries: ReadonlyArray<stri
 children. Leaving it out is a type error, so a definition cannot end up in a form that forgets to
 provide what it needs. Children without dependencies are not listed.
 
-For an array, the entry in `childDeps` gives the same dependencies to every item.
+For an array, the entry in `childDeps` gives the same dependencies to every item. The array's
+own `validate` receives none; a rule that needs them goes on the parent group.
 
 ## Dependencies from the parent's value
 
@@ -125,8 +122,22 @@ fetchShippingCountries().then(countries => {
 })
 ```
 
-`setDeps` replaces the root's dependencies and recomputes `childDeps` down the tree. In Vue,
-`useForm` accepts a ref or a getter and calls `setDeps` when it changes. See [Vue](/vue/#dependencies).
+In Vue, `useForm` accepts a ref or a getter and calls `setDeps` when it changes. See
+[Vue](/vue/#dependencies).
+
+## When dependencies change
+
+`setDeps` replaces the root's dependencies, and every `childDeps` below runs again. A node whose
+new dependencies equal the previous ones key by key keeps the previous object, so a function
+that returns a new object each time rebuilds nothing. For a node whose dependencies did change:
+
+- a schema built from them is rebuilt, and the node is validated again with it;
+- `activeWhen` decides again which children take part;
+- an asynchronous check drops its cached results and its error, and runs again: at once for a
+  check on change, otherwise on its next trigger or at submit.
+
+Values are never touched. A dependency can make a value invalid, as the role does to the
+password above, but it does not change it.
 
 ## One direction
 

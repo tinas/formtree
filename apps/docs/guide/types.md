@@ -1,17 +1,10 @@
 # Types
 
 formtree's types follow one rule: a node's type comes from its own definition. The type of the
-whole form is never carried into a component, and no union of every path is computed.
+whole form is never carried into a component, and no union of every path is computed. The
+[Types](/api/@formtree/core/#types) section of the API reference lists every type helper.
 
-## Type helpers
-
-| Helper               | Gives                                                                       |
-| -------------------- | --------------------------------------------------------------------------- |
-| `DraftOf<typeof d>`  | the value the form holds. Structure is required, values may be `undefined`. |
-| `InputOf<typeof d>`  | the value the schema accepts.                                               |
-| `OutputOf<typeof d>` | the value a submit handler receives.                                        |
-| `DepsOf<typeof d>`   | the dependencies the definition needs.                                      |
-| `NodeOf<typeof d>`   | the node type for the definition: a field, group or array node.             |
+## The draft type
 
 ```ts twoslash
 import type { DraftOf } from '@formtree/core'
@@ -23,7 +16,7 @@ type CheckoutDraft = DraftOf<typeof checkoutGroup>
 //   contact: { fullName?: string, email?: string }
 //   delivery: { method?: 'shipping' | 'pickup', address: { … }, store?: string }
 //   payment: { method?: 'card' | 'invoice', card: { … }, invoice: { … } }
-//   items: Array<{ id?: number, sku?: string, quantity?: number }>
+//   lineItems: Array<{ id?: number, sku?: string, quantity?: number }>
 //   promoCode?: string
 // }
 ```

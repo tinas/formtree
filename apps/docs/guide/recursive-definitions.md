@@ -79,10 +79,10 @@ const form = createForm(segmentGroup, {
 const rules = form.group('rules')
 
 rules.array('groups').push({ match: 'any' })
-const nested = rules.array('groups').items[0]!
+const nestedGroup = rules.array('groups').items[0]!
 
-nested.array('conditions').push({ attribute: 'country', operator: 'is', value: 'DE' })
-nested.state.valid // true
+nestedGroup.array('conditions').push({ attribute: 'country', operator: 'is', value: 'DE' })
+nestedGroup.state.valid // true
 ```
 
 ## Types at any depth
@@ -98,9 +98,9 @@ const form = createForm(segmentGroup, {
   deps: { attributes: [{ id: 'country', label: 'Country' }] },
 })
 // ---cut---
-const deep = form.group('rules').array('groups').items[0]?.array('groups').items[0]
+const deepGroup = form.group('rules').array('groups').items[0]?.array('groups').items[0]
 
-deep?.field('match').state.value // 'all' | 'any' | undefined
+deepGroup?.field('match').state.value // 'all' | 'any' | undefined
 ```
 
 Because the annotation gives the types, the children of an annotated recursive definition are

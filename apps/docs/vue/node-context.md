@@ -28,7 +28,9 @@ Any node can be provided: the root, a step, an array item.
 <!-- delivery-step.vue -->
 <script setup lang="ts">
 import { injectFormNode, provideFormNode } from '@formtree/vue'
-import { checkoutGroup, deliveryGroup } from './forms/checkout'
+import { checkoutGroup } from './forms/checkout'
+
+const emit = defineEmits<{ next: [] }>()
 
 const delivery = provideFormNode(injectFormNode(checkoutGroup).group('delivery'))
 
@@ -61,8 +63,8 @@ import { checkoutGroup } from './forms/checkout'
 
 const props = defineProps<{ index: number }>()
 
-const items = injectFormNode(checkoutGroup).array('items')
-const row = provideFormNode(items.items[props.index]!)
+const lineItems = injectFormNode(checkoutGroup).array('lineItems')
+const row = provideFormNode(lineItems.items[props.index]!)
 </script>
 ```
 

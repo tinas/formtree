@@ -15,15 +15,9 @@ export const priceField = defineField({
 })
 ```
 
-| Option           | Description                                                                                    |
-| ---------------- | ---------------------------------------------------------------------------------------------- |
-| `schema`         | A Standard Schema, or a function of [dependencies](/guide/dependencies) returning one.         |
-| `validateAsync`  | A check against something outside the form. See [below](#asynchronous-checks).                 |
-| `mode`           | When errors become visible, for this field. See [Validation](/guide/validation#display-modes). |
-| `reValidateMode` | When errors update once they are visible.                                                      |
-
-A field that needs values from outside the form is defined with `defineFieldWithDeps`, which
-[Dependencies](/guide/dependencies) explains.
+`schema` is the only required option, and [`DefineFieldOptions`](/api/@formtree/core/interfaces/DefineFieldOptions)
+describes the others. A field that needs values from outside the form is defined with
+`defineFieldWithDeps`, which [Dependencies](/guide/dependencies) explains.
 
 ## Empty values
 
@@ -67,17 +61,7 @@ email.getAttributes()
 email.reset({ value: 'ada@example.com' })
 ```
 
-| Member                     | Description                                                                                                         |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `state`                    | `value`, `initialValue`, `errors`, `valid`, `dirty`, `touched`, `validating`, `submitting`, `submitCount`, `active` |
-| `setValue(value)`          | Writes a draft value. `undefined` empties the field.                                                                |
-| `blur()`                   | Marks the field as touched and starts checks that run on blur.                                                      |
-| `validate()`               | Resolves to `{ valid: true, value }` or `{ valid: false, errors }` without showing errors.                          |
-| `handleSubmit(handler)`    | Submits this field alone. See [Submitting](/guide/submitting).                                                      |
-| `reset({ value })`         | Returns to the initial value, or makes `value` the new initial value.                                               |
-| `getAttributes()`          | `id`, `name`, `aria-invalid` and `aria-describedby` for the input.                                                  |
-| `errorId`, `descriptionId` | Ids for the error message and the description, used by `aria-describedby`.                                          |
-| `focus()`                  | Moves focus to the element with the field's id.                                                                     |
+[`FieldNode`](/api/@formtree/core/interfaces/FieldNode) describes every member of a field node.
 
 `state.errors` holds the errors that should be visible now, which depends on the
 [display mode](/guide/validation#display-modes). `state.valid` reports every error, visible or
@@ -109,11 +93,9 @@ export const promoCodeField = defineFieldWithDeps<{ cartId: string }>()({
 })
 ```
 
-| Option       | Default    | Description                                                                                    |
-| ------------ | ---------- | ---------------------------------------------------------------------------------------------- |
-| `run`        | required   | Receives the output and `{ signal, deps }`. Returns an error, a list of errors or `undefined`. |
-| `on`         | `'change'` | `'change'`, `'blur'` or `'submit'`. When the check starts.                                     |
-| `debounceMs` | `300`      | How long to wait after the trigger before running.                                             |
+`run` returns an error, a list of errors or `undefined`. `on` picks what starts the check and
+`debounceMs` how long it waits; [`AsyncValidationOptions`](/api/@formtree/core/interfaces/AsyncValidationOptions) gives
+their values and defaults.
 
 The check runs only once the schema passes, and it receives the output, so the server is asked
 about the value that would be saved: trimmed and upper-cased here. Results are cached per value,
@@ -121,6 +103,7 @@ so going back to a code that was already checked does not ask again. A change ab
 running check through `signal`. While a check runs, `state.validating` is `true`, and a submit
 waits for it. A check that has not run yet runs at submit. A check that throws becomes an error
 with the code `formtree.async_failed` instead of breaking the form.
+[Promo Code](/examples/promo-code) shows a check live.
 
 ## A field as a form
 
@@ -136,7 +119,7 @@ declare const product: { id: number; price: number }
 // ---cut---
 const cell = createForm(priceField, { id: `price-${product.id}`, initialValue: product.price })
 
-const commit = cell.handleSubmit(async price => {
+const savePrice = cell.handleSubmit(async price => {
   cell.reset({ value: await updatePrice(product.id, price) })
 })
 ```

@@ -27,6 +27,7 @@ State is immutable; every mutation goes through a pure transition and then `comm
 - Node interface methods are function-typed properties: destructuring is safe (no unbound-method) and nodes stay invariant.
 - A write to a missing index or a removed row is ignored: no throw, state unchanged.
 - An annotated recursive definition navigates its children as lens nodes, and its output is the annotated type; TypeScript cannot infer the child types of a self-referencing constant. At runtime those nodes are still defined and validated.
+- `FormError.code` is the message the schema reports, a readable text or a translation key; the schema library's own issue code lands in `params.code`. The name stays: the UI translates `code` at render time, and `params` carries the issue values for interpolation.
 - `handleSubmit` handlers receive only the output, no `{ node }` context; the caller already holds the node. Add it when a real need appears.
 - Focus has two options: `shouldFocusError` picks the target (DOM order, summary rule; the core's job), `focusElement` (default `element.focus()`) acts on it (the app's job: smooth scroll, custom inputs). `handleSubmit` can override both; `node.focus()` uses the form's. Sticky-header offset is left to CSS `scroll-margin-top`.
 
@@ -47,6 +48,7 @@ Components never receive nodes through props: business components call `injectFo
 - `injectFormNode(Definition)` matches by definition identity through core's `UniversalNode.definition`.
 - `useField` also accepts a node, so a business component can bind v-model to a typed node from `injectFormNode`.
 - The package re-exports core, so an app depends on one package.
+- No `formatError` hook: the app's generic input translates `code` (`apps/docs/vue/field-bindings.md`); a hook would tie the adapter to an i18n library to save one line.
 
 ## Docs (apps/docs)
 
@@ -61,6 +63,10 @@ VitePress 2 (alpha) site in English, styled after usewagen.dev: `guide/` (core c
 | `typedoc.json`              | API reference: TypeDoc + typedoc-plugin-markdown + typedoc-vitepress-theme write `api/` (gitignored) before `dev` and `build`; one page per symbol; the sidebar is read from `api/typedoc-sidebar.json` at config load |
 
 A `ts twoslash` block that does not compile fails the docs build; hide setup lines above `// ---cut---` and import shared definitions from `./forms/<name>`. Use `//    ^?` queries only where the displayed type reads well. Vue templates use `@submit.prevent`.
+
+Docs are plain and leave no open question. They explain concepts, behaviour and reasons, and show them in `ts twoslash` code, which fails the build when the API changes. They never copy what the API reference lists (members, options, defaults) into prose or tables; a sentence links to the reference page instead (`/api/@formtree/core/interfaces/FieldNode`), and a dead link fails the build. No intro that recaps the sidebar and no "Next" section: the sidebar and the pager do that. `guide/index.md` introduces the library through the problems it solves; it describes other libraries generically, without naming them.
+
+Names in examples read as plain English: a node variable is named after its key (`const delivery = form.group('delivery')`), a key never repeats an API member (`lineItems`, so the code reads `lineItems.items`, never `items.items`), a function says what it does (`savePrice`, not `commit`), and no name shadows another in the same file. Every identifier a snippet uses is declared or imported, and a snippet shows a use, not a bare expression statement.
 
 ## Releases
 

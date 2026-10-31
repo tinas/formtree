@@ -131,7 +131,7 @@ export const checkoutGroup = defineGroupWithDeps<CheckoutDeps>()({
     contact: contactGroup,
     delivery: deliveryGroup,
     payment: paymentGroup,
-    items: lineItemsArray,
+    lineItems: lineItemsArray,
     promoCode: promoCodeField,
   },
   childDeps: {

@@ -9,13 +9,61 @@ declare const error: FormError
 // ---cut---
 error.path // 'delivery.address.city'
 error.code // 'City is required'
-error.params // the rest of the schema issue, such as Zod's own code
+error.params // the rest of the schema issue, such as { code: 'too_small', minimum: 1 }
 error.source // 'schema' | 'validate' | 'async' | 'server' | your own
 ```
 
 An error carries a `code`, not a sentence the library wrote. For a schema error, the code is the
-message the schema reports, so it can be a readable message or a translation key. The UI decides
-how to show it.
+message the schema reports, and `params` holds the rest of the issue, so `params.code` is the
+schema library's own issue code. The UI turns `code` into text.
+
+## Translating errors
+
+formtree does not format messages. Write translation keys as codes, and translate them where an
+error is rendered. Below, `t` stands for the translate function of your i18n library.
+
+```ts twoslash
+import type { ErrorParams } from '@formtree/core'
+import { createForm, defineField } from '@formtree/core'
+import { z } from 'zod'
+
+declare function t(key: string, params?: ErrorParams): string
+declare const message: HTMLElement
+// ---cut---
+const quantityField = defineField({
+  schema: z.number({ error: 'cart.quantity.required' }).min(1, { error: 'cart.quantity.min' }),
+})
+
+const quantity = createForm(quantityField)
+
+quantity.subscribe(() => {
+  const error = quantity.state.errors[0]
+  message.textContent = error ? t(error.code, error.params) : ''
+})
+```
+
+`params` carries the values of the schema issue, so a message can use them: `min(1)` reports
+`minimum: 1`, and a message such as `'Order at least {minimum}'` reads it. Rules, checks and
+server errors return `{ code, params }` themselves and are translated the same way.
+
+Translate when rendering, not when the error is created. The form keeps the keys, so switching
+the language updates every visible message without validating again. In Vue, the generic input
+does it: see [Field Bindings](/vue/field-bindings#translating-errors).
+
+A rule without its own message reports the schema library's default, which is an English
+sentence, not a key. Give every rule an `error`, or map issues to keys once with the library's
+global hook. In Zod:
+
+```ts twoslash
+import { z } from 'zod'
+
+z.config({
+  customError: issue => `errors.${issue.code}`,
+})
+```
+
+A message given with `error` still wins. Every other issue reports a key such as
+`errors.too_small`.
 
 ## Setting and clearing errors yourself
 
@@ -34,13 +82,10 @@ delivery.setErrors([{ code: 'Delivery is not available today' }], { clearOn: 'su
 delivery.clearErrors({ source: 'server' })
 ```
 
-| Option of `setErrors` | Default    | Description                                                  |
-| --------------------- | ---------- | ------------------------------------------------------------ |
-| `source`              | `'server'` | Who produced the errors. `clearErrors` can clear one source. |
-| `clearOn`             | `'change'` | `'change'`, `'submit'` or `'never'`.                         |
-
-Paths are relative to the node you call it on. Errors set this way are visible at once, whatever
-the display mode, because something outside the form wants the user to see them.
+Paths are relative to the node you call it on. Errors set this way have the source `'server'`
+unless you give your own, and they are cleared when the value at their path changes unless
+`clearOn` says otherwise ([`SetErrorsOptions`](/api/@formtree/core/interfaces/SetErrorsOptions)). They are visible at
+once, whatever the display mode, because something outside the form wants the user to see them.
 `clearErrors` removes external errors only. A schema error goes away when the value is fixed.
 
 ## Ids and ARIA

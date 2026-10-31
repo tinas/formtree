@@ -17,7 +17,7 @@ export const lineItemGroup = defineGroup({
 })
 
 export const cartGroup = defineGroup({
-  children: { items: arrayOf(lineItemGroup) },
+  children: { lineItems: arrayOf(lineItemGroup) },
 })
 ```
 
@@ -42,29 +42,21 @@ const form = createForm(checkoutGroup, {
   deps: { cartId: 'cart_42', countries: ['DE', 'NL'] },
 })
 // ---cut---
-const items = form.array('items')
+const lineItems = form.array('lineItems')
 
-items.push({ sku: 'MUG-01', quantity: 1 })
-items.push({})
-items.move(1, 0)
-items.remove(0)
+lineItems.push({ sku: 'MUG-01', quantity: 1 })
+lineItems.push({})
+lineItems.move(1, 0)
+lineItems.remove(0)
 
-for (const item of items.items) {
-  item.key
-  item.index
-  item.field('quantity').state.value
-}
+const rows = lineItems.items.map(lineItem => ({
+  key: lineItem.key,
+  position: lineItem.index + 1,
+  quantity: lineItem.field('quantity').state.value,
+}))
 ```
 
-| Member                 | Description                                            |
-| ---------------------- | ------------------------------------------------------ |
-| `items`                | The item nodes, each with `key` and `index`.           |
-| `push(draft)`          | Adds an item at the end. `push({})` adds an empty row. |
-| `insert(index, draft)` | Adds an item at a position.                            |
-| `remove(index)`        | Removes the item at a position.                        |
-| `move(from, to)`       | Moves an item.                                         |
-| `swap(first, second)`  | Swaps two items.                                       |
-| `replace(drafts)`      | Replaces every item.                                   |
+[`ArrayNode`](/api/@formtree/core/interfaces/ArrayNode) describes every operation.
 
 `key` identifies the item for as long as it exists, which makes it the right `key` for a `v-for`
 or a React list and for caching DOM elements. `index` is where the item is now.
@@ -82,19 +74,19 @@ import { checkoutGroup } from './forms/checkout'
 const form = createForm(checkoutGroup, {
   deps: { cartId: 'cart_42', countries: ['DE', 'NL'] },
 })
-const items = form.array('items')
-items.push({ sku: 'MUG-01', quantity: 1 })
-items.push({ sku: 'TEE-02', quantity: 2 })
+const lineItems = form.array('lineItems')
+lineItems.push({ sku: 'MUG-01', quantity: 1 })
+lineItems.push({ sku: 'TEE-02', quantity: 2 })
 // ---cut---
-const tee = items.items[1]!
+const teeRow = lineItems.items[1]!
 
-items.move(1, 0)
+lineItems.move(1, 0)
 
-tee.index // 0
-tee.field('sku').state.value // 'TEE-02'
+teeRow.index // 0
+teeRow.field('sku').state.value // 'TEE-02'
 ```
 
-A dotted path with a number, such as `'items.1.sku'`, is accepted but not suggested, because it
+A dotted path with a number, such as `'lineItems.1.sku'`, is accepted but not suggested, because it
 points at whichever item is at that position now. Prefer holding the item node.
 
 ## Rules across items
@@ -128,12 +120,12 @@ import { saveLineItem } from './forms/api'
 const form = createForm(checkoutGroup, {
   deps: { cartId: 'cart_42', countries: ['DE', 'NL'] },
 })
-form.array('items').push({ sku: 'MUG-01', quantity: 1 })
+form.array('lineItems').push({ sku: 'MUG-01', quantity: 1 })
 // ---cut---
-const row = form.array('items').items[0]!
+const row = form.array('lineItems').items[0]!
 
-const saveRow = row.handleSubmit(async item => {
-  row.reset({ value: await saveLineItem(item) })
+const saveRow = row.handleSubmit(async lineItem => {
+  row.reset({ value: await saveLineItem(lineItem) })
 })
 ```
 

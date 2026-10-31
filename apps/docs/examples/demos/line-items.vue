@@ -5,27 +5,29 @@ import { lineItemsArray } from '../forms/checkout'
 import LineItemRow from './line-item-row.vue'
 
 const cartGroup = defineGroup({
-  children: { items: lineItemsArray },
+  children: { lineItems: lineItemsArray },
 })
 
 const form = useForm(cartGroup, {
   initialValue: {
-    items: [
+    lineItems: [
       { id: 101, sku: 'MUG-01', quantity: 2 },
       { id: 102, sku: 'TEE-02', quantity: 1 },
     ],
   },
 })
 
-const items = provideFormNode(form.array('items'))
+const lineItems = provideFormNode(form.array('lineItems'))
 </script>
 
 <template>
   <div class="demo-form">
-    <LineItemRow v-for="item in items.items" :key="item.key" :index="item.index" />
+    <LineItemRow v-for="lineItem in lineItems.items" :key="lineItem.key" :index="lineItem.index" />
     <div class="demo-row">
-      <button type="button" @click="items.push({ quantity: 1 })">Add item</button>
-      <span class="demo-hint">{{ items.state.dirty ? 'The cart has unsaved changes' : 'Everything is saved' }}</span>
+      <button type="button" @click="lineItems.push({ quantity: 1 })">Add item</button>
+      <span class="demo-hint">{{
+        lineItems.state.dirty ? 'The cart has unsaved changes' : 'Everything is saved'
+      }}</span>
     </div>
   </div>
 </template>

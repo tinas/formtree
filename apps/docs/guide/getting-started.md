@@ -81,9 +81,9 @@ email.state.errors
 email.state.dirty
 ```
 
-`setValue` writes a draft value and `blur` marks the node as touched. `state` is a snapshot:
-`value`, `initialValue`, `errors`, `valid`, `dirty`, `touched`, `validating`, `submitting`,
-`submitCount` and `active`. It keeps its reference until something about the node changes.
+`setValue` writes a draft value and `blur` marks the node as touched. `state` is a snapshot of
+the node, a [`NodeState`](/api/@formtree/core/interfaces/NodeState), and it keeps its reference until something about
+the node changes.
 
 ## Submit
 
@@ -102,9 +102,8 @@ document.querySelector('form')?.addEventListener('submit', submit)
 ```
 
 `handleSubmit` returns a function that takes an optional event, prevents its default action,
-validates the node and calls the handler with the validated output. It resolves to
-`'success'`, `'invalid'`, `'rejected'` or `'skipped'`. [Submitting](/guide/submitting) covers
-each of them.
+validates the node and calls the handler with the validated output. It resolves to an outcome
+that [Submitting](/guide/submitting#the-pipeline) explains.
 
 ## Render
 
@@ -140,10 +139,8 @@ form.subscribe(render)
 render()
 ```
 
-`getAttributes()` returns the `id`, `name`, `aria-invalid` and `aria-describedby` of the input,
-with `null` for an attribute to remove. An error from a schema carries the schema's message as
-its `code`, so a schema can hold readable messages, as here, or translation keys for the UI to
-translate.
+`getAttributes()` returns the attributes of the input, with `null` for one to remove. An error
+from a schema carries the schema's message as its `code`: a readable message, as here, or a
+translation key that the UI [translates](/guide/errors-and-focus#translating-errors).
 
-With Vue, the adapter does this wiring for you. Continue with [Vue](/vue/), or read
-[How It Works](/guide/how-it-works) first.
+With Vue, the [adapter](/vue/) does this wiring.

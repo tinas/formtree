@@ -33,11 +33,8 @@ const outcome = await submit()
 event, it calls `preventDefault()` first. Calling it without an event works too. In Vue
 templates, write `@submit.prevent` anyway, so the markup itself says the form never posts.
 
-| Option             | Description                                                                 |
-| ------------------ | --------------------------------------------------------------------------- |
-| `onInvalid`        | Called with the errors when the subtree is invalid.                         |
-| `shouldFocusError` | `true`, `false` or `'summary'`. Overrides the form option for this submit.  |
-| `focusElement`     | How to focus the target element. Overrides the form option for this submit. |
+The second argument holds options for this submit alone, such as `onInvalid`;
+[`SubmitOptions`](/api/@formtree/core/interfaces/SubmitOptions) describes them.
 
 ## The pipeline
 
@@ -133,13 +130,8 @@ const save = form.handleSubmit(async contact => {
 })
 ```
 
-| `reset` option | Description                                                   |
-| -------------- | ------------------------------------------------------------- |
-| `value`        | A draft to use as the new initial value.                      |
-| `keepTouched`  | Keep the touched state instead of clearing it.                |
-| `keepErrors`   | Keep server and asynchronous errors instead of clearing them. |
-
-Without `value`, `reset()` returns the subtree to its current initial value, array items included.
+Without `value`, `reset()` returns the subtree to its current initial value, array items
+included. [`ResetOptions`](/api/@formtree/core/interfaces/ResetOptions) describes what a reset can keep.
 
 ## A submit button outside the form
 
@@ -153,5 +145,3 @@ attribute. Give the form element the node's id:
   <button type="submit" :form="delivery.id">Continue</button>
 </footer>
 ```
-
-No event bus and no ref to the form component are needed.

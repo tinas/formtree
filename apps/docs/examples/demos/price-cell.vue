@@ -17,13 +17,13 @@ const text = computed({
   },
 })
 
-const commit = cell.handleSubmit(async value => {
-  cell.reset({ value: await updatePrice(value) })
+const savePrice = cell.handleSubmit(async newPrice => {
+  cell.reset({ value: await updatePrice(newPrice) })
 })
 </script>
 
 <template>
-  <form class="demo-row" novalidate @submit.prevent="commit">
+  <form class="demo-row" novalidate @submit.prevent="savePrice">
     <input v-model="text" v-bind="price.attrs" type="number" step="0.1" style="width: 110px" />
     <span class="demo-hint">
       {{ cell.state.submitting ? 'Saving…' : cell.state.dirty ? 'Press Enter to save' : '' }}

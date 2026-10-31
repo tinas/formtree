@@ -8,12 +8,12 @@ mode.
 
 Every error has one producer, and a producer only touches its own errors.
 
-| Producer     | Where it is written                       | Source                 |
-| ------------ | ----------------------------------------- | ---------------------- |
-| Schema       | `schema` of a field or group              | `'schema'`             |
-| Rule         | `validate` of a group or an array         | `'validate'`           |
-| Asynchronous | `validateAsync` of a field or group       | `'async'`              |
-| External     | `setErrors`, or a submit handler's return | `'server'` or your own |
+| Producer     | Where it is written                                                      | Source                 |
+| ------------ | ------------------------------------------------------------------------ | ---------------------- |
+| Schema       | `schema` of a field or group                                             | `'schema'`             |
+| Rule         | `validate` of a group or an array                                        | `'validate'`           |
+| Asynchronous | [`validateAsync`](/guide/fields#asynchronous-checks) of a field or group | `'async'`              |
+| External     | `setErrors`, or a submit handler's return                                | `'server'` or your own |
 
 An error a server returned is not wiped out the next time the schema runs, and a schema error is
 not hidden by an asynchronous result. Each error shows its `source`, so the UI can tell them
@@ -96,10 +96,3 @@ if (result.valid) {
 
 `listErrors({ includeHidden: true })` lists every error of a node, visible or not, which is
 useful in tests and for a summary that counts what is left to fix.
-
-## Asynchronous checks
-
-`validateAsync` runs after the schema passes, with the output and an `AbortSignal`. It is
-debounced, cached per value, cancelled by the next change and awaited by a submit.
-[Fields](/guide/fields#asynchronous-checks) describes its options, and
-[Promo Code](/examples/promo-code) shows it live.

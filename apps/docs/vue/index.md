@@ -64,17 +64,12 @@ The `deps` option accepts a plain value, a ref or a getter. When it is a ref or 
 form follows it with `setDeps`.
 
 ```ts
-const countries = useQuery({ queryKey: ['countries'], queryFn: fetchShippingCountries })
+const countriesQuery = useQuery({ queryKey: ['countries'], queryFn: fetchShippingCountries })
 
 const form = useForm(checkoutGroup, {
-  deps: () => ({ cartId: cart.value.id, countries: countries.data.value ?? [] }),
+  deps: () => ({ cartId: cart.value.id, countries: countriesQuery.data.value ?? [] }),
 })
 ```
 
 Schemas built from dependencies are rebuilt only when the values they read change, so a getter
 that returns a new object on every run does not cause extra validation.
-
-## Next
-
-[Node Context](/vue/node-context) shares a node with child components without props.
-[Field Bindings](/vue/field-bindings) connects inputs with `v-model`.

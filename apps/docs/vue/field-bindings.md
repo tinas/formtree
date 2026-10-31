@@ -28,15 +28,41 @@ const field = useField<string>(() => props.name)
 renders `<TextField name="address.city" label="City" />`, and the component never sees the
 form's types.
 
-| Member                           | Description                                                                            |
-| -------------------------------- | -------------------------------------------------------------------------------------- |
-| `model`                          | Read and write the value. `v-model="field.model"`.                                     |
-| `attrs`                          | `id`, `name`, `aria-invalid`, `aria-describedby` and `onBlur`. `v-bind="field.attrs"`. |
-| `state`                          | The field's reactive state.                                                            |
-| `id`, `errorId`, `descriptionId` | Ids for the label, the error message and the description.                              |
-| `node`                           | The field node itself.                                                                 |
+[`FieldView`](/api/@formtree/vue/interfaces/FieldView) describes every member.
 
 The name can be a ref or a getter. When it changes, the binding follows the new field.
+
+## Translating errors
+
+The generic input above shows `code` as it is. When codes are translation keys, the generic input
+is the one place that translates them, for example with vue-i18n:
+
+```vue
+<!-- text-field.vue -->
+<script setup lang="ts">
+import { useField } from '@formtree/vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const props = defineProps<{ name: string; label: string }>()
+
+const field = useField<string>(() => props.name)
+const error = computed(() => field.state.errors[0])
+const { t } = useI18n()
+</script>
+
+<template>
+  <div class="field">
+    <label :for="field.id">{{ label }}</label>
+    <input v-model="field.model" v-bind="field.attrs" />
+    <p :id="field.errorId">{{ error && t(error.code, { ...error.params }) }}</p>
+  </div>
+</template>
+```
+
+The form holds the key, so a language switch re-renders the message.
+[Translating errors](/guide/errors-and-focus#translating-errors) covers `params` and the
+messages a schema library writes by default.
 
 ## Typed bindings
 

@@ -24,8 +24,12 @@ export const contactGroup = defineGroup({
 ```
 
 `schema` describes the keys that belong to this group and nothing else. `children` nests
-definitions that stand on their own. A key lives in one of the two, and declaring it in both is
-a type error.
+definitions that stand on their own: a field, a group, or an array made with `arrayOf`. A key
+lives in one of the two, and declaring it in both is a type error.
+
+In the draft, a child group is `{}` and a child array is `[]` from the start, and a child field
+is `undefined` until something writes it. The group's output is the output of its schema, with
+the output of each active child added under its key.
 
 Keeping each schema small has a practical effect too: a refinement on a Zod object is skipped
 while any key of that object is invalid, so a rule written on a large schema waits for unrelated
@@ -41,6 +45,21 @@ const orderGroup = defineGroup({
   children: { contact: contactGroup, payment: paymentGroup },
 })
 ```
+
+## Schema or children
+
+A key starts in the schema. It is a node there too: it can be read, written, validated and
+submitted. Move it into `children`, with a definition of its own, when it needs something a key
+in a schema cannot have:
+
+- to be turned on and off, because [`activeWhen`](/guide/conditional-branches) only accepts
+  children;
+- [dependencies](/guide/dependencies) of its own, or an
+  [asynchronous check](/guide/fields#asynchronous-checks);
+- an output of its own, with transforms, when that part is submitted alone;
+- to be used in another form, or as the root of a small form such as a table cell;
+- items that are nodes, with [`arrayOf`](/guide/arrays);
+- to contain itself, as a [recursive definition](/guide/recursive-definitions).
 
 ## Moving down the tree
 
@@ -87,8 +106,18 @@ export const passwordGroup = defineGroup({
 })
 ```
 
-`validate` runs on every change, whatever the schema says, and it can return one error, a list
-of errors or `undefined`. An error without a `path` belongs to the group itself.
+`validate` runs after every change inside the group, whether or not the schema passes, and
+returns one error, a list of errors or `undefined`. An error without a `path` belongs to the
+group itself. Its errors have the source `'validate'`, and its next result replaces them.
+
+The value is a draft, so a key the user has not filled in yet is `undefined`: the rule above
+checks `confirmPassword` before comparing it. The draft also holds inactive children, and an
+error the rule places inside an inactive child is ignored until that child is active again.
+
+Put a rule on the nearest group that holds every value it compares. A refinement in the schema
+cannot see children, and it waits for every key of its object, as described above. A rule that
+compares the items of a list goes on the array: see
+[Rules across items](/guide/arrays#rules-across-items).
 
 ## The group's state
 
@@ -117,10 +146,7 @@ The card is clean again, and other cards keep their unsaved changes.
 
 ## Option order
 
-Write `schema` and `children` before the options that read them: `activeWhen`, `childDeps` and
-`validate`. TypeScript infers an object literal from left to right, so the callbacks are typed
-from what comes before them.
-
-The rest of the group options change the shape of the tree. [Conditional
-branches](/guide/conditional-branches) turn children on and off with `activeWhen`, and
-[Dependencies](/guide/dependencies) pass values from outside the form down with `childDeps`.
+Write `schema` and `children` before the options whose callbacks read them, such as
+[`activeWhen`](/guide/conditional-branches) and [`childDeps`](/guide/dependencies). TypeScript
+infers an object literal from left to right, so the callbacks are typed from what comes before
+them.

@@ -27,8 +27,7 @@ const contactGroup = defineGroup({
 ```
 
 A group lists its own keys in `schema` and nests other definitions in `children`. An array
-repeats a definition with `arrayOf`. That is the whole vocabulary. The rest of this guide adds
-options to these three functions.
+repeats a definition with `arrayOf`. That is the whole vocabulary.
 
 ## The form holds the state
 
@@ -43,7 +42,7 @@ const form = createForm(checkoutGroup, {
 })
 
 form.state.value
-// { contact: {}, delivery: { address: {} }, payment: { card: {}, invoice: {} }, items: [] }
+// { contact: {}, delivery: { address: {} }, payment: { card: {}, invoice: {} }, lineItems: [] }
 ```
 
 The structure is there from the start: groups are `{}` and arrays are `[]`, because the
@@ -60,16 +59,16 @@ import { priceField } from './forms/product'
 const cell = createForm(priceField, { initialValue: 24.9 })
 ```
 
-The form adds a few controls to its root node: `subscribe(listener)` is called once per change,
-`setDeps(deps)` replaces the [dependencies](/guide/dependencies), `batch(update)` applies several
-writes with one notification, and `dispose()` cancels pending asynchronous checks.
+The root node also carries the controls of the form itself, such as `subscribe`, which calls a
+listener once per change. [`FormControls`](/api/@formtree/core/interfaces/FormControls) describes them.
 
 ## Nodes are views
 
-A node is one position in the tree. The root, a step, a row and a field have the same surface:
-`state`, `setValue`, `blur`, `validate`, `handleSubmit`, `reset`, `setErrors`, `clearErrors`,
-`listErrors` and `focus`. Groups add `field`, `group` and `array` to move down the tree. Arrays
-add `items` and the operations that change them.
+A node is one position in the tree. The root, a step, a row and a field are all nodes, and they
+are read, written, validated and submitted the same way. A group can also move down the tree,
+and an array can also change its items. The API reference describes each kind:
+[`FieldNode`](/api/@formtree/core/interfaces/FieldNode), [`GroupNode`](/api/@formtree/core/interfaces/GroupNode) and
+[`ArrayNode`](/api/@formtree/core/interfaces/ArrayNode).
 
 ```ts twoslash
 import { createForm } from '@formtree/core'
@@ -92,11 +91,11 @@ the same object. A node is a value you can pass around and compare.
 
 A node has three types, and each answers a different question.
 
-| Type   | Helper               | Question                                                            |
-| ------ | -------------------- | ------------------------------------------------------------------- |
-| Draft  | `DraftOf<typeof d>`  | What does the form hold while the user types? Empty is `undefined`. |
-| Input  | `InputOf<typeof d>`  | What does the schema accept?                                        |
-| Output | `OutputOf<typeof d>` | What does the submit handler receive, after transforms?             |
+| Type   | Helper                        | Question                                                            |
+| ------ | ----------------------------- | ------------------------------------------------------------------- |
+| Draft  | `DraftOf<typeof definition>`  | What does the form hold while the user types? Empty is `undefined`. |
+| Input  | `InputOf<typeof definition>`  | What does the schema accept?                                        |
+| Output | `OutputOf<typeof definition>` | What does the submit handler receive, after transforms?             |
 
 ```ts twoslash
 import type { DraftOf, OutputOf } from '@formtree/core'
@@ -127,14 +126,13 @@ its rules come from.
 
 `contact.fullName` above is a lens node: it lives in the schema of `contactGroup`. A lens node
 cannot run part of a schema on its own, so its handler receives the validated input instead of
-a transformed output. When a part of the form needs a transformed output, an asynchronous check,
-dependencies, reuse or a condition, give it a definition. Until then it can stay in its
-parent's schema.
+a transformed output. [Groups](/guide/groups#schema-or-children) explains when a part needs a
+definition of its own.
 
 ## Ids
 
-Each node has a DOM id built from the form id and its path, such as `checkout:contact.email`.
-Pass `id` to `createForm` to choose the prefix; otherwise a counter is used, and the Vue adapter
-uses `useId()`. Fields also have an `errorId` and a `descriptionId`, and groups and arrays have
-a `summaryId`. These ids are the only link between the core and the DOM: they connect labels,
-`aria-describedby` and error focus.
+Each node has a DOM id built from the form id and its path, such as `checkout:contact.email`,
+and ids derived from it: a field's error message and description, a group's or an array's error
+summary. Pass `id` to `createForm` to choose the prefix; otherwise a counter is used, and the Vue
+adapter uses `useId()`. These ids are the only link between the core and the DOM: they connect
+labels, `aria-describedby` and error focus.

@@ -53,11 +53,17 @@ Each key of `activeWhen` names a child, and its function decides from the group'
 whether that child is active. The children stay complete definitions with plain, unconditional
 schemas. The decision lives in the parent, because the parent holds the value it depends on.
 
+Only children can be conditional: a key of `activeWhen` that is not in `children` is a type
+error, so a key that should come and go gets a definition of its own, like `stateField` in
+[Nested branches](#nested-branches). A child that is not listed is always active. The functions
+run again after every change, so a branch follows the value while the user types.
+
 ## What an inactive branch does
 
 An inactive branch is not validated, so its errors do not block a submit. It is not part of the
 output, so it cannot leak into the payload. Its values are kept: a customer who picks invoice,
 types a company name, switches to card and comes back finds the company name still there.
+Errors inside an inactive branch, whoever produced them, are ignored until it is active again.
 
 The output type says the same thing. A child with an `activeWhen` is optional in the output:
 
