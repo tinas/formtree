@@ -57,8 +57,7 @@ Three things make it work:
 1. **`arrayOf(() => conditionTreeGroup)`** refers to the definition lazily, because it does not
    exist yet when its own options are written.
 2. **The type annotation** on `conditionTreeGroup`. TypeScript cannot infer the type of a
-   constant that refers to itself in its own initializer, the same limit `z.lazy` has. The
-   annotation gives the input, the output and the dependencies.
+   constant that refers to itself in its own initializer. The annotation gives the input, the output and the dependencies.
 3. **`childDeps`** passes the attributes down to every level, so a condition five levels deep
    checks its attribute against the same list as one at the top.
 

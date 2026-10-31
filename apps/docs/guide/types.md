@@ -75,7 +75,7 @@ The full list of paths is never offered at once, because it is never computed.
 requires a value.
 
 **A recursive definition needs one annotation.** TypeScript cannot infer the type of a constant
-that refers to itself, the same reason `z.lazy` needs one. See
+that refers to itself. See
 [Recursive Definitions](/guide/recursive-definitions).
 
 **Definitions with dependencies take two calls.** `defineGroupWithDeps<Deps>()({ ... })` lets you

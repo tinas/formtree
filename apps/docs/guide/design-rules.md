@@ -33,7 +33,7 @@ of the library follows from them.
 
 | Not included                                    | Why                                                                                          |
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Components, renderless `Field`, directives      | Elements belong to you. The core gives state and behaviour, like TanStack Table.             |
+| Components, renderless `Field`, directives      | Elements belong to you. The core gives state and behaviour.                                  |
 | `canSubmit`                                     | A submit button is not disabled for an invalid form. Edit forms gate on `dirty`.             |
 | Unregistering on unmount                        | Rule 1. Turn a branch off with `activeWhen`, clear it with `reset`.                          |
 | `null` for empty, defaults derived from schemas | Rule 7. Empty is `undefined`, a new row is `push({})`.                                       |
