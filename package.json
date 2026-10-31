@@ -1,0 +1,29 @@
+{
+  "name": "formtree",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "ready": "vp check && vp run -r test && vp run -r build",
+    "dev": "vp run playground#dev",
+    "dev:vue": "vp run vue-playground#dev",
+    "docs": "vp run docs#dev",
+    "changeset": "changeset",
+    "version-packages": "changeset version && vp fmt",
+    "release": "vp run ready && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.25.0",
+      "onFail": "download"
+    }
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  }
+}
