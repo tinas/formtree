@@ -1,0 +1,50 @@
+{
+  "$schema": "https://typedoc-plugin-markdown.org/schema.json",
+  "entryPoints": ["../../packages/core/src/index.ts", "../../packages/vue/src/index.ts"],
+  "tsconfig": "./tsconfig.typedoc.json",
+  "out": "./api",
+  "docsRoot": ".",
+  "plugin": ["typedoc-plugin-markdown", "typedoc-vitepress-theme"],
+  "name": "API Reference",
+  "readme": "none",
+  "entryFileName": "index",
+  "outputFileStrategy": "members",
+  "excludeReferences": true,
+  "excludeInternal": true,
+  "disableSources": true,
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true,
+  "useCodeBlocks": true,
+  "parametersFormat": "table",
+  "interfacePropertiesFormat": "table",
+  "typeDeclarationFormat": "table",
+  "sidebar": {
+    "autoConfiguration": true,
+    "format": "vitepress",
+    "pretty": false,
+    "collapsed": true
+  },
+  "categorizeByGroup": false,
+  "categoryOrder": [
+    "Definitions",
+    "Form",
+    "Nodes",
+    "Validation",
+    "Submitting",
+    "Errors",
+    "Types",
+    "Node Context",
+    "Field Bindings",
+    "*"
+  ],
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": false
+  },
+  "validation": {
+    "notExported": true,
+    "invalidLink": true
+  },
+  "treatValidationWarningsAsErrors": true,
+  "kindSortOrder": ["Function", "Variable", "Interface", "TypeAlias"]
+}

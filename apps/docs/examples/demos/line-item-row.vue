@@ -1,0 +1,47 @@
+<script setup lang="ts">
+import { injectFormNode, provideFormNode } from '@formtree/vue'
+import { computed } from 'vue'
+
+import NumberField from '../components/number-field.vue'
+import SelectField from '../components/select-field.vue'
+import { saveLineItem } from '../forms/api'
+import { lineItemsArray } from '../forms/checkout'
+
+const props = defineProps<{ index: number }>()
+
+const PRODUCT_OPTIONS = [
+  { value: 'MUG-01', label: 'Mug' },
+  { value: 'TEE-02', label: 'T-shirt' },
+  { value: 'CAP-03', label: 'Cap' },
+]
+
+const items = injectFormNode(lineItemsArray)
+const row = provideFormNode(items.items[props.index]!)
+
+const status = computed(() => {
+  if (row.state.submitting) {
+    return 'Saving…'
+  }
+  if (row.state.value.id === undefined) {
+    return 'Not saved'
+  }
+  return row.state.dirty ? 'Unsaved changes' : 'Saved'
+})
+
+const save = row.handleSubmit(async item => {
+  row.reset({ value: await saveLineItem(item) })
+})
+</script>
+
+<template>
+  <div class="demo-row" style="align-items: flex-start">
+    <SelectField name="sku" label="Product" :options="PRODUCT_OPTIONS" />
+    <NumberField name="quantity" label="Quantity" />
+    <div class="demo-row" style="margin-top: 22px">
+      <button type="button" @click="save">Save</button>
+      <button type="button" :disabled="index === 0" @click="items.move(index, index - 1)">Move up</button>
+      <button type="button" @click="items.remove(index)">Remove</button>
+      <span class="demo-hint">{{ status }}</span>
+    </div>
+  </div>
+</template>

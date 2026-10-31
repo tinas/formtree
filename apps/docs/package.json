@@ -1,0 +1,28 @@
+{
+  "name": "docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "api": "typedoc",
+    "dev": "typedoc && vitepress dev",
+    "build": "typedoc && vue-tsc --noEmit && vitepress build",
+    "preview": "vitepress preview"
+  },
+  "dependencies": {
+    "@formtree/vue": "workspace:*",
+    "vue": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@shikijs/vitepress-twoslash": "4.5.0",
+    "@types/node": "catalog:",
+    "typedoc": "catalog:",
+    "typedoc-plugin-markdown": "catalog:",
+    "typedoc-vitepress-theme": "catalog:",
+    "typescript": "~5.9.3",
+    "vitepress": "2.0.0-alpha.21",
+    "vitepress-plugin-group-icons": "^1.8.1",
+    "vue-tsc": "catalog:"
+  }
+}
