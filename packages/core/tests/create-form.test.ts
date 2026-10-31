@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from 'vite-plus/test'
 
 import { createForm } from '../src'
 import { maxDiscountField } from './fixtures/promotion'
-import { createPromotionForm } from './fixtures/create-promotion-form'
+import { createPromotionForm, PROMOTION_DEPS } from './fixtures/create-promotion-form'
 
 describe('createForm', () => {
   test('builds the declared structure and leaves schema values empty', () => {
@@ -61,6 +61,16 @@ describe('createForm', () => {
     })
 
     expect(listener).toHaveBeenCalledTimes(1)
+  })
+
+  test('setDeps with dependencies equal key by key changes nothing', () => {
+    const form = createPromotionForm()
+    const listener = vi.fn()
+    form.subscribe(listener)
+
+    form.setDeps({ ...PROMOTION_DEPS })
+
+    expect(listener).not.toHaveBeenCalled()
   })
 
   test('node state keeps its reference while nothing about the node changes', () => {

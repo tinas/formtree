@@ -20,6 +20,7 @@ import type {
 import { definitionAt } from '../definitions/definition-at'
 import { clearNodeErrors, listNodeErrors, setNodeErrors } from '../form/error-operations'
 import { focusElementById } from '../form/focus'
+import { subscribeToRuntime } from '../form/form-runtime'
 import { createSubmitHandler, validateNode } from '../form/submit'
 import { blurNode, editNodeArray, resetNodeValue, setNodeValue } from '../form/value-operations'
 import { joinPath } from '../paths/path'
@@ -54,6 +55,7 @@ export interface UniversalNode {
   readonly descriptionId: string
   readonly summaryId: string
   readonly items: ReadonlyArray<UniversalNode>
+  readonly subscribe: (listener: () => void) => () => void
   readonly setValue: (value: unknown) => void
   readonly blur: () => void
   readonly validate: () => Promise<ValidationResult<unknown>>
@@ -148,6 +150,7 @@ function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
     get items() {
       return itemNodesOf(runtime, nodeId)
     },
+    subscribe: listener => subscribeToRuntime(runtime, listener),
     setValue: value => setNodeValue(runtime, nodeId, value),
     blur: () => blurNode(runtime, nodeId),
     validate: () => validateNode(runtime, nodeId),

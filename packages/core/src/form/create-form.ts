@@ -6,11 +6,12 @@ import type { FormRuntime } from './form-runtime'
 
 import { DEFAULT_DISPLAY_MODES } from '../modes/display-mode'
 import { nodeFor } from '../nodes/node'
+import { shallowEqual } from '../paths/equality'
 import { createFormState } from '../state/form-state'
 import { disposeAsyncEntries } from '../validation/async-validation'
 import { commitWithValidation, runValidationPass } from '../validation/validation-pass'
 import { focusNatively } from './focus'
-import { runBatch } from './form-runtime'
+import { runBatch, subscribeToRuntime } from './form-runtime'
 
 const FORM_ID_PREFIX = 'formtree-'
 
@@ -71,16 +72,15 @@ function createFormRuntime(definition: Definition, options: RuntimeOptions): For
 
 function createFormControls(runtime: FormRuntime): FormControls<unknown> {
   return {
-    subscribe: listener => subscribe(runtime, listener),
-    setDeps: deps => commitWithValidation(runtime, { ...runtime.state, deps }),
+    subscribe: listener => subscribeToRuntime(runtime, listener),
+    setDeps: deps => replaceDeps(runtime, deps),
     batch: update => runBatch(runtime, update),
     dispose: () => disposeAsyncEntries(runtime),
   }
 }
 
-function subscribe(runtime: FormRuntime, listener: () => void): () => void {
-  runtime.listeners.add(listener)
-  return () => {
-    runtime.listeners.delete(listener)
+function replaceDeps(runtime: FormRuntime, deps: unknown): void {
+  if (!shallowEqual(runtime.state.deps, deps)) {
+    commitWithValidation(runtime, { ...runtime.state, deps })
   }
 }

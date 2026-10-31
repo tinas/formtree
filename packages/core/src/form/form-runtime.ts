@@ -51,6 +51,13 @@ export function commitState(runtime: FormRuntime, state: FormState): void {
   notifyListeners(runtime)
 }
 
+export function subscribeToRuntime(runtime: FormRuntime, listener: () => void): () => void {
+  runtime.listeners.add(listener)
+  return () => {
+    runtime.listeners.delete(listener)
+  }
+}
+
 export function runBatch(runtime: FormRuntime, update: () => void): void {
   runtime.batchDepth += 1
   try {

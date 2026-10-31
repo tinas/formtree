@@ -50,7 +50,10 @@ export type CreateFormArguments<FormDefinition extends Definition> = [DepsOf<For
 export interface FormControls<Deps> {
   /** Calls the listener once after every change, or once per `batch`. Returns a function that unsubscribes. */
   readonly subscribe: (listener: () => void) => () => void
-  /** Replaces the root's dependencies; `childDeps` are recomputed and affected schemas rebuilt. */
+  /**
+   * Replaces the root's dependencies; `childDeps` are recomputed and affected schemas rebuilt. Dependencies equal
+   * key by key to the current ones change nothing.
+   */
   readonly setDeps: (deps: Deps) => void
   /** Applies the writes made inside `update` with a single notification. */
   readonly batch: (update: () => void) => void
