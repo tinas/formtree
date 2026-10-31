@@ -22,7 +22,7 @@ const form = createForm(checkoutGroup, {
   deps: { cartId: 'cart_42', countries: SHIPPING_COUNTRIES },
   focusElement: focusSmoothly,
   initialValue: {
-    cart: { items: [{ id: 101, sku: 'MUG-01', quantity: 2 }] },
+    cart: { lineItems: [{ id: 101, sku: 'MUG-01', quantity: 2 }] },
   },
 })
 
@@ -61,7 +61,7 @@ fillOptions(elementById('payment-method'), [
 
 const renderers = [
   bindLineItems({
-    node: cart.array('items'),
+    node: cart.array('lineItems'),
     container: elementById('line-items'),
     template: elementById('line-item-row'),
     addButton: elementById('add-item'),

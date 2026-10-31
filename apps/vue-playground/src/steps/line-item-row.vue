@@ -20,8 +20,8 @@ const PRODUCT_OPTIONS = PRODUCTS.map(product => {
   }
 })
 
-const items = injectFormNode(cartGroup).array('items')
-const row = provideFormNode(items.items[props.index])
+const lineItems = injectFormNode(cartGroup).array('lineItems')
+const row = provideFormNode(lineItems.items[props.index])
 
 const isSaved = computed(() => row.state.value.id != undefined)
 const status = computed(() => {
@@ -34,8 +34,8 @@ const status = computed(() => {
   return row.state.dirty ? 'Unsaved changes' : 'Saved'
 })
 
-const save = row.handleSubmit(async item => {
-  row.reset({ value: await saveLineItem(item) })
+const save = row.handleSubmit(async lineItem => {
+  row.reset({ value: await saveLineItem(lineItem) })
 })
 </script>
 
@@ -45,7 +45,7 @@ const save = row.handleSubmit(async item => {
     <NumberField name="quantity" label="Quantity" />
     <div class="row-actions">
       <button type="button" :aria-disabled="isSaved && !row.state.dirty" @click="save">Save</button>
-      <button type="button" class="secondary" @click="items.remove(row.index)">Remove</button>
+      <button type="button" class="secondary" @click="lineItems.remove(row.index)">Remove</button>
       <span class="hint">{{ status }}</span>
     </div>
   </div>

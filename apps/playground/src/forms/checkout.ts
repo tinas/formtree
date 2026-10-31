@@ -55,7 +55,7 @@ const promoCodeField = defineFieldWithDeps<CartDeps>()({
 
 export const cartGroup = defineGroupWithDeps<CartDeps>()({
   children: {
-    items: arrayOf(lineItemGroup, {
+    lineItems: arrayOf(lineItemGroup, {
       validate: rows => duplicateProducts(rows),
     }),
     promoCode: promoCodeField,
@@ -63,7 +63,8 @@ export const cartGroup = defineGroupWithDeps<CartDeps>()({
   childDeps: {
     promoCode: ({ deps }) => ({ cartId: deps.cartId }),
   },
-  validate: ({ value }) => (value.items.length == 0 ? { path: 'items', code: 'Add at least one product' } : undefined),
+  validate: ({ value }) =>
+    value.lineItems.length == 0 ? { path: 'lineItems', code: 'Add at least one product' } : undefined,
 })
 
 const emailField = defineField({

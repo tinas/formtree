@@ -8,7 +8,7 @@ import LineItemRow from './line-item-row.vue'
 const emit = defineEmits<{ complete: [] }>()
 
 const cart = provideFormNode(injectFormNode(checkoutGroup).group('cart'))
-const items = cart.array('items')
+const lineItems = cart.array('lineItems')
 
 const onSubmit = cart.handleSubmit(() => emit('complete'))
 </script>
@@ -18,9 +18,9 @@ const onSubmit = cart.handleSubmit(() => emit('complete'))
     <h2>Cart</h2>
     <div class="line-items">
       <p class="hint">Each row saves on its own. Saved rows stay clean until they change.</p>
-      <LineItemRow v-for="item in items.items" :key="item.key" :index="item.index" />
-      <p class="error">{{ items.state.errors[0]?.code }}</p>
-      <button type="button" class="secondary" @click="items.push({ quantity: 1 })">Add product</button>
+      <LineItemRow v-for="lineItem in lineItems.items" :key="lineItem.key" :index="lineItem.index" />
+      <p class="error">{{ lineItems.state.errors[0]?.code }}</p>
+      <button type="button" class="secondary" @click="lineItems.push({ quantity: 1 })">Add product</button>
     </div>
     <TextField name="promoCode" label="Promo code" />
     <p class="hint">
