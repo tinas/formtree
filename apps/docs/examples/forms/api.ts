@@ -45,6 +45,16 @@ export async function updatePrice(price: number): Promise<number> {
   return price
 }
 
+export interface NewAccount {
+  readonly name: string
+  readonly email: string
+}
+
+export async function createAccount(account: NewAccount): Promise<NewAccount> {
+  await delay()
+  return account
+}
+
 function delay(signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(resolve, LATENCY_MS)

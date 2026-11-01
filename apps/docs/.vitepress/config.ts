@@ -15,7 +15,7 @@ const PACKAGE_SOURCES = {
   '@formtree/vue': packageSource('vue'),
 }
 
-const EXAMPLE_FORMS = ['api', 'schemas', 'checkout', 'account', 'segment', 'product']
+const EXAMPLE_FORMS = ['api', 'schemas', 'checkout', 'account', 'segment', 'product', 'sign-up']
 
 const API_SIDEBAR_FILE = new URL('../api/typedoc-sidebar.json', import.meta.url)
 

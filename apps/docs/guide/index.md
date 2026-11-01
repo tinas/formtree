@@ -1,103 +1,201 @@
 # Introduction
 
-formtree builds a form from definitions, the way a router builds an app from routes. A
-definition is a typed unit with no state: a field, a group or an array, declared once at module
-level. `createForm` turns a definition into a form whose state lives in one place, and every
-position in that tree is a node you can read, write, validate and submit.
+formtree is a headless form library for TypeScript. Every part of a form, a wizard step, a
+settings card, a table row or a single field, validates and submits on its own, and every rule
+is written once, in a definition.
 
-Each section below is a problem that forms built around one root schema run into, and what
-formtree does instead.
+## A first form
 
-## Saving part of a form
+A sign-up form with a name and an email. The definition says what the form holds and which rules
+apply:
 
-Most form libraries validate and submit at the root. Saving one step of a checkout, one card of
-a settings page or one row of a table then means checking its fields one by one:
+```ts twoslash
+import { defineGroup } from '@formtree/core'
+import { z } from 'zod'
 
-```ts
-const results = await Promise.all([
-  validateField('delivery.method'),
-  validateField('delivery.address.street'),
-  validateField('delivery.address.city'),
-])
+export const signUpGroup = defineGroup({
+  schema: z.object({
+    name: z
+      .string({ error: 'Enter your name' })
+      .trim()
+      .min(1, { error: 'Enter your name' }),
+    email: z.email({ error: 'Enter a valid email address' }),
+  }),
+})
+```
 
-if (results.every(result => result.valid)) {
-  goToPayment()
+A component creates the form, binds the inputs and submits:
+
+::: code-group
+
+```vue [Vue]
+<script setup lang="ts">
+import { useField, useForm } from '@formtree/vue'
+import { createAccount } from './api'
+import { signUpGroup } from './forms/sign-up'
+
+const form = useForm(signUpGroup)
+const name = useField(form.field('name'))
+const email = useField(form.field('email'))
+
+const signUp = form.handleSubmit(account => createAccount(account))
+</script>
+
+<template>
+  <form novalidate @submit.prevent="signUp">
+    <label :for="name.id">Name</label>
+    <input v-model="name.model" v-bind="name.attrs" />
+    <p :id="name.errorId">{{ name.state.errors[0]?.code }}</p>
+
+    <label :for="email.id">Email</label>
+    <input v-model="email.model" v-bind="email.attrs" />
+    <p :id="email.errorId">{{ email.state.errors[0]?.code }}</p>
+
+    <button type="submit">Sign up</button>
+  </form>
+</template>
+```
+
+```tsx [React]
+import { useField, useForm } from '@formtree/react'
+import { createAccount } from './api'
+import { signUpGroup } from './forms/sign-up'
+
+export function SignUpForm() {
+  const form = useForm(signUpGroup)
+  const name = useField(form.field('name'))
+  const email = useField(form.field('email'))
+
+  const signUp = form.handleSubmit(account => createAccount(account))
+
+  return (
+    <form noValidate onSubmit={signUp}>
+      <label htmlFor={name.id}>Name</label>
+      <input {...name.attrs} value={name.value ?? ''} onChange={event => name.setValue(event.target.value)} />
+      <p id={name.errorId}>{name.state.errors[0]?.code}</p>
+
+      <label htmlFor={email.id}>Email</label>
+      <input {...email.attrs} value={email.value ?? ''} onChange={event => email.setValue(event.target.value)} />
+      <p id={email.errorId}>{email.state.errors[0]?.code}</p>
+
+      <button type="submit">Sign up</button>
+    </form>
+  )
 }
 ```
 
-In formtree the step is a node of the tree, and it submits the same way the whole form does:
+:::
+
+That is the whole form. An error appears once its field is left, a submit with errors shows all
+of them and focuses the first one, and `createAccount` receives `{ name: string, email: string }`
+with the name already trimmed. Try it:
+
+<script setup>
+import SignUp from '../examples/demos/sign-up.vue'
+</script>
+
+<DemoFrame title="A first form">
+  <SignUp />
+</DemoFrame>
+
+## What is different
+
+### Submit any part
+
+Most form libraries validate and submit at the root, so saving one step of a checkout means
+checking its fields one by one. In formtree, a step submits the same way the whole form does:
 
 ```ts twoslash
-declare function goToPayment(): void
-// ---cut---
 import { createForm } from '@formtree/core'
 import { checkoutGroup } from './forms/checkout'
 
+declare function goToPayment(): void
 const form = createForm(checkoutGroup, {
   deps: { cartId: 'cart_42', countries: ['DE', 'NL'] },
 })
-
+// ---cut---
 const delivery = form.group('delivery')
-const submitDelivery = delivery.handleSubmit(() => goToPayment())
+const continueToPayment = delivery.handleSubmit(() => goToPayment())
 ```
 
-Submitting `delivery` validates the delivery step and nothing else. Errors in the payment step
-stay hidden until that step is submitted. The same call works on a row, a card or a single field.
+Continue checks the delivery step and nothing else, and its handler receives the output of that
+step. A settings card, a table row and a single field submit the same way.
+[Submitting](/guide/submitting#submitting-part-of-the-form) shows the rest.
 
-## The output of a part
+### Write a rule once, use it anywhere
 
-A Standard Schema validates a value as a whole; it cannot run one branch of an object schema. A
-library that holds one root schema can check the fields of a step, but it cannot hand the step
-an output of its own, with trims and transforms applied.
+A definition holds no state, so one definition backs as many forms as needed. Any definition can
+be the root of a form, a single field included:
 
-formtree builds the tree from definitions, so a step with a definition runs its own schema, and
-its submit handler receives its own output. [How It Works](/guide/how-it-works#defined-nodes-and-lens-nodes)
-shows which nodes have one.
+```ts twoslash
+import { createForm } from '@formtree/core'
+import { priceField } from './forms/product'
+// ---cut---
+const priceCell = createForm(priceField, { initialValue: 24.9 })
+```
 
-## Forms that change shape
+The rule that checks a price on the product page now checks an inline table cell.
+[Inline Edit](/examples/inline-edit) shows it live.
 
-A checkout asks for card details only when the customer pays by card. With one schema, the
-required fields of each branch become conditions in a refinement, components watch the payment
-method to reset the other branch, and the payload sends whatever was not reset.
+### Branches that come and go
 
-In formtree a group decides which children take part with
-[`activeWhen`](/guide/conditional-branches). An inactive branch is not validated and stays out
-of the output, and its values are kept for a customer who switches back.
+Card details are required only when the customer pays by card:
 
-## Types for large and recursive forms
+```ts twoslash
+import { defineGroup } from '@formtree/core'
+import { z } from 'zod'
+import { cardGroup, invoiceGroup } from './forms/checkout'
+// ---cut---
+export const paymentGroup = defineGroup({
+  schema: z.object({ method: z.enum(['card', 'invoice']) }),
+  children: { card: cardGroup, invoice: invoiceGroup },
+  activeWhen: {
+    card: ({ value }) => value.method === 'card',
+    invoice: ({ value }) => value.method === 'invoice',
+  },
+})
+```
 
-A typed path is usually checked against the union of every path in the form. The union grows
-with the form and has no end for a recursive shape, so large forms end in "Type instantiation is
-excessively deep", or their paths are not typed at all.
+A branch that is off is not validated and stays out of the output, and its values wait for the
+customer to come back. No watcher resets anything.
+[Conditional Branches](/guide/conditional-branches) explains the rules.
 
-A formtree node takes its [type](/guide/types) from its own definition, and a path is checked
-one segment at a time, as far as it is written. A component that renders an address knows the
-address definition and nothing about the form around it.
+### Server checks in the definition
 
-## State tied to rendering
+"Is this promo code still valid?" is a question for a server. It belongs to the definition, next
+to the schema:
 
-When a field registers on mount and unregisters on unmount, whether a value exists depends on
-what is on screen. Leaving a wizard step can drop its data, and a field in a dialog can attach
-itself to the nearest form, which may be the page behind it.
+```ts twoslash
+import { defineFieldWithDeps } from '@formtree/core'
+import { z } from 'zod'
+import { checkPromoCode } from './forms/api'
+// ---cut---
+export const promoCodeField = defineFieldWithDeps<{ cartId: string }>()({
+  schema: z.string().trim().toUpperCase(),
+  validateAsync: {
+    on: 'blur',
+    run: async (code, { signal, deps }) => {
+      const valid = await checkPromoCode({ code, cartId: deps.cartId }, signal)
+      return valid ? undefined : { code: 'This code is not valid' }
+    },
+  },
+})
+```
 
-In formtree, mounting and unmounting change nothing. The tree exists from `createForm` on, and a
-component finds its node by path or by [definition](/vue/node-context), never by proximity.
+The check waits for a pause, is cancelled by the next change, remembers each answer and runs on
+the trimmed, upper-cased value. A submit waits for it.
+[Asynchronous checks](/guide/fields#asynchronous-checks) covers the details.
 
-## Checks against a server
+### Types that scale
 
-"Is this username taken" is a question for a server, not a schema rule. Wired by hand, it is a
-watcher that sets an error, with no debounce, no cancellation and a submit that does not wait for
-it.
+A node takes its type from its own definition. A path is checked one segment at a time, never
+against a union of every path in the form, so large and recursive forms stay typed and fast to
+check. A component that renders an address knows the address definition and nothing about the
+form around it. [Types](/guide/types) shows how.
 
-In formtree the check is part of the definition. [`validateAsync`](/guide/fields#asynchronous-checks)
-is debounced, cancelled by the next change, cached per value and awaited by a submit.
+### Nothing depends on what is on screen
 
-## Errors that overwrite each other
-
-When all errors of a field share one slot, a server error disappears on the next schema run, and
-an asynchronous result can hide a schema error.
-
-In formtree every error has one [producer](/guide/validation#four-producers): a schema, a rule, a
-check or the server. Each producer changes only its own errors.
-
-These answers follow from ten [design rules](/guide/design-rules).
+Mounting and unmounting change nothing. Leaving a wizard step keeps its values, and a field in a
+dialog finds its node by path or by definition, never by being next to the nearest form.
+[How It Works](/guide/how-it-works) describes the model behind all of this, and ten
+[design rules](/guide/design-rules) keep it predictable.
