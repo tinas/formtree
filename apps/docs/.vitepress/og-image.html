@@ -1,0 +1,201 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face {
+        font-family: 'Inter';
+        src: url('../node_modules/vitepress/dist/client/theme-default/fonts/inter-roman-latin.woff2') format('woff2');
+        font-weight: 100 900;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        font-family:
+          'Inter',
+          -apple-system,
+          sans-serif;
+        color: #f2f5f3;
+        background:
+          radial-gradient(circle at 88% 12%, rgba(95, 214, 185, 0.2), transparent 42%),
+          radial-gradient(circle at 8% 100%, rgba(11, 122, 99, 0.25), transparent 45%),
+          radial-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px) 0 0 / 26px 26px,
+          #0f1412;
+      }
+      .frame {
+        height: 100%;
+        padding: 64px 72px;
+        display: grid;
+        grid-template-columns: 1fr 430px;
+        gap: 56px;
+        align-items: center;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 34px;
+      }
+      .brand svg {
+        width: 46px;
+        height: 46px;
+      }
+      .brand span {
+        font-size: 34px;
+        font-weight: 700;
+        color: #5fd6b9;
+        letter-spacing: -0.01em;
+      }
+      h1 {
+        margin: 0 0 24px;
+        font-size: 78px;
+        line-height: 1.02;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+      }
+      h1 em {
+        font-style: normal;
+        color: #5fd6b9;
+      }
+      p {
+        margin: 0 0 36px;
+        font-size: 27px;
+        line-height: 1.42;
+        color: #a6b4ae;
+        max-width: 560px;
+      }
+      .chips {
+        display: flex;
+        gap: 12px;
+      }
+      .chips span {
+        font-size: 19px;
+        font-weight: 500;
+        color: #cfe9e1;
+        padding: 7px 16px;
+        border: 1px solid rgba(95, 214, 185, 0.35);
+        border-radius: 999px;
+        background: rgba(95, 214, 185, 0.06);
+      }
+      .card {
+        background: rgba(23, 30, 27, 0.92);
+        border: 1px solid #2a3631;
+        border-radius: 20px;
+        padding: 26px 26px 22px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 46px;
+        font-size: 23px;
+        white-space: pre;
+      }
+      .g {
+        color: #4c5c55;
+      }
+      .name {
+        color: #e5ece8;
+      }
+      .root {
+        font-weight: 600;
+        color: #ffffff;
+      }
+      .tag {
+        margin-left: auto;
+        font-family: 'Inter', sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        padding: 4px 11px;
+        border-radius: 999px;
+        color: #ffffff;
+      }
+      .done {
+        background: #2563eb;
+      }
+      .go {
+        background: #0b7a63;
+      }
+      .wait {
+        background: #3a4842;
+        color: #c6d2cd;
+      }
+      .focus {
+        margin: 4px -12px;
+        padding: 2px 12px;
+        border-radius: 12px;
+        background: rgba(95, 214, 185, 0.1);
+        outline: 1.5px solid rgba(95, 214, 185, 0.65);
+      }
+      .code {
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid #2a3631;
+        font-size: 19px;
+        color: #a6b4ae;
+        white-space: pre;
+      }
+      .code b {
+        font-weight: 500;
+        color: #5fd6b9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div>
+        <div class="brand">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#5fd6b9"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M6 20a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
+            <path d="M16 4a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
+            <path d="M16 20a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
+            <path d="M11 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
+            <path d="M21 12a2 2 0 1 0 -4 0a2 2 0 0 0 4 0" />
+            <path d="M5.058 18.306l2.88 -4.606" />
+            <path d="M10.061 10.303l2.877 -4.604" />
+            <path d="M10.065 13.705l2.876 4.6" />
+            <path d="M15.063 5.7l2.881 4.61" />
+          </svg>
+          <span>formtree</span>
+        </div>
+        <h1>Forms that submit <em>in parts</em></h1>
+        <p>Steps, cards, rows and single fields each validate and submit on their own.</p>
+        <div class="chips"><span>Headless</span><span>Typed</span><span>Standard Schema</span></div>
+      </div>
+      <div class="card">
+        <div class="row"><span class="name root">checkout</span></div>
+        <div class="row">
+          <span class="g">├─ </span><span class="name">cart</span><span class="tag done">submitted</span>
+        </div>
+        <div class="focus">
+          <div class="row">
+            <span class="g">├─ </span><span class="name">delivery</span><span class="tag go">submitting</span>
+          </div>
+          <div class="row"><span class="g">│ ├─ </span><span class="name">method</span></div>
+          <div class="row"><span class="g">│ └─ </span><span class="name">address</span></div>
+        </div>
+        <div class="row">
+          <span class="g">└─ </span><span class="name">payment</span><span class="tag wait">waits</span>
+        </div>
+        <div class="code"><b>delivery</b>.handleSubmit(next)</div>
+      </div>
+    </div>
+  </body>
+</html>

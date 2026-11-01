@@ -113,6 +113,7 @@ Changesets 3 (`.changeset/config.json`): `@formtree/*` is a `fixed` group, so ev
 - Hover types are hard to read: nested drafts and outputs show as `Simplify<DraftObject<…> & {} & {…}>`, group nodes as `GroupNode<GroupDefinitionOf<…>>`. Until that is fixed, docs use `//    ^?` only where the type reads well.
 - Playgrounds and docs demos have only been checked with scripted headless Chrome flows; the React playground only for a clean first render, since the repo has no browser driver.
 - Once the repo has a GitHub remote: drop `disableSources` in `apps/docs/typedoc.json` and consider `@changesets/changelog-github`.
+- Once the docs site has a domain: make `OG_IMAGE` in `apps/docs/.vitepress/config.ts` an absolute URL (most link previews ignore a relative `og:image`), and point the devtools `logo` at the site's logo. `public/og-image.png` is rendered from `.vitepress/og-image.html` at 1200×630 with headless Chrome (`--window-size=1200,630 --force-device-scale-factor=1 --allow-file-access-from-files --screenshot`).
 
 ## Code conventions
 

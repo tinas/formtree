@@ -10,6 +10,8 @@ import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-i
 const DESCRIPTION =
   'Forms that submit in parts. Steps, cards, rows and single fields each validate and submit on their own.'
 
+const OG_IMAGE = '/og-image.png'
+
 const PACKAGE_SOURCES = {
   '@formtree/core': packageSource('core'),
   '@formtree/vue': packageSource('vue'),
@@ -138,8 +140,15 @@ export default defineConfig({
   head: [
     ['link', { rel: 'icon', href: '/logo.svg', sizes: 'any', type: 'image/svg+xml' }],
     ['meta', { name: 'author', content: 'Ahmet Tinastepe' }],
+    ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:title', content: 'formtree' }],
     ['meta', { property: 'og:description', content: DESCRIPTION }],
+    ['meta', { property: 'og:image', content: OG_IMAGE }],
+    ['meta', { property: 'og:image:width', content: '1200' }],
+    ['meta', { property: 'og:image:height', content: '630' }],
+    ['meta', { property: 'og:image:alt', content: 'formtree: forms that submit in parts' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:image', content: OG_IMAGE }],
   ],
 
   markdown: {
