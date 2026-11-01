@@ -1,7 +1,7 @@
 # Vue
 
 `@formtree/vue` connects the core to Vue's reactivity and lifecycle. It adds no behaviour of its
-own: validation, visibility and submitting work exactly as in the [guide](/guide/).
+own, so validation, visibility and submitting work exactly as in the [guide](/guide/).
 
 ::: code-group
 
@@ -27,7 +27,8 @@ well.
 ```vue
 <script setup lang="ts">
 import { useForm } from '@formtree/vue'
-import { contactGroup } from './forms/checkout'
+import { saveContact } from './api'
+import { contactGroup } from './forms/contact'
 
 const form = useForm(contactGroup)
 
@@ -61,7 +62,7 @@ scope to clean up with.
 ## App defaults
 
 Install `createFormtree` once to give every form of the app the same defaults, such as how errors
-are translated and how focus moves, and to see the forms in Vue Devtools while developing:
+are translated and how focus moves, and to see the forms in Vue Devtools while developing.
 
 ```ts
 createApp(App).use(createFormtree()).mount('#app')

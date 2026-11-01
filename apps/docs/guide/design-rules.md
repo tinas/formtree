@@ -20,7 +20,7 @@ of the library follows from them.
    exceptions.
 7. **Empty is `undefined`, structure always exists.** Declared groups are `{}` and declared arrays
    are `[]` from the start. Any value a schema describes is `undefined` while empty, and the
-   schema decides whether that is an error. The library invents no other value: `push({})` adds
+   schema decides whether that is an error. The library invents no other value, so `push({})` adds
    an empty row.
 8. **An array item is identified by its key, not its index.** When a row moves, its errors,
    touched state and cached checks move with it.

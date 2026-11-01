@@ -1,13 +1,13 @@
 # Conditional Branches
 
-Many forms change shape with their own data. A checkout asks for a shipping address only when
-the order is shipped, and for card details only when the customer pays by card. `activeWhen`
-says when a child takes part in the form.
+Many forms change shape with their own data. A checkout asks for a shipping address only when the
+order is shipped, and for card details only when the customer pays by card. `activeWhen` says when
+a child takes part in the form.
 
 ## The problem
 
 Without a way to switch a branch off, every field is part of the schema all the time, and the
-required ones turn into conditions:
+required ones turn into conditions.
 
 ```ts
 const checkoutSchema = z
@@ -26,16 +26,16 @@ const checkoutSchema = z
   })
 ```
 
-The schema no longer says what is required. The payload sends card details along with an
-invoice unless someone clears them, so components start watching the method and resetting
-fields, and each branch needs its own watcher.
+The schema no longer says what is required. The payload sends card details along with an invoice
+unless someone clears them, so components start watching the method and resetting fields, with a
+watcher for each branch.
 
 ## activeWhen
 
 ```ts twoslash
 import { defineGroup } from '@formtree/core'
 import { z } from 'zod'
-import { cardGroup, invoiceGroup } from './forms/checkout'
+import { cardGroup, invoiceGroup } from './forms/payment'
 
 export const paymentGroup = defineGroup({
   schema: z.object({
@@ -49,28 +49,28 @@ export const paymentGroup = defineGroup({
 })
 ```
 
-Each key of `activeWhen` names a child, and its function decides from the group's own draft
-whether that child is active. The children stay complete definitions with plain, unconditional
-schemas. The decision lives in the parent, because the parent holds the value it depends on.
+Each key of `activeWhen` names a child, and its function decides from the group's own draft whether
+that child is active. The children stay complete definitions with plain, unconditional schemas. The
+decision lives in the parent, because the parent holds the value it depends on.
 
-Only children can be conditional: a key of `activeWhen` that is not in `children` is a type
-error, so a key that should come and go gets a definition of its own, like `stateField` in
-[Nested branches](#nested-branches). A child that is not listed is always active. The functions
-run again after every change, so a branch follows the value while the user types.
+Only children can be conditional. A key of `activeWhen` that is not in `children` is a type error,
+so a key that should come and go gets a definition of its own, like `stateField` in
+[Nested branches](#nested-branches). A child that is not listed is always active. The functions run
+again after every change, so a branch follows the value while the user types.
 
 ## What an inactive branch does
 
 An inactive branch is not validated, so its errors do not block a submit. It is not part of the
-output, so it cannot leak into the payload. Its values are kept: a customer who picks invoice,
-types a company name, switches to card and comes back finds the company name still there.
-Errors inside an inactive branch, whoever produced them, are ignored until it is active again,
-and submitting a node inside it returns `'skipped'` without calling the handler.
+output, so it cannot leak into the payload. Its values are kept, so a customer who picks invoice,
+types a company name, switches to card and comes back finds the company name still there. Errors
+inside an inactive branch, whoever produced them, are ignored until it is active again, and
+submitting a node inside it returns `'skipped'` without calling the handler.
 
-The output type says the same thing. A child with an `activeWhen` is optional in the output:
+The output type says the same, because a child with an `activeWhen` is optional in the output.
 
 ```ts twoslash
 import type { OutputOf } from '@formtree/core'
-import { paymentGroup } from './forms/checkout'
+import { paymentGroup } from './forms/payment'
 
 type Payment = OutputOf<typeof paymentGroup>
 // {
@@ -80,7 +80,7 @@ type Payment = OutputOf<typeof paymentGroup>
 // }
 ```
 
-`state.active` tells the UI whether to render a branch:
+`state.active` tells the UI whether to render a branch.
 
 ```vue
 <fieldset v-if="payment.group('card').state.active">
@@ -89,7 +89,7 @@ type Payment = OutputOf<typeof paymentGroup>
 </fieldset>
 ```
 
-Hiding the fieldset is the UI's decision. The form does not depend on it: an inactive branch is
+Hiding the fieldset is the UI's decision, and the form does not depend on it. An inactive branch is
 left out whether it is rendered or not.
 
 ## Nested branches
@@ -119,27 +119,27 @@ export const deliveryGroup = defineGroup({
 })
 ```
 
-`state` is active only when its address is active and the country is `US`. Switching delivery
-to pickup turns off the whole address, state included.
+`state` is active only when its address is active and the country is `US`. Switching delivery to
+pickup turns off the whole address, state included.
 
 ## What activeWhen can see
 
-An `activeWhen` function receives `{ value, deps }`. `value` is the draft of the group's own
-schema, without its children. If a decision depends on a value that lives in a child, move that
-value into the parent's schema. This keeps the direction of every decision from parent to child,
-and it keeps the types simple: a function never waits for the types of the children it controls.
+An `activeWhen` function receives `{ value, deps }`. `value` is the draft of the group's own schema,
+without its children. If a decision depends on a value that lives in a child, move that value into
+the parent's schema. Every decision then runs from parent to child, and a function never waits for
+the types of the children it controls.
 
 `deps` holds the group's [dependencies](/guide/dependencies), for branches that depend on
 configuration from outside the form, such as a feature that only some accounts have.
 
 ## Clearing a branch
 
-Keeping inactive values is the default because it is what users expect when they change their
-mind. When a branch should start over, reset it explicitly:
+Inactive values are kept by default, because that is what users expect when they change their mind.
+When a branch should start over, reset it explicitly.
 
 ```ts twoslash
 import { createForm } from '@formtree/core'
-import { paymentGroup } from './forms/checkout'
+import { paymentGroup } from './forms/payment'
 
 const form = createForm(paymentGroup)
 // ---cut---

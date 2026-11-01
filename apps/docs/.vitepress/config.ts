@@ -17,7 +17,20 @@ const PACKAGE_SOURCES = {
   '@formtree/vue': packageSource('vue'),
 }
 
-const EXAMPLE_FORMS = ['api', 'schemas', 'checkout', 'account', 'segment', 'product', 'sign-up']
+const EXAMPLE_FORMS = [
+  'api',
+  'schemas',
+  'contact',
+  'delivery',
+  'payment',
+  'line-items',
+  'promo-code',
+  'checkout',
+  'account',
+  'segment',
+  'product',
+  'sign-up',
+]
 
 const API_SIDEBAR_FILE = new URL('../api/typedoc-sidebar.json', import.meta.url)
 
@@ -126,6 +139,8 @@ export default defineConfig({
         },
       ],
     },
+
+    socialLinks: [{ icon: 'github', link: 'https://github.com/tinas/formtree' }],
 
     search: { provider: 'local' },
 

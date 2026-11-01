@@ -17,10 +17,10 @@ const form = provideFormNode(useForm(checkoutGroup, { deps: { cartId: 'cart_42',
 ```
 
 `provideFormNode(node)` makes a node available to every descendant and returns it, so it wraps
-the call that creates the node. Providing is always explicit: `useForm` never provides by
+the call that creates the node. Providing is always explicit. `useForm` never provides by
 itself, so a form in a dialog cannot quietly replace the page's form for the components below it.
 
-Any node can be provided: the root, a step, an array item.
+Any node can be provided, whether the root, a step or an array item.
 
 ## useFormNode
 
@@ -42,7 +42,7 @@ const submit = delivery.handleSubmit(() => emit('next'))
 If no ancestor provided one, it throws. It does not fall back to another node.
 
 A component deeper down can then ask for the delivery step by its own definition, without
-knowing that it sits inside a checkout:
+knowing that it sits inside a checkout.
 
 ```ts
 const delivery = useFormNode(deliveryGroup)
@@ -53,7 +53,7 @@ a loose type. Generic input components use it through `useField(name)`.
 
 ## Lists
 
-A row component receives its index, injects the list's parent and provides its own item:
+A row component receives its index, injects the list's parent and provides its own item.
 
 ```vue
 <!-- line-item-row.vue -->
@@ -74,7 +74,7 @@ Inputs inside the row bind to `'sku'` and `'quantity'` by name, relative to the 
 
 A node passed through props would make every component in between carry the form's types, and
 the props would mirror state the form already holds. With a definition as the key, a component
-knows exactly one thing about the form: the definition it renders.
+knows only the definition it renders.
 
 | Component       | Receives                               |
 | --------------- | -------------------------------------- |

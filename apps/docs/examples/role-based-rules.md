@@ -11,17 +11,21 @@ import RoleBasedRules from './demos/role-based-rules.vue'
   <RoleBasedRules />
 </DemoFrame>
 
-::: details Show code
-
-<<< ./demos/role-based-rules.vue
-
-<<< ./forms/account.ts
-
-:::
-
 Type a 10-character password as a member, then switch the role to admin. The password schema is
-rebuilt with the new minimum and the field becomes invalid at once, without a watcher and
+rebuilt with the new minimum, and the field becomes invalid at once, without a watcher and
 without touching the password.
 
-The "Repeat password" check is a `validate` rule on the group, because it compares two of the
+"Repeat password" is checked by a `validate` rule on the group, because it compares two of the
 group's values.
+
+::: code-group
+
+<<< ./demos/role-based-rules.vue [demos/role-based-rules.vue]
+
+<<< ./forms/account.ts [forms/account.ts]
+
+<<< ./components/select-field.vue [components/select-field.vue]
+
+<<< ./components/text-field.vue [components/text-field.vue]
+
+:::

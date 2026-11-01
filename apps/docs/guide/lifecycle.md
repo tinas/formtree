@@ -6,7 +6,7 @@ import LifecycleTree from '../.vitepress/components/lifecycle-tree.vue'
 # Lifecycle
 
 This page follows one field of the checkout, `delivery.address.city`, through a change, a blur and
-a submit of the step that holds it:
+a submit of the step that holds it.
 
 ```ts twoslash
 import { createForm } from '@formtree/core'
@@ -32,9 +32,9 @@ await form.group('delivery').handleSubmit(saveDelivery)()
 
 ## A change
 
-`setValue` runs these steps, in this order, before it returns:
+`setValue` runs these steps, in this order, before it returns.
 
-1. **Write the draft.** The value is written without mutating the old one: `city`, `address`,
+1. **Write the draft.** The value is written without mutating the old one, so `city`, `address`,
    `delivery` and the root get new objects, and every other branch keeps its own. Writing the value
    a field already holds stops here. Errors set with `clearOn: 'change'` on the field are removed.
 2. **Walk the tree.** From the root down, `activeWhen` decides which children take part and
@@ -66,7 +66,7 @@ their debounce. Values are not validated again; the change already did that.
 
 ## A submit
 
-The function `handleSubmit` returns runs the same steps every time:
+The function `handleSubmit` returns runs the same steps every time.
 
 1. If the node is already submitting or is in an inactive branch, return `'skipped'` without
    calling the handler. A double click or an Enter key that lands together with a click submits
@@ -106,9 +106,9 @@ The handler receives the output of the submitted node. For a node in its parent'
 A wizard submits each step as the user moves on, and the last step submits the root. The root's
 submit runs a validation pass like any other, but a node whose value and dependencies have not
 changed since keeps its results, and a check that already ran for the same output keeps its
-answer. Nothing is validated twice: only what changed after the step's submit runs again.
+answer, so only what changed after the step's submit runs again.
 
-Two things carry over from the step's submit:
+Two things carry over from the step's submit.
 
 - **Errors its handler returned stay** until their value changes, so they block the root's
   submit too. The server's answer still stands until the user edits the value.

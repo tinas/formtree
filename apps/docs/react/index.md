@@ -1,7 +1,7 @@
 # React
 
 `@formtree/react` connects the core to React's rendering and lifecycle. It adds no behaviour of
-its own: validation, visibility and submitting work exactly as in the [guide](/guide/).
+its own, so validation, visibility and submitting work exactly as in the [guide](/guide/).
 
 ::: code-group
 
@@ -27,7 +27,8 @@ well. It needs React 18.3 or later.
 ```tsx
 // contact-card.tsx
 import { useForm } from '@formtree/react'
-import { contactGroup } from './forms/checkout'
+import { saveContact } from './api'
+import { contactGroup } from './forms/contact'
 
 export function ContactCard() {
   const form = useForm(contactGroup)
@@ -59,7 +60,7 @@ once, on the first render, and keeps it for the life of the component.
 ## App defaults
 
 How errors become text and how focus moves are usually the same for every form of an app. Give
-them once with `FormtreeProvider`:
+them once with `FormtreeProvider`.
 
 ```tsx
 // app.tsx
@@ -94,16 +95,13 @@ provider takes.
 
 ## Reading node state
 
-A component re-renders for the nodes it subscribed to, and only for those:
-
-- `useForm` subscribes to the root,
-- `useFormNode` to the node it returns,
-- `useField` to its field,
-- `useNodeState(node)` to any node you pass it.
+A component re-renders for the nodes it subscribed to, and only for those. `useForm` subscribes to
+the root, `useFormNode` to the node it returns, `useField` to its field and `useNodeState(node)` to
+any node you pass it.
 
 The root's state changes whenever a value changes, so values read from `form.state` are always
-current. The state of another node can change while the root's does not: an error appears on a
-field, or a branch becomes active. Read that state through `useNodeState`:
+current. The state of another node can change while the root's does not, for example when an error
+appears on a field or a branch becomes active. Read that state through `useNodeState`.
 
 ```tsx
 const form = useForm(checkoutGroup, { deps })
@@ -125,5 +123,5 @@ const form = useForm(checkoutGroup, {
 })
 ```
 
-A new object on every render is fine: dependencies equal key by key to the current ones change
-nothing, so nothing is validated again and nothing re-renders.
+A new object on every render is fine. Dependencies equal key by key to the current ones change
+nothing, and nothing is validated again or re-rendered.

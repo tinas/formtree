@@ -1,7 +1,7 @@
 # Field Bindings
 
-`useField` turns a field node into what an input needs: the value, a way to write it, and the
-attributes for the element.
+`useField` turns a field node into the value, a way to write it and the attributes for the input
+element.
 
 ## A generic input
 
@@ -34,7 +34,7 @@ component knows how its element represents the value.
 
 The generic input shows `errorMessage`, the field's first visible error as text. When codes are
 translation keys, give the app one `formatError` that translates them, for example with
-react-i18next:
+react-i18next.
 
 ```tsx
 // app.tsx
@@ -58,7 +58,7 @@ function formatError(error: FormError): string {
 
 `errorMessage` runs `formatError` on every render. React re-renders the input when its field
 changes, not when the language does, so call `useTranslation()` in the generic input to re-render
-it on a language switch:
+it on a language switch.
 
 ```tsx
 // text-field.tsx
@@ -84,7 +84,7 @@ schema library writes by default.
 
 ## Typed bindings
 
-A business component that knows its definition can bind a typed node instead of a name:
+A business component that knows its definition can bind a typed node instead of a name.
 
 ```tsx
 const delivery = useFormNode(deliveryGroup)
@@ -99,7 +99,7 @@ accept is a type error.
 ## Values that are not strings
 
 An `<input>` produces strings, and a draft holds `undefined` while empty. A number input converts
-between the two:
+between the two.
 
 ```tsx
 // number-field.tsx

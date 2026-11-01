@@ -1,7 +1,6 @@
 # Field Bindings
 
-`useField` turns a field node into what an input needs: a value for `v-model` and the attributes
-for the element.
+`useField` turns a field node into a value for `v-model` and the attributes for the input element.
 
 ## A generic input
 
@@ -35,13 +34,13 @@ The name can be a ref or a getter. When it changes, the binding follows the new 
 ## Translating errors
 
 The generic input shows `errorMessage`, the field's first visible error as text. When codes are
-translation keys, the input stays as it is: the app gives `createFormtree` one `formatError` that
+translation keys, the input stays as it is, and the app gives `createFormtree` one `formatError` that
 translates them, and every `errorMessage` follows the current locale.
 [Translating errors](/vue/app-defaults#translating-errors) shows it with vue-i18n.
 
 ## Typed bindings
 
-A business component that knows its definition can bind a typed node instead of a name:
+A business component that knows its definition can bind a typed node instead of a name.
 
 ```ts
 const delivery = useFormNode(deliveryGroup)
@@ -56,7 +55,7 @@ type error.
 ## Values that are not strings
 
 An `<input>` produces strings, and a draft holds `undefined` while empty. A number input
-converts between the two:
+converts between the two.
 
 ```vue
 <!-- number-field.vue -->

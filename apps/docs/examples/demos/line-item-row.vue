@@ -5,7 +5,7 @@ import { computed } from 'vue'
 import NumberField from '../components/number-field.vue'
 import SelectField from '../components/select-field.vue'
 import { saveLineItem } from '../forms/api'
-import { lineItemsArray } from '../forms/checkout'
+import { lineItemsArray } from '../forms/line-items'
 
 const props = defineProps<{ index: number }>()
 
