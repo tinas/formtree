@@ -112,8 +112,8 @@ Changesets 3 (`.changeset/config.json`): `@formtree/*` is a `fixed` group, so ev
 
 - npm auth is trusted publishing (OIDC), no token: each `@formtree/*` package trusts `tinas/formtree` and `release.yml`. Only the `publish` job has `id-token: write`.
 - pnpm adds provenance on its own for a public repo, and provenance fails unless the package's `repository` (with `directory`) matches the repo; every package declares it.
-- npm lets a package trust a workflow only once it exists: a new package is published once by hand (`pnpm release`), then `npm trust github <name> --file release.yml --repo tinas/formtree --allow-publish`.
-- The version PR is opened with the Actions token, so CI does not run on it; `pack` runs `vp run ready` before anything is published.
+- npm lets a package trust a workflow only once it exists: a new package is published once by hand (`pnpm release`), then `npm trust github <name> --file release.yml --repo tinas/formtree --allow-publish`, or the same on the package's Trusted Publisher settings with no environment and "Allow npm publish" ticked. Without that permission npm allows only staged publishes, and `publish` fails with `E403 OIDC permission denied for this action`.
+- The version PR is opened with the Actions token, so GitHub holds CI on it until it is approved ("Approve and run workflows"); `pack` runs `vp run ready` before anything is published either way.
 - `changeset-status.yml` runs on `pull_request_target` so fork PRs get the comment; it checks out and reads, never runs the PR's code.
 - Actions are pinned to commit SHAs with the tag in a comment; Dependabot groups their updates monthly. `setup-vp` takes Node from `engines.node` (the newest release in the range), Vite+ from the catalog and pnpm from `devEngines`.
 
