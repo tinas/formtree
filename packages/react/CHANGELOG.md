@@ -1,5 +1,13 @@
 # @formtree/react
 
+## 0.1.0-alpha.1
+
+### Patch Changes
+
+- [#2](https://github.com/tinas/formtree/pull/2) [`60d7aab`](https://github.com/tinas/formtree/commit/60d7aab641b360c28de526fc33a2d859eba96734) Thanks [@tinas](https://github.com/tinas)! - Add a README to each package for its npm page.
+- Updated dependencies [[`60d7aab`](https://github.com/tinas/formtree/commit/60d7aab641b360c28de526fc33a2d859eba96734)]:
+  - @formtree/core@0.1.0-alpha.1
+
 ## 0.1.0-alpha.0
 
 ### Minor Changes
