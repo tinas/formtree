@@ -1,19 +1,26 @@
 # Dependencies
 
-Some rules need values that are not part of the form. The countries a store ships to come from a
-server. A promo code is checked against a cart id. An admin needs a longer password than a
-member. These values are dependencies, `deps` for short: the form does not edit them, but its
+Some rules read values the user never edits. The countries a store ships to come from a server.
+A promo code is checked against the current cart. An admin needs a longer password than a
+member. These values are dependencies, `deps` for short: the form does not hold them, but its
 rules read them.
 
 Dependencies work like the parameters of a function. A definition declares what it takes, and
-the place that uses it passes it in: `createForm` for the root, the parent's `childDeps` for a
-child. A value belongs in dependencies when the form reads it, the user never edits it and it
-is not part of the output. A value the user edits belongs in a schema.
+the place that uses it passes it in. A value belongs in dependencies when rules read it, the
+user never edits it and it is not part of the output. A value the user edits belongs in a
+schema.
 
-## Declaring what a definition needs
+## A rule that needs data from the server
 
-A definition that reads dependencies says so in its type, with the `WithDeps` variant of its
-function:
+The store ships to a few countries, and the list comes from an API so that adding a country
+does not need a release. The address step has to reject a country that is not on the list.
+
+The list is not known where definitions are written, at module level. Building the schema later,
+inside the screen that loads the list, ties the rule to that screen: the address can no longer
+be declared once and imported by every form that asks for one.
+
+A definition that needs outside values declares them in its type, with the `WithDeps` variant
+of its function:
 
 ```ts twoslash
 import { defineGroupWithDeps } from '@formtree/core'
@@ -30,23 +37,23 @@ export const addressGroup = defineGroupWithDeps<{ countries: ReadonlyArray<strin
 })
 ```
 
+`addressGroup` still lives at module level. It states that it needs a list of countries and
+does not know where the list comes from, so any form that provides one can use it. Every
+function in the options of a `WithDeps` definition receives the same `deps`.
+
 `defineGroupWithDeps<Deps>()` and `defineFieldWithDeps<Deps>()` take the type of the dependencies
 first and the options in a second call. TypeScript cannot take one type argument from you and
-infer the others, so the dependencies get a call of their own, and the schema and the rules are
-still inferred. A definition without dependencies uses the plain `defineGroup` or `defineField`.
+infer the others, so the dependencies get a call of their own while the schema and the rules
+are still inferred. A definition without dependencies uses the plain `defineGroup` or
+`defineField`.
 
-The definition does not know where its dependencies come from. It only states what it needs, so
-it can be used in any form that provides them.
+## Passing data to a nested part
 
-## Where dependencies are read
+The address is not the root of the form. It sits in the delivery step, which sits in the
+checkout, and only the checkout is created with the list of countries. The address must not
+reach up for it, or it could only be used inside this checkout.
 
-Every function in the options of `defineFieldWithDeps` and `defineGroupWithDeps` receives the
-definition's `deps`.
-
-## Passing dependencies down
-
-Dependencies flow from the root down, one level at a time. A group gives each child that needs
-dependencies what it needs with `childDeps`:
+A group hands dependencies to the children that need them with `childDeps`:
 
 ```ts twoslash
 import { defineGroupWithDeps } from '@formtree/core'
@@ -63,13 +70,15 @@ export const deliveryGroup = defineGroupWithDeps<{ countries: ReadonlyArray<stri
 })
 ```
 
-`childDeps` has one entry per child that needs dependencies. Each entry is a function that
-receives `{ value, deps }` and returns that child's dependencies, typed by what the child
-declared:
+`deliveryGroup` declares `countries` although only its address reads them, because a group can
+only pass on what it has. Each level states what it needs and what it passes, so the path of
+the list from the checkout down to the country check can be read from the definitions alone.
 
-- `deps` holds the group's own dependencies. A group can only pass on what it has, so
-  `deliveryGroup` declares `countries` although only its address reads them. A child that needs
-  exactly the group's dependencies gets them with `({ deps }) => deps`.
+`childDeps` has one entry per child that needs dependencies. Each entry receives `{ value, deps }`
+and returns that child's dependencies, typed by what the child declared:
+
+- `deps` holds the group's own dependencies. A child that needs exactly those gets them with
+  `({ deps }) => deps`.
 - `value` is the draft of the group's own schema, without its children, as in `activeWhen`.
 
 `childDeps` is required as soon as a child needs dependencies, and it lists exactly those
@@ -84,10 +93,16 @@ For an array, the entry in `childDeps` gives the same dependencies to every item
 get dependencies of its own: a value that differs per item belongs in the item's schema. The
 array's own `validate` receives none; a rule that needs them goes on the parent group.
 
-## Dependencies from the parent's value
+## A rule that depends on another answer
 
-A parent can turn one of its values into a dependency of a child, which keeps the child unaware
-of where the value came from.
+An account form asks for a role and a password. Admins need at least 12 characters, members 8.
+The role is in the same form, so the password rule depends on the user's own answer.
+
+Written as a refinement on the whole account object, the rule moves away from the password: the
+password can no longer be used without the role next to it, and the refinement waits until
+every key of the object is valid.
+
+A parent can turn one of its values into a dependency of a child instead:
 
 ```ts twoslash
 import { defineFieldWithDeps, defineGroup } from '@formtree/core'
@@ -112,14 +127,19 @@ export const accountGroup = defineGroup({
 ```
 
 `passwordField` knows about a minimum length and nothing about roles. `accountGroup` needs no
-dependencies of its own: it supplies the child's from its value. Choosing `admin` rebuilds the
-password schema, and an 8-character password becomes invalid at once.
+dependencies of its own: it supplies the child's from its value. A 10-character password is
+valid for a member; switching the role to admin rebuilds the password schema, and the same
+password is invalid at once, without a watcher and without touching the value.
 [Role-based Rules](/examples/role-based-rules) shows it live.
 
-## Giving the root its dependencies
+Use this when the child owns the rule and only a parameter of it comes from the parent. A rule
+that compares two values, such as a repeated password, is a [`validate`](/guide/groups#rules-across-keys)
+rule on the group instead.
 
-The root's dependencies are an option of `createForm`. It is required when the root needs
-dependencies and not accepted otherwise.
+## Data that arrives after the form
+
+The checkout renders at once, while the request for the countries is still running. The form
+does not wait: it is created with what is known and given the list when it arrives.
 
 ```ts twoslash
 import { createForm } from '@formtree/core'
@@ -136,28 +156,31 @@ fetchShippingCountries().then(countries => {
 })
 ```
 
-The adapters call `setDeps` for you: in Vue, `useForm` follows a ref or a getter
-([Vue](/vue/#dependencies)); in React, it receives each new `deps` value ([React](/react/#dependencies)).
+The root's dependencies are an option of `createForm`, required when the root needs
+dependencies and not accepted otherwise. The adapters call `setDeps` for you: in Vue, `useForm`
+follows a ref or a getter ([Vue](/vue/#dependencies)); in React, it receives each new `deps`
+value ([React](/react/#dependencies)).
 
-## When dependencies change
-
-`setDeps` replaces the root's dependencies, and every `childDeps` below runs again. A node whose
-new dependencies equal the previous ones key by key keeps the previous object, so a function
-that returns a new object each time rebuilds nothing. For a node whose dependencies did change:
+`setDeps` replaces the root's dependencies, and every `childDeps` below runs again. For a node
+whose dependencies changed:
 
 - a schema built from them is rebuilt, and the node is validated again with it;
 - `activeWhen` decides again which children take part;
 - an asynchronous check drops its cached results and its error, and runs again: at once for a
   check on change, otherwise on its next trigger or at submit.
 
-Values are never touched. A dependency can make a value invalid, as the role does to the
-password above, but it does not change it.
+Values are never touched. When a later list drops a country the customer already picked, the
+country stays and turns invalid instead of disappearing.
 
-## One direction
+## A value two siblings need
 
-Dependencies flow from a parent to its children, never between siblings and never upwards. A
-value that two siblings both need moves into their parent's schema, and the parent passes it to
-each of them. Reading a definition's options then tells you everything its rules depend on.
+Pickup stores depend on the country too. In the delivery step, the address and the store are
+siblings, and the store cannot read the country out of the address: dependencies flow from a
+parent to its children, never between siblings and never upwards.
+
+The value moves to where both can be reached from. Ask for the country in the delivery step's
+own schema, and pass it to the address and to the store with `childDeps`. Reading a
+definition's options then tells you everything its rules depend on.
 
 ## Types
 
