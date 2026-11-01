@@ -1,5 +1,11 @@
 # @formtree/core
 
+## 0.1.0
+
+### Minor Changes
+
+- [`98607fe`](https://github.com/tinas/formtree/commit/98607fe794ced4f9f339a3c10b0ea994f32e66a5) Thanks [@tinas](https://github.com/tinas)! - Initial release. A form is a tree of definitions, and every node of it, from a wizard step to a single field, validates and submits on its own. `@formtree/core` is the framework-free engine with Standard Schema validation, conditional branches, dependencies and asynchronous checks. `@formtree/vue` and `@formtree/react` bind it to components, and `@formtree/vue` shows forms in Vue Devtools.
+
 ## 0.1.0-alpha.1
 
 ### Patch Changes
