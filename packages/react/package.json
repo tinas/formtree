@@ -1,6 +1,6 @@
 {
   "name": "@formtree/react",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha.0",
   "description": "React adapter for @formtree/core: node state hooks, explicit node context, field bindings.",
   "keywords": [
     "form",
