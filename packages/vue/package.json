@@ -1,6 +1,6 @@
 {
   "name": "@formtree/vue",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha.0",
   "description": "Vue adapter for @formtree/core: reactive nodes, explicit node context, field bindings for v-model.",
   "keywords": [
     "form",
