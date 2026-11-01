@@ -1,4 +1,5 @@
 import type { Definition } from '../definitions/definition'
+import type { FormatErrorOption } from '../errors/form-error'
 import type { DisplayModes } from '../modes/display-mode'
 import type { FocusElementOption, FocusErrorOption, NodeState } from '../nodes/node-types'
 import type { FormState } from '../state/form-state'
@@ -9,6 +10,7 @@ import type { FormEventObserver } from './form-events'
 export interface FormRuntimeOptions extends DisplayModes {
   readonly shouldFocusError: FocusErrorOption
   readonly focusElement: FocusElementOption
+  readonly formatError: FormatErrorOption
 }
 
 export interface CachedNodeState {

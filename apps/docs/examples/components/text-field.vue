@@ -10,6 +10,6 @@ const field = useField<string>(() => props.name)
   <div class="demo-field">
     <label :for="field.id">{{ label }}</label>
     <input v-model="field.model" v-bind="field.attrs" autocomplete="off" />
-    <p :id="field.errorId" class="demo-error">{{ field.state.errors[0]?.code }}</p>
+    <p :id="field.errorId" class="demo-error">{{ field.errorMessage }}</p>
   </div>
 </template>

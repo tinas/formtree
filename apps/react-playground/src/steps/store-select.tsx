@@ -11,7 +11,7 @@ interface StoreChoice {
 export function StoreSelect() {
   const store = useField<StoreChoice>('store')
   return (
-    <FieldFrame label="Pickup store" labelFor={store.id} errorId={store.errorId} error={store.state.errors[0]?.code}>
+    <FieldFrame label="Pickup store" labelFor={store.id} errorId={store.errorId} error={store.errorMessage}>
       <select
         {...store.attrs}
         value={store.value?.storeId ?? ''}

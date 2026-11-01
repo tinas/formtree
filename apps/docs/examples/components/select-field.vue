@@ -18,6 +18,6 @@ const field = useField<string>(() => props.name)
       <option :value="undefined" disabled>Choose…</option>
       <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
     </select>
-    <p :id="field.errorId" class="demo-error">{{ field.state.errors[0]?.code }}</p>
+    <p :id="field.errorId" class="demo-error">{{ field.errorMessage }}</p>
   </div>
 </template>

@@ -23,12 +23,12 @@ const signUp = form.handleSubmit(async account => {
     <div class="demo-field">
       <label :for="name.id">Name</label>
       <input v-model="name.model" v-bind="name.attrs" autocomplete="off" />
-      <p :id="name.errorId" class="demo-error">{{ name.state.errors[0]?.code }}</p>
+      <p :id="name.errorId" class="demo-error">{{ name.errorMessage }}</p>
     </div>
     <div class="demo-field">
       <label :for="email.id">Email</label>
       <input v-model="email.model" v-bind="email.attrs" autocomplete="off" />
-      <p :id="email.errorId" class="demo-error">{{ email.state.errors[0]?.code }}</p>
+      <p :id="email.errorId" class="demo-error">{{ email.errorMessage }}</p>
     </div>
     <button type="submit" :aria-busy="form.state.submitting">Sign up</button>
     <pre v-if="created" class="demo-output">{{ created }}</pre>

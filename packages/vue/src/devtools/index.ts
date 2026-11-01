@@ -1,16 +1,9 @@
-/**
- * Vue Devtools integration for formtree: every form created with `useForm`, its node tree and node states in an
- * inspector, and what happens in it on a timeline. Read-only.
- *
- * @module @formtree/vue/devtools
- */
 import type { App } from 'vue'
-import type { RegisteredForm } from '../form-registry'
+import type { FormRegistry, RegisteredForm } from '../formtree-app'
 import type { DevtoolsApi } from './devtools-api'
 
 import { setupDevtoolsPlugin } from '@vue/devtools-api'
 
-import { FORM_REGISTRY } from '../form-registry'
 import { inspectedNode, inspectorState, inspectorTree } from './inspector'
 import { timelineEventOf } from './timeline'
 
@@ -27,20 +20,13 @@ interface DevtoolsSession {
   formCount: number
 }
 
-/**
- * Shows the forms of the app in Vue Devtools. Every form created with `useForm` inside the app appears in the formtree
- * inspector, labelled with the component that created it, and its changes, checks and submits appear on the timeline.
- * Nothing can be edited from the devtools.
- *
- * @category Devtools
- */
-export function formtreeDevtools(app: App): void {
+export function connectDevtools(app: App): FormRegistry {
   const session: DevtoolsSession = { forms: new Map(), api: undefined, formCount: 0 }
-  app.provide(FORM_REGISTRY, { register: entry => addForm(session, entry) })
   setupDevtoolsPlugin(
     { id: PLUGIN_ID, label: 'formtree', packageName: '@formtree/vue', logo: SIDEBAR_ICON, app },
     api => connect(session, api),
   )
+  return { register: entry => addForm(session, entry) }
 }
 
 function addForm(session: DevtoolsSession, entry: RegisteredForm): () => void {

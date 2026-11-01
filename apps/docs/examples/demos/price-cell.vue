@@ -28,6 +28,6 @@ const savePrice = cell.handleSubmit(async newPrice => {
     <span class="demo-hint">
       {{ cell.state.submitting ? 'Saving…' : cell.state.dirty ? 'Press Enter to save' : '' }}
     </span>
-    <span :id="price.errorId" class="demo-error">{{ price.state.errors[0]?.code }}</span>
+    <span :id="price.errorId" class="demo-error">{{ price.errorMessage }}</span>
   </form>
 </template>

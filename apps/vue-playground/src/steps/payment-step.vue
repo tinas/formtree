@@ -46,6 +46,6 @@ function toggleTerms(isChecked: boolean): void {
       />
       I accept the terms of sale
     </label>
-    <p :id="acceptTerms.errorId" class="error">{{ acceptTerms.state.errors[0]?.code }}</p>
+    <p :id="acceptTerms.errorId" class="error">{{ acceptTerms.errorMessage }}</p>
   </form>
 </template>

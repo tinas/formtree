@@ -13,6 +13,11 @@ import { toPath } from '../state/node-id'
 import { valueAt } from '../validation/output'
 import { activeErrors, isActiveNode, visibleErrorsAt } from '../validation/visibility'
 
+export function errorMessageOf(runtime: FormRuntime, nodeId: string): string | undefined {
+  const [error] = readNodeState(runtime, nodeId).errors
+  return error == undefined ? undefined : runtime.options.formatError(error)
+}
+
 export function readNodeState(runtime: FormRuntime, nodeId: string): NodeState<unknown> {
   const cached = runtime.nodeStates.get(nodeId)
   if (cached?.version == runtime.version) {

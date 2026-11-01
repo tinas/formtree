@@ -19,8 +19,9 @@ schema library's own issue code. The UI turns `code` into text.
 
 ## Translating errors
 
-formtree does not format messages. Write translation keys as codes, and translate them where an
-error is rendered. Below, `t` stands for the translate function of your i18n library.
+formtree does not write messages. Write translation keys as codes, and give the form one
+`formatError` that turns an error into text. Below, `t` stands for the translate function of your
+i18n library.
 
 ```ts twoslash
 import type { ErrorParams } from '@formtree/core'
@@ -34,22 +35,27 @@ const quantityField = defineField({
   schema: z.number({ error: 'cart.quantity.required' }).min(1, { error: 'cart.quantity.min' }),
 })
 
-const quantity = createForm(quantityField)
+const quantity = createForm(quantityField, {
+  formatError: error => t(error.code, error.params),
+})
 
 quantity.subscribe(() => {
-  const error = quantity.state.errors[0]
-  message.textContent = error ? t(error.code, error.params) : ''
+  message.textContent = quantity.errorMessage ?? ''
 })
 ```
+
+`errorMessage` is the node's first visible error, passed through `formatError`. Without a
+`formatError` it is the code itself, which is all a form needs while its codes are readable
+messages.
 
 `params` carries the values of the schema issue, so a message can use them: `min(1)` reports
 `minimum: 1`, and a message such as `'Order at least {minimum}'` reads it. Rules, checks and
 server errors return `{ code, params }` themselves and are translated the same way.
 
-Translate when rendering, not when the error is created. The form keeps the keys, so switching
-the language updates every visible message without validating again. In an adapter, the generic input
-does it: see Field Bindings for [Vue](/vue/field-bindings#translating-errors) and
-[React](/react/field-bindings#translating-errors).
+`errorMessage` is not cached: it runs `formatError` each time it is read, and the form keeps the
+keys, so switching the language updates every visible message without validating again. The
+adapters take `formatError` once for the whole app: see [Vue](/vue/app-defaults#translating-errors) and
+[React](/react/#app-defaults).
 
 A rule without its own message reports the schema library's default, which is an English
 sentence, not a key. Give every rule an `error`, or map issues to keys once with the library's
@@ -130,7 +136,7 @@ const delivery = form.group('delivery')
 
 const links = delivery.listErrors({ deep: true }).map(error => ({
   href: `#${error.targetId}`,
-  text: error.code,
+  text: form.formatError(error),
 }))
 ```
 

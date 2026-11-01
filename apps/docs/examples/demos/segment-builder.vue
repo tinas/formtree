@@ -52,7 +52,7 @@ const saveSegment = form.handleSubmit(segment => {
       <div class="demo-field">
         <label :for="name.id">Segment name</label>
         <input v-model="name.model" v-bind="name.attrs" autocomplete="off" />
-        <p :id="name.errorId" class="demo-error">{{ name.state.errors[0]?.code }}</p>
+        <p :id="name.errorId" class="demo-error">{{ name.errorMessage }}</p>
       </div>
       <ConditionTree />
       <label class="demo-row">

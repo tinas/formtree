@@ -48,7 +48,7 @@ export function PaymentStep({ onComplete }: StepProps) {
           I accept the terms of sale
         </label>
         <p id={acceptTerms.errorId} className="error">
-          {acceptTerms.state.errors[0]?.code}
+          {acceptTerms.errorMessage}
         </p>
       </form>
     </FormNodeProvider>

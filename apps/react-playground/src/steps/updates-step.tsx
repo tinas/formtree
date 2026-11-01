@@ -34,7 +34,7 @@ export function UpdatesStep({ onComplete }: StepProps) {
         ))}
       </fieldset>
       <p id={notifyBy.errorId} className="error">
-        {notifyBy.state.errors[0]?.code}
+        {notifyBy.errorMessage}
       </p>
     </form>
   )

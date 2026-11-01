@@ -31,7 +31,7 @@ export function renderField<Value>(binding: FieldBinding<Value>): void {
   applyAttributes(binding.control, binding.node.getAttributes())
   binding.label.setAttribute('for', binding.node.id)
   binding.message.id = binding.node.errorId
-  binding.message.textContent = state.errors[0]?.code ?? ''
+  binding.message.textContent = binding.node.errorMessage ?? ''
   const text = binding.format(state.value)
   if (binding.control.value != text) {
     binding.control.value = text
@@ -48,7 +48,7 @@ function renderCheckbox(binding: CheckboxBinding): void {
   applyAttributes(binding.control, binding.node.getAttributes())
   binding.control.checked = binding.node.state.value == true
   binding.message.id = binding.node.errorId
-  binding.message.textContent = binding.node.state.errors[0]?.code ?? ''
+  binding.message.textContent = binding.node.errorMessage ?? ''
 }
 
 export function applyAttributes(element: HTMLElement, attributes: FieldAttributes): void {

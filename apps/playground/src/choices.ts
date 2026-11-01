@@ -45,7 +45,7 @@ function renderChoices<Value extends string>(
   applyAttributes(binding.fieldset, binding.node.getAttributes())
   binding.fieldset.removeAttribute('name')
   binding.message.id = binding.node.errorId
-  binding.message.textContent = binding.node.state.errors[0]?.code ?? ''
+  binding.message.textContent = binding.node.errorMessage ?? ''
 }
 
 function selectedValues<Value extends string>(checkboxes: ReadonlyArray<ChoiceCheckbox<Value>>): Array<Value> {

@@ -4,6 +4,7 @@ import type {
   FocusElementOption,
   FocusErrorOption,
   Form,
+  FormatErrorOption,
   FormControls,
   ReValidateMode,
   UniversalNode,
@@ -13,6 +14,7 @@ import type {
 import { createForm } from '@formtree/core'
 import { useEffect, useId, useState } from 'react'
 
+import { useFormDefaults } from './formtree-provider'
 import { useNodeState } from './use-node-state'
 
 type UniversalForm = UniversalNode & FormControls<unknown>
@@ -25,12 +27,14 @@ interface UseFormSettings {
   readonly reValidateMode?: ReValidateMode
   readonly shouldFocusError?: FocusErrorOption
   readonly focusElement?: FocusElementOption
+  readonly formatError?: FormatErrorOption
 }
 
 /**
- * Creates a form once per component and re-renders the component when the root's state changes. The form id comes from
- * `useId()` unless `id` is given. A new `deps` value is passed to `setDeps`, so dependencies can be written inline. When
- * the component unmounts, pending checks are cancelled.
+ * Creates a form once per component and re-renders the component when the root's state changes. Options left out
+ * come from the nearest {@link FormtreeProvider}. The form id comes from `useId()` unless `id` is given. A new `deps`
+ * value is passed to `setDeps`, so dependencies can be written inline. When the component unmounts, pending checks are
+ * cancelled.
  *
  * @category Form
  */
@@ -39,12 +43,14 @@ export function useForm<FormDefinition extends Definition>(
   ...args: CreateFormArguments<FormDefinition>
 ): Form<FormDefinition> {
   const [options] = args
+  const defaults = useFormDefaults()
   const settings: UseFormSettings = options ?? {}
   const componentId = useId()
   const [form] = useState(
     () =>
       createForm(definition as Definition, {
-        ...settings,
+        ...defaults,
+        ...givenOptionsOf(settings),
         id: settings.id ?? componentId,
         deps: settings.deps,
       }) as unknown as UniversalForm,
@@ -53,4 +59,8 @@ export function useForm<FormDefinition extends Definition>(
   useEffect(() => () => form.dispose(), [form])
   useNodeState(form)
   return form as unknown as Form<FormDefinition>
+}
+
+function givenOptionsOf(settings: UseFormSettings): UseFormSettings {
+  return Object.fromEntries(Object.entries(settings).filter(([, value]) => value != undefined))
 }

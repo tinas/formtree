@@ -33,7 +33,14 @@ export type {
 } from './definitions/definition'
 export { ERROR_SOURCE } from './errors/form-error'
 export { ASYNC_FAILED_CODE } from './validation/async-validation'
-export type { ErrorInput, ErrorParams, ErrorSource, FormError, ValidateResult } from './errors/form-error'
+export type {
+  ErrorInput,
+  ErrorParams,
+  ErrorSource,
+  FormatErrorOption,
+  FormError,
+  ValidateResult,
+} from './errors/form-error'
 export { CLEAR_ON } from './errors/stored-error'
 export type { ClearOn } from './errors/stored-error'
 export { createForm } from './form/create-form'
@@ -45,6 +52,7 @@ export type {
   CreateFormOptionsWithDeps,
   Form,
   FormControls,
+  FormDefaults,
 } from './form/form-types'
 export { RE_VALIDATE_MODE, VALIDATION_MODE } from './modes/display-mode'
 export type { ReValidateMode, ValidationMode } from './modes/display-mode'

@@ -56,6 +56,42 @@ once, on the first render, and keeps it for the life of the component.
 | Lifecycle | When the component unmounts, pending checks are cancelled. Under `StrictMode`, the form keeps working after React runs its effects twice. |
 | Context   | `useForm` provides nothing. See [Node Context](/react/node-context).                                                                      |
 
+## App defaults
+
+How errors become text and how focus moves are usually the same for every form of an app. Give
+them once with `FormtreeProvider`:
+
+```tsx
+// app.tsx
+import type { FormError } from '@formtree/react'
+import { FormtreeProvider } from '@formtree/react'
+import i18n from 'i18next'
+import { Checkout } from './checkout'
+
+export function App() {
+  return (
+    <FormtreeProvider formatError={formatError} focusElement={focusSmoothly}>
+      <Checkout />
+    </FormtreeProvider>
+  )
+}
+
+function formatError(error: FormError): string {
+  return i18n.t(error.code, { ...error.params })
+}
+
+function focusSmoothly(element: HTMLElement): void {
+  element.focus({ preventScroll: true })
+  element.scrollIntoView({ block: 'center' })
+}
+```
+
+Every form created with `useForm` below the provider starts from these defaults. An option passed
+to `useForm` wins, and one left `undefined` falls back to the default. A form reads them once,
+when it is created, like its other options.
+[`FormtreeProviderProps`](/api/@formtree/react/interfaces/FormtreeProviderProps) lists what the
+provider takes.
+
 ## Reading node state
 
 A component re-renders for the nodes it subscribed to, and only for those:

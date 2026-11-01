@@ -1,18 +1,16 @@
 import type { Definition, DepsOf, DraftOf, NoDeps } from '../definitions/definition'
+import type { FormatErrorOption, FormError } from '../errors/form-error'
 import type { ReValidateMode, ValidationMode } from '../modes/display-mode'
 import type { FocusElementOption, FocusErrorOption, NodeOf } from '../nodes/node-types'
 import type { DeepPartial } from '../types'
 
 /**
- * Options of {@link createForm}.
+ * Options of {@link createForm} that an app usually sets once for all of its forms. The adapters take them as app
+ * defaults.
  *
  * @category Form
  */
-export interface CreateFormOptions<FormDefinition> {
-  /** Prefix of every DOM id in the form, as in `checkout:contact.email`. @defaultValue `formtree-<counter>` */
-  readonly id?: string
-  /** The starting draft. It may be partial; anything left out starts empty. */
-  readonly initialValue?: DeepPartial<DraftOf<FormDefinition>>
+export interface FormDefaults {
   /** When errors become visible. Definitions can override it. @defaultValue `'onTouched'` */
   readonly mode?: ValidationMode
   /** When errors that have been visible update. Definitions can override it. @defaultValue `'onChange'` */
@@ -21,6 +19,20 @@ export interface CreateFormOptions<FormDefinition> {
   readonly shouldFocusError?: FocusErrorOption
   /** How an element is focused, for error focus and `node.focus()`. @defaultValue `element => element.focus()` */
   readonly focusElement?: FocusElementOption
+  /** Turns an error into text, for `errorMessage` and error summaries. @defaultValue `error => error.code` */
+  readonly formatError?: FormatErrorOption
+}
+
+/**
+ * Options of {@link createForm}.
+ *
+ * @category Form
+ */
+export interface CreateFormOptions<FormDefinition> extends FormDefaults {
+  /** Prefix of every DOM id in the form, as in `checkout:contact.email`. @defaultValue `formtree-<counter>` */
+  readonly id?: string
+  /** The starting draft. It may be partial; anything left out starts empty. */
+  readonly initialValue?: DeepPartial<DraftOf<FormDefinition>>
 }
 
 /**
@@ -59,6 +71,8 @@ export interface FormControls<Deps> {
   readonly batch: (update: () => void) => void
   /** Cancels pending asynchronous checks. The form stays usable. */
   readonly dispose: () => void
+  /** Turns an error into text with the form's `formatError`, for example in an error summary. */
+  readonly formatError: (error: FormError) => string
 }
 
 /**

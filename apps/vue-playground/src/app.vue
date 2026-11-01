@@ -20,12 +20,9 @@ const STEPS = [
   { title: 'Payment', component: PaymentStep },
 ]
 
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
-
 const form = provideFormNode(
   useForm(checkoutGroup, {
     deps: { cartId: 'cart_42', countries: SHIPPING_COUNTRIES },
-    focusElement: focusSmoothly,
     initialValue: {
       cart: { lineItems: [{ id: 101, sku: 'MUG-01', quantity: 2 }] },
     },
@@ -58,11 +55,6 @@ function completeStep(): void {
     return
   }
   stepIndex.value += 1
-}
-
-function focusSmoothly(element: HTMLElement): void {
-  element.focus({ preventScroll: true })
-  element.scrollIntoView({ block: 'center', behavior: matchMedia(REDUCED_MOTION_QUERY).matches ? 'instant' : 'smooth' })
 }
 </script>
 

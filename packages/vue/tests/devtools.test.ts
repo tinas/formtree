@@ -4,8 +4,7 @@ import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, test, vi } from 'vite-plus/test'
 import { defineComponent, h } from 'vue'
 
-import { useForm } from '../src'
-import { formtreeDevtools } from '../src/devtools'
+import { createFormtree, useForm } from '../src'
 import { PROFILE_DEPS, profileGroup } from './fixtures/profile'
 
 interface InspectorNode {
@@ -82,7 +81,7 @@ function readState(nodeId: string): StatePayload['state'] {
   return payload.state
 }
 
-function mountProfileForm() {
+function mountProfileForm(devtools?: boolean) {
   const forms: Array<Form<typeof profileGroup>> = []
   const ProfileForm = defineComponent({
     name: 'ProfileForm',
@@ -91,7 +90,7 @@ function mountProfileForm() {
       return () => h('form')
     },
   })
-  const wrapper = mount(ProfileForm, { global: { plugins: [formtreeDevtools] } })
+  const wrapper = mount(ProfileForm, { global: { plugins: [createFormtree({ devtools })] } })
   const [form] = forms
   if (form == undefined) {
     throw new Error('ProfileForm did not create a form')
@@ -99,7 +98,7 @@ function mountProfileForm() {
   return { wrapper, form }
 }
 
-describe('formtreeDevtools', () => {
+describe('devtools', () => {
   beforeEach(() => {
     devtools.readTree = undefined
     devtools.readState = undefined
@@ -198,6 +197,12 @@ describe('formtreeDevtools', () => {
       ['Submit invalid', 'ProfileForm'],
     ])
     expect(devtools.addTimelineEvent.mock.calls.at(-1)?.[0].event.logType).toBe('warning')
+  })
+
+  test('stays off when the app turns it off', () => {
+    mountProfileForm(false)
+
+    expect(devtools.readTree).toBeUndefined()
   })
 
   test('drops a form when its component unmounts', () => {

@@ -19,7 +19,7 @@ const onSubmit = cart.handleSubmit(() => emit('complete'))
     <div class="line-items">
       <p class="hint">Each row saves on its own. Saved rows stay clean until they change.</p>
       <LineItemRow v-for="lineItem in lineItems.items" :key="lineItem.key" :index="lineItem.index" />
-      <p class="error">{{ lineItems.state.errors[0]?.code }}</p>
+      <p class="error">{{ lineItems.errorMessage }}</p>
       <button type="button" class="secondary" @click="lineItems.push({ quantity: 1 })">Add product</button>
     </div>
     <TextField name="promoCode" label="Promo code" />

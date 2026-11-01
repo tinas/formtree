@@ -18,6 +18,6 @@ const text = computed({
   <div class="demo-field">
     <label :for="field.id">{{ label }}</label>
     <input v-model="text" v-bind="field.attrs" type="number" />
-    <p :id="field.errorId" class="demo-error">{{ field.state.errors[0]?.code }}</p>
+    <p :id="field.errorId" class="demo-error">{{ field.errorMessage }}</p>
   </div>
 </template>

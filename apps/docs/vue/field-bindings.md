@@ -19,7 +19,7 @@ const field = useField<string>(() => props.name)
   <div class="field">
     <label :for="field.id">{{ label }}</label>
     <input v-model="field.model" v-bind="field.attrs" />
-    <p :id="field.errorId">{{ field.state.errors[0]?.code }}</p>
+    <p :id="field.errorId">{{ field.errorMessage }}</p>
   </div>
 </template>
 ```
@@ -34,35 +34,10 @@ The name can be a ref or a getter. When it changes, the binding follows the new 
 
 ## Translating errors
 
-The generic input above shows `code` as it is. When codes are translation keys, the generic input
-is the one place that translates them, for example with vue-i18n:
-
-```vue
-<!-- text-field.vue -->
-<script setup lang="ts">
-import { useField } from '@formtree/vue'
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-const props = defineProps<{ name: string; label: string }>()
-
-const field = useField<string>(() => props.name)
-const error = computed(() => field.state.errors[0])
-const { t } = useI18n()
-</script>
-
-<template>
-  <div class="field">
-    <label :for="field.id">{{ label }}</label>
-    <input v-model="field.model" v-bind="field.attrs" />
-    <p :id="field.errorId">{{ error && t(error.code, { ...error.params }) }}</p>
-  </div>
-</template>
-```
-
-The form holds the key, so a language switch re-renders the message.
-[Translating errors](/guide/errors-and-focus#translating-errors) covers `params` and the
-messages a schema library writes by default.
+The generic input shows `errorMessage`, the field's first visible error as text. When codes are
+translation keys, the input stays as it is: the app gives `createFormtree` one `formatError` that
+translates them, and every `errorMessage` follows the current locale.
+[Translating errors](/vue/app-defaults#translating-errors) shows it with vue-i18n.
 
 ## Typed bindings
 
@@ -105,7 +80,7 @@ const text = computed({
   <div class="field">
     <label :for="field.id">{{ label }}</label>
     <input v-model="text" v-bind="field.attrs" type="number" />
-    <p :id="field.errorId">{{ field.state.errors[0]?.code }}</p>
+    <p :id="field.errorId">{{ field.errorMessage }}</p>
   </div>
 </template>
 ```

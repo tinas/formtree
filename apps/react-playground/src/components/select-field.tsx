@@ -13,7 +13,7 @@ interface SelectFieldProps {
 export function SelectField({ name, label, options }: SelectFieldProps) {
   const field = useField<string>(name)
   return (
-    <FieldFrame label={label} labelFor={field.id} errorId={field.errorId} error={field.state.errors[0]?.code}>
+    <FieldFrame label={label} labelFor={field.id} errorId={field.errorId} error={field.errorMessage}>
       <select
         {...field.attrs}
         value={field.value ?? ''}

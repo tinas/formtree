@@ -25,7 +25,7 @@ const selected = computed({
 </script>
 
 <template>
-  <FieldFrame :label="label" :label-for="field.id" :error-id="field.errorId" :error="field.state.errors[0]?.code">
+  <FieldFrame :label="label" :label-for="field.id" :error-id="field.errorId" :error="field.errorMessage">
     <select v-model="selected" v-bind="field.attrs">
       <option value="">Select…</option>
       <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>

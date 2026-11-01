@@ -1,5 +1,5 @@
 import type { FormEvent, FormEventType, SubmitOutcome } from '@formtree/core'
-import type { RegisteredForm } from '../form-registry'
+import type { RegisteredForm } from '../formtree-app'
 import type { TimelineEvent } from './devtools-api'
 
 type LogType = NonNullable<TimelineEvent['logType']>

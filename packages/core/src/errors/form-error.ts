@@ -42,6 +42,17 @@ export interface FormError {
 }
 
 /**
+ * Turns an error into the text shown to the user, for example by translating its code with its params.
+ *
+ * @category Errors
+ */
+export type FormatErrorOption = (error: FormError) => string
+
+export function formatErrorCode(error: FormError): string {
+  return error.code
+}
+
+/**
  * An error as rules, checks and submit handlers return it.
  *
  * @category Errors

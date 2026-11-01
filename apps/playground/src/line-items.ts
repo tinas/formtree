@@ -39,7 +39,7 @@ function renderLineItems(binding: LineItemsBinding, views: Map<string, RowView>)
     return view.element
   })
   binding.container.replaceChildren(...rows)
-  binding.message.textContent = binding.node.state.errors[0]?.code ?? ''
+  binding.message.textContent = binding.node.errorMessage ?? ''
 }
 
 function createRowView(binding: LineItemsBinding, row: LineItemNode): RowView {
@@ -85,8 +85,8 @@ function renderRow(view: RowView): void {
   applyAttributes(view.quantity, quantity.getAttributes())
   view.productError.id = sku.errorId
   view.quantityError.id = quantity.errorId
-  view.productError.textContent = sku.state.errors[0]?.code ?? ''
-  view.quantityError.textContent = quantity.state.errors[0]?.code ?? ''
+  view.productError.textContent = sku.errorMessage ?? ''
+  view.quantityError.textContent = quantity.errorMessage ?? ''
   view.product.value = sku.state.value ?? ''
   if (view.quantity.value != formatValue(quantity.state.value)) {
     view.quantity.value = formatValue(quantity.state.value)

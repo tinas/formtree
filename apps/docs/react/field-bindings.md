@@ -16,7 +16,7 @@ export function TextField({ name, label }: { name: string; label: string }) {
     <div className="field">
       <label htmlFor={field.id}>{label}</label>
       <input {...field.attrs} value={field.value ?? ''} onChange={event => field.setValue(event.target.value)} />
-      <p id={field.errorId}>{field.state.errors[0]?.code}</p>
+      <p id={field.errorId}>{field.errorMessage}</p>
     </div>
   )
 }
@@ -32,8 +32,33 @@ component knows how its element represents the value.
 
 ## Translating errors
 
-The generic input above shows `code` as it is. When codes are translation keys, the generic input
-is the one place that translates them, for example with react-i18next:
+The generic input shows `errorMessage`, the field's first visible error as text. When codes are
+translation keys, give the app one `formatError` that translates them, for example with
+react-i18next:
+
+```tsx
+// app.tsx
+import type { FormError } from '@formtree/react'
+import { FormtreeProvider } from '@formtree/react'
+import i18n from 'i18next'
+import { Checkout } from './checkout'
+
+export function App() {
+  return (
+    <FormtreeProvider formatError={formatError}>
+      <Checkout />
+    </FormtreeProvider>
+  )
+}
+
+function formatError(error: FormError): string {
+  return i18n.t(error.code, { ...error.params })
+}
+```
+
+`errorMessage` runs `formatError` on every render. React re-renders the input when its field
+changes, not when the language does, so call `useTranslation()` in the generic input to re-render
+it on a language switch:
 
 ```tsx
 // text-field.tsx
@@ -42,22 +67,20 @@ import { useTranslation } from 'react-i18next'
 
 export function TextField({ name, label }: { name: string; label: string }) {
   const field = useField<string>(name)
-  const { t } = useTranslation()
-  const error = field.state.errors[0]
+  useTranslation()
 
   return (
     <div className="field">
       <label htmlFor={field.id}>{label}</label>
       <input {...field.attrs} value={field.value ?? ''} onChange={event => field.setValue(event.target.value)} />
-      <p id={field.errorId}>{error && t(error.code, { ...error.params })}</p>
+      <p id={field.errorId}>{field.errorMessage}</p>
     </div>
   )
 }
 ```
 
-The form holds the key, so a language switch re-renders the message.
-[Translating errors](/guide/errors-and-focus#translating-errors) covers `params` and the messages
-a schema library writes by default.
+[Translating errors](/guide/errors-and-focus#translating-errors) covers `params` and the messages a
+schema library writes by default.
 
 ## Typed bindings
 
@@ -94,7 +117,7 @@ export function NumberField({ name, label }: { name: string; label: string }) {
         value={field.value == undefined ? '' : String(field.value)}
         onChange={event => field.setValue(event.target.value == '' ? undefined : Number(event.target.value))}
       />
-      <p id={field.errorId}>{field.state.errors[0]?.code}</p>
+      <p id={field.errorId}>{field.errorMessage}</p>
     </div>
   )
 }

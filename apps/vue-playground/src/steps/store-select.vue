@@ -21,7 +21,7 @@ const selectedStoreId = computed({
 </script>
 
 <template>
-  <FieldFrame label="Pickup store" :label-for="store.id" :error-id="store.errorId" :error="store.state.errors[0]?.code">
+  <FieldFrame label="Pickup store" :label-for="store.id" :error-id="store.errorId" :error="store.errorMessage">
     <select v-model="selectedStoreId" v-bind="store.attrs">
       <option value="">Select a store…</option>
       <option v-for="option in STORES" :key="option.storeId" :value="option.storeId">{{ option.name }}</option>

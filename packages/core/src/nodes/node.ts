@@ -38,7 +38,7 @@ import {
   pathOf,
   summaryIdOf,
 } from './node-identity'
-import { readNodeState } from './node-state'
+import { errorMessageOf, readNodeState } from './node-state'
 
 /**
  * Runtime object behind every node view, for adapters.
@@ -53,6 +53,7 @@ export interface UniversalNode {
   readonly key: string
   readonly index: number
   readonly state: NodeState<unknown>
+  readonly errorMessage: string | undefined
   readonly errorId: string
   readonly descriptionId: string
   readonly summaryId: string
@@ -140,6 +141,9 @@ function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
     },
     get state() {
       return readNodeState(runtime, nodeId)
+    },
+    get errorMessage() {
+      return errorMessageOf(runtime, nodeId)
     },
     get errorId() {
       return errorIdOf(runtime, nodeId)

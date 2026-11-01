@@ -1,14 +1,17 @@
 import './style.css'
 
-import { formtreeDevtools } from '@formtree/vue/devtools'
+import { createFormtree } from '@formtree/vue'
 import { createApp } from 'vue'
 
 import App from './app.vue'
 
-const app = createApp(App)
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
-if (import.meta.env.DEV) {
-  app.use(formtreeDevtools)
+createApp(App)
+  .use(createFormtree({ focusElement: focusSmoothly }))
+  .mount('#app')
+
+function focusSmoothly(element: HTMLElement): void {
+  element.focus({ preventScroll: true })
+  element.scrollIntoView({ block: 'center', behavior: matchMedia(REDUCED_MOTION_QUERY).matches ? 'instant' : 'smooth' })
 }
-
-app.mount('#app')

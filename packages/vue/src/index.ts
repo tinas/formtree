@@ -4,6 +4,8 @@
  * @module @formtree/vue
  */
 export * from '@formtree/core'
+export { createFormtree } from './create-formtree'
+export type { FormtreeOptions } from './create-formtree'
 export { provideFormNode, useFormNode } from './node-context'
 export type { AnyGroupNode } from './node-context'
 export { useField } from './use-field'

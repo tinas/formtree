@@ -10,7 +10,7 @@ interface TextFieldProps {
 export function TextField({ name, label }: TextFieldProps) {
   const field = useField<string>(name)
   return (
-    <FieldFrame label={label} labelFor={field.id} errorId={field.errorId} error={field.state.errors[0]?.code}>
+    <FieldFrame label={label} labelFor={field.id} errorId={field.errorId} error={field.errorMessage}>
       <input
         {...field.attrs}
         value={field.value ?? ''}

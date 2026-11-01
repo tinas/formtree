@@ -1,5 +1,5 @@
 import type { NodeKind, UniversalNode } from '@formtree/core'
-import type { RegisteredForm } from '../form-registry'
+import type { RegisteredForm } from '../formtree-app'
 import type { InspectorNode, InspectorState, InspectorTag } from './devtools-api'
 
 import { NODE_KIND } from '@formtree/core'

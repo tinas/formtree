@@ -132,7 +132,7 @@ function render() {
       input.setAttribute(name, value)
     }
   }
-  message.textContent = email.state.errors[0]?.code ?? ''
+  message.textContent = email.errorMessage ?? ''
 }
 
 form.subscribe(render)

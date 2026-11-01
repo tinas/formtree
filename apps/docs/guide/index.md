@@ -15,10 +15,7 @@ import { z } from 'zod'
 
 export const signUpGroup = defineGroup({
   schema: z.object({
-    name: z
-      .string({ error: 'Enter your name' })
-      .trim()
-      .min(1, { error: 'Enter your name' }),
+    name: z.string({ error: 'Enter your name' }).trim().min(1, { error: 'Enter your name' }),
     email: z.email({ error: 'Enter a valid email address' }),
   }),
 })
@@ -45,11 +42,11 @@ const signUp = form.handleSubmit(account => createAccount(account))
   <form novalidate @submit.prevent="signUp">
     <label :for="name.id">Name</label>
     <input v-model="name.model" v-bind="name.attrs" />
-    <p :id="name.errorId">{{ name.state.errors[0]?.code }}</p>
+    <p :id="name.errorId">{{ name.errorMessage }}</p>
 
     <label :for="email.id">Email</label>
     <input v-model="email.model" v-bind="email.attrs" />
-    <p :id="email.errorId">{{ email.state.errors[0]?.code }}</p>
+    <p :id="email.errorId">{{ email.errorMessage }}</p>
 
     <button type="submit">Sign up</button>
   </form>
@@ -72,11 +69,11 @@ export function SignUpForm() {
     <form noValidate onSubmit={signUp}>
       <label htmlFor={name.id}>Name</label>
       <input {...name.attrs} value={name.value ?? ''} onChange={event => name.setValue(event.target.value)} />
-      <p id={name.errorId}>{name.state.errors[0]?.code}</p>
+      <p id={name.errorId}>{name.errorMessage}</p>
 
       <label htmlFor={email.id}>Email</label>
       <input {...email.attrs} value={email.value ?? ''} onChange={event => email.setValue(event.target.value)} />
-      <p id={email.errorId}>{email.state.errors[0]?.code}</p>
+      <p id={email.errorId}>{email.errorMessage}</p>
 
       <button type="submit">Sign up</button>
     </form>

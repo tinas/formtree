@@ -58,6 +58,17 @@ node changes.
 `useForm` also works in an `effectScope` or a Pinia setup store, wherever there is an active
 scope to clean up with.
 
+## App defaults
+
+Install `createFormtree` once to give every form of the app the same defaults, such as how errors
+are translated and how focus moves, and to see the forms in Vue Devtools while developing:
+
+```ts
+createApp(App).use(createFormtree()).mount('#app')
+```
+
+[App Defaults](/vue/app-defaults) covers each option and the devtools.
+
 ## Dependencies
 
 The `deps` option accepts a plain value, a ref or a getter. When it is a ref or a getter, the

@@ -37,6 +37,7 @@ export function reactiveForm(bridge: FormBridge, form: UniversalForm): Universal
     setDeps: form.setDeps,
     batch: form.batch,
     dispose: form.dispose,
+    formatError: form.formatError,
   })
 }
 
@@ -79,6 +80,10 @@ function createReactiveNode(bridge: FormBridge, node: UniversalNode): UniversalN
     },
     get state() {
       return state.value
+    },
+    get errorMessage() {
+      trackChanges(bridge)
+      return node.errorMessage
     },
     get errorId() {
       trackChanges(bridge)

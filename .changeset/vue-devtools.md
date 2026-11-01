@@ -3,4 +3,4 @@
 '@formtree/vue': minor
 ---
 
-Add `@formtree/vue/devtools`: a read-only Vue Devtools inspector for every form created with `useForm`, and a timeline of its changes, checks and submits.
+Show the forms of a Vue app in Vue Devtools: a read-only inspector for every form created with `useForm`, and a timeline of its changes, checks and submits. `createFormtree()` turns it on while developing; production builds leave it out.

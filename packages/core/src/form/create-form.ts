@@ -1,9 +1,11 @@
 import type { Definition } from '../definitions/definition'
+import type { FormatErrorOption } from '../errors/form-error'
 import type { ReValidateMode, ValidationMode } from '../modes/display-mode'
 import type { FocusElementOption, FocusErrorOption } from '../nodes/node-types'
 import type { CreateFormArguments, Form, FormControls } from './form-types'
 import type { FormRuntime } from './form-runtime'
 
+import { formatErrorCode } from '../errors/form-error'
 import { DEFAULT_DISPLAY_MODES } from '../modes/display-mode'
 import { nodeFor } from '../nodes/node'
 import { shallowEqual } from '../paths/equality'
@@ -26,6 +28,7 @@ interface RuntimeOptions {
   readonly reValidateMode?: ReValidateMode
   readonly shouldFocusError?: FocusErrorOption
   readonly focusElement?: FocusElementOption
+  readonly formatError?: FormatErrorOption
 }
 
 /**
@@ -53,6 +56,7 @@ function createFormRuntime(definition: Definition, options: RuntimeOptions): For
       reValidateMode: options.reValidateMode ?? DEFAULT_DISPLAY_MODES.reValidateMode,
       shouldFocusError: options.shouldFocusError ?? true,
       focusElement: options.focusElement ?? focusNatively,
+      formatError: options.formatError ?? formatErrorCode,
     },
     state: createFormState({ definition, initialValue: options.initialValue, deps: options.deps }),
     version: 0,
@@ -78,6 +82,7 @@ function createFormControls(runtime: FormRuntime): FormControls<unknown> {
     setDeps: deps => replaceDeps(runtime, deps),
     batch: update => runBatch(runtime, update),
     dispose: () => disposeAsyncEntries(runtime),
+    formatError: error => runtime.options.formatError(error),
   }
 }
 

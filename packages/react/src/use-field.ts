@@ -24,6 +24,8 @@ export interface FieldBindingAttributes {
 export interface FieldView<Value, Output = Value> {
   readonly node: FieldNode<Value, Output>
   readonly state: NodeState<Value>
+  /** The field's first visible error as text, from the form's `formatError`, for the element with `errorId`. */
+  readonly errorMessage: string | undefined
   readonly id: string
   readonly errorId: string
   readonly descriptionId: string
@@ -69,6 +71,7 @@ function createFieldView(node: FieldNode<unknown, unknown>, state: NodeState<unk
   return {
     node,
     state,
+    errorMessage: node.errorMessage,
     id: node.id,
     errorId: node.errorId,
     descriptionId: node.descriptionId,

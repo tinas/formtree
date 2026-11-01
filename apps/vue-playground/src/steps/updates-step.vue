@@ -38,6 +38,6 @@ function toggleChannel(channel: NotificationChannel, isChecked: boolean): void {
         {{ choice.label }}
       </label>
     </fieldset>
-    <p :id="notifyBy.errorId" class="error">{{ notifyBy.state.errors[0]?.code }}</p>
+    <p :id="notifyBy.errorId" class="error">{{ notifyBy.errorMessage }}</p>
   </form>
 </template>

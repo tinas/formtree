@@ -183,6 +183,11 @@ export interface NodeBase<Value, Output> {
   /** Dotted path from the root. Array items appear by their current index. */
   readonly path: string
   readonly state: NodeState<Value>
+  /**
+   * The node's first visible error as text, from the form's `formatError`; `undefined` while none is visible. It is
+   * not cached, so a message translated in `formatError` follows the current language where it is read.
+   */
+  readonly errorMessage: string | undefined
   /** Writes a draft value. `undefined` empties a field. */
   readonly setValue: (value: Value) => void
   /** Marks the node as touched and starts checks that run on blur. */

@@ -25,7 +25,7 @@ const groups = tree.array('groups')
     <legend>{{ index === undefined ? 'Users matching' : 'Group' }}</legend>
     <SelectField name="match" label="Match" :options="MATCH_OPTIONS" />
     <ConditionRow v-for="condition in conditions.items" :key="condition.key" :index="condition.index" />
-    <p class="demo-error">{{ conditions.state.errors[0]?.code }}</p>
+    <p class="demo-error">{{ conditions.errorMessage }}</p>
     <ConditionTree v-for="group in groups.items" :key="group.key" :index="group.index" />
     <div class="demo-row">
       <button type="button" @click="conditions.push({})">Add condition</button>

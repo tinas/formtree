@@ -87,9 +87,9 @@ export default defineConfig({
           text: 'Vue',
           items: [
             { text: 'Overview', link: '/vue/' },
+            { text: 'App Defaults', link: '/vue/app-defaults' },
             { text: 'Node Context', link: '/vue/node-context' },
             { text: 'Field Bindings', link: '/vue/field-bindings' },
-            { text: 'Devtools', link: '/vue/devtools' },
           ],
         },
       ],
@@ -166,9 +166,6 @@ export default defineConfig({
             paths: {
               '@formtree/core': [PACKAGE_SOURCES['@formtree/core']],
               '@formtree/vue': [PACKAGE_SOURCES['@formtree/vue']],
-              '@formtree/vue/devtools': [
-                fileURLToPath(new URL('../../../packages/vue/src/devtools/index.ts', import.meta.url)),
-              ],
             },
           },
           extraFiles: exampleFormFiles(),

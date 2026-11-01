@@ -22,7 +22,7 @@ const text = computed({
 </script>
 
 <template>
-  <FieldFrame :label="label" :label-for="field.id" :error-id="field.errorId" :error="field.state.errors[0]?.code">
+  <FieldFrame :label="label" :label-for="field.id" :error-id="field.errorId" :error="field.errorMessage">
     <input v-model="text" v-bind="field.attrs" type="number" />
   </FieldFrame>
 </template>

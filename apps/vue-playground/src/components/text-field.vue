@@ -14,7 +14,7 @@ const field = useField<string>(() => props.name)
 </script>
 
 <template>
-  <FieldFrame :label="label" :label-for="field.id" :error-id="field.errorId" :error="field.state.errors[0]?.code">
+  <FieldFrame :label="label" :label-for="field.id" :error-id="field.errorId" :error="field.errorMessage">
     <input v-model="field.model" v-bind="field.attrs" autocomplete="off" />
   </FieldFrame>
 </template>

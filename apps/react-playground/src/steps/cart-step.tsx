@@ -9,7 +9,7 @@ import { LineItemRow } from './line-item-row'
 export function CartStep({ onComplete }: StepProps) {
   const cart = useFormNode(checkoutGroup).group('cart')
   const lineItems = cart.array('lineItems')
-  const lineItemsState = useNodeState(lineItems)
+  useNodeState(lineItems)
   const isCheckingCode = useNodeState(cart.field('promoCode')).validating
   const onSubmit = cart.handleSubmit(() => onComplete())
 
@@ -22,7 +22,7 @@ export function CartStep({ onComplete }: StepProps) {
           {lineItems.items.map(lineItem => (
             <LineItemRow key={lineItem.key} index={lineItem.index} />
           ))}
-          <p className="error">{lineItemsState.errors[0]?.code}</p>
+          <p className="error">{lineItems.errorMessage}</p>
           <button type="button" className="secondary" onClick={() => lineItems.push({ quantity: 1 })}>
             Add product
           </button>
