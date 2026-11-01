@@ -5,6 +5,10 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   pack: {
+    entry: {
+      index: 'src/index.ts',
+      devtools: 'src/devtools/index.ts',
+    },
     platform: 'neutral',
     tsconfig: 'tsconfig.build.json',
     dts: {

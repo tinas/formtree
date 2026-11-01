@@ -42,6 +42,8 @@ State is immutable; every mutation goes through a pure transition and then `comm
 | `use-form.ts`      | `createForm` + subscription + `deps` watch (bridge to the core store) + dispose on scope end; never provides                                                           |
 | `node-context.ts`  | `provideFormNode(node)` (explicit), `useFormNode(Definition)` (nearest provided node of that definition, throws otherwise), `useFormNode()` (nearest node, loose type) |
 | `use-field.ts`     | `useField(name \| node)`: `model` for v-model, `attrs` (null aria values mapped to undefined), `state`, ids                                                            |
+| `form-registry.ts` | `FORM_REGISTRY` injection key; `useForm` registers its form when the app provides a registry, labelled with the creating component's name                              |
+| `devtools/`        | `@formtree/vue/devtools` entry: `formtreeDevtools(app)` provides the registry and sets up a read-only inspector (node tree, node state) and a timeline layer           |
 
 Components never receive nodes through props: business components call `useFormNode(Definition)`, generic inputs take a `name`, rows take an `index`.
 
@@ -52,6 +54,8 @@ Components never receive nodes through props: business components call `useFormN
 - `useField` also accepts a node, so a business component can bind v-model to a typed node from `useFormNode`.
 - The package re-exports core, so an app depends on one package.
 - No `formatError` hook: the app's generic input translates `code` (`apps/docs/vue/field-bindings.md`); a hook would tie the adapter to an i18n library to save one line.
+- Devtools are Vue only (React DevTools has no plugin API) and read-only: an edit from the devtools would be a write path outside the error producers of rule 4. `@vue/devtools-api` is an optional peer used only by the `devtools` entry, so the main entry never imports it; apps install the plugin under `import.meta.env.DEV` and `sideEffects: false` drops it from production builds. `useForm` reads the registry with `hasInjectionContext()` first, so a form in a bare `effectScope` (tests) neither registers nor warns. Plugin types are derived from `setupDevtoolsPlugin` (`devtools/devtools-api.ts`), since `@vue/devtools-kit`, which declares them, is not a direct dependency. The inspector lists declared children in definition order, then schema keys that have a value or an error, sorted; a schema cannot be asked for its keys. The Vue Devtools v8 sidebar shows only the descriptor's `logo` (otherwise a generic icon), and accepts an `http(s)` or `/` URL or one of its bundled `custom-ic-baseline-*` names, not a data URI; until the docs site has a public URL, `logo` names the bundled `dynamic_form` icon.
+- No console warnings for misuse (such as an `initialValue` that changes after `useForm`); pitfalls go in the docs, and runtime visibility comes from the devtools.
 
 ## React adapter (packages/react/src)
 

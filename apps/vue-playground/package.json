@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@formtree/vue": "workspace:*",
+    "@vue/devtools-api": "catalog:",
     "vue": "catalog:",
     "zod": "catalog:"
   },
@@ -17,6 +18,7 @@
     "@vitejs/plugin-vue": "catalog:",
     "typescript": "~5.9.3",
     "vite": "catalog:",
+    "vite-plugin-vue-devtools": "catalog:",
     "vite-plus": "catalog:",
     "vue-tsc": "catalog:"
   }

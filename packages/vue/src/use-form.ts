@@ -15,6 +15,7 @@ import type { UniversalForm } from './reactive-node'
 import { createForm } from '@formtree/core'
 import { getCurrentInstance, getCurrentScope, isRef, onScopeDispose, toValue, useId, watch } from 'vue'
 
+import { registerForm } from './form-registry'
 import { announceChange, createFormBridge, reactiveForm } from './reactive-node'
 
 /**
@@ -65,6 +66,7 @@ export function useForm<FormDefinition extends Definition>(
   }) as unknown as UniversalForm
   const bridge = createFormBridge()
   const stopListening = form.subscribe(() => announceChange(bridge))
+  const unregister = registerForm(form)
   if (isRef(settings.deps) || typeof settings.deps == 'function') {
     watch(
       () => toValue(settings.deps),
@@ -74,6 +76,7 @@ export function useForm<FormDefinition extends Definition>(
   if (getCurrentScope() != undefined) {
     onScopeDispose(() => {
       stopListening()
+      unregister?.()
       form.dispose()
     })
   }

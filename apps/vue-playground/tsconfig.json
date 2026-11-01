@@ -16,7 +16,8 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@formtree/core": ["../../packages/core/src/index.ts"],
-      "@formtree/vue": ["../../packages/vue/src/index.ts"]
+      "@formtree/vue": ["../../packages/vue/src/index.ts"],
+      "@formtree/vue/devtools": ["../../packages/vue/src/devtools/index.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.vue", "vite.config.ts"]
