@@ -96,6 +96,7 @@ function createReactiveNode(bridge: FormBridge, node: UniversalNode): UniversalN
       return items.value
     },
     subscribe: node.subscribe,
+    observe: node.observe,
     setValue: node.setValue,
     blur: node.blur,
     validate: node.validate,

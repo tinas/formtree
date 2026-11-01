@@ -11,6 +11,7 @@ import { createFormState } from '../state/form-state'
 import { disposeAsyncEntries } from '../validation/async-validation'
 import { commitWithValidation, runValidationPass } from '../validation/validation-pass'
 import { focusNatively } from './focus'
+import { emitNodeEvent, FORM_EVENT } from './form-events'
 import { runBatch, subscribeToRuntime } from './form-runtime'
 
 const FORM_ID_PREFIX = 'formtree-'
@@ -59,6 +60,7 @@ function createFormRuntime(definition: Definition, options: RuntimeOptions): For
     hasPendingNotification: false,
     scopeDeps: new Map(),
     listeners: new Set(),
+    observers: new Set(),
     nodes: new Map(),
     nodeStates: new Map(),
     itemLists: new Map(),
@@ -82,5 +84,6 @@ function createFormControls(runtime: FormRuntime): FormControls<unknown> {
 function replaceDeps(runtime: FormRuntime, deps: unknown): void {
   if (!shallowEqual(runtime.state.deps, deps)) {
     commitWithValidation(runtime, { ...runtime.state, deps })
+    emitNodeEvent(runtime, FORM_EVENT.deps, '')
   }
 }

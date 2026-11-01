@@ -32,6 +32,7 @@ State is immutable; every mutation goes through a pure transition and then `comm
 - `setDeps` with dependencies equal key by key to the current ones does nothing. React passes a new `deps` object on every render, and a notification there would loop.
 - `handleSubmit` handlers receive only the output, no `{ node }` context; the caller already holds the node. Add it when a real need appears.
 - Focus has two options: `shouldFocusError` picks the target (DOM order, summary rule; the core's job), `focusElement` (default `element.focus()`) acts on it (the app's job: smooth scroll, custom inputs). `handleSubmit` can override both; `node.focus()` uses the form's. Sticky-header offset is left to CSS `scroll-margin-top`.
+- `form/form-events.ts` emits `FormEvent`s (`@internal`) for devtools through `UniversalNode.observe`: change, blur, reset, deps, errors, check start / end / abort, submit start / end. Operations emit after they commit, so an observer reads the new state; a cached check result and an aborted check are emitted during the validation pass, before the commit of the change that caused them. A `'skipped'` submit and a check result are emitted although no state may change, which is why events are separate from `subscribe`. With no observer, an emit is one size check; behaviour never depends on events.
 
 ## Vue adapter (packages/vue/src)
 

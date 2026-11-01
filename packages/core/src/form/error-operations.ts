@@ -10,6 +10,7 @@ import { toFormError, visibilityContextOf } from '../nodes/node-state'
 import { comparePaths, isWithinPath } from '../paths/path'
 import { clearExternalErrors, setExternalErrors } from '../state/error-transitions'
 import { activeErrors, visibleErrorsAt } from '../validation/visibility'
+import { emitNodeEvent, FORM_EVENT } from './form-events'
 import { commitState } from './form-runtime'
 
 export interface NodeErrorsUpdate {
@@ -29,10 +30,12 @@ export function setNodeErrors({ runtime, nodeId, errors, options = {} }: NodeErr
       clearOn: options.clearOn ?? CLEAR_ON.change,
     }),
   )
+  emitNodeEvent(runtime, FORM_EVENT.errors, nodeId)
 }
 
 export function clearNodeErrors(runtime: FormRuntime, nodeId: string, options: ClearErrorsOptions = {}): void {
   commitState(runtime, clearExternalErrors(runtime.state, { nodeId, source: options.source }))
+  emitNodeEvent(runtime, FORM_EVENT.errors, nodeId)
 }
 
 export function listNodeErrors(

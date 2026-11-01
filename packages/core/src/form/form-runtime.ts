@@ -4,6 +4,7 @@ import type { FocusElementOption, FocusErrorOption, NodeState } from '../nodes/n
 import type { FormState } from '../state/form-state'
 import type { AsyncEntry } from '../validation/async-validation'
 import type { SyncEntry } from '../validation/sync-validation'
+import type { FormEventObserver } from './form-events'
 
 export interface FormRuntimeOptions extends DisplayModes {
   readonly shouldFocusError: FocusErrorOption
@@ -30,6 +31,7 @@ export interface FormRuntime {
   hasPendingNotification: boolean
   scopeDeps: ReadonlyMap<string, unknown>
   readonly listeners: Set<() => void>
+  readonly observers: Set<FormEventObserver>
   readonly nodes: Map<string, object>
   readonly nodeStates: Map<string, CachedNodeState>
   readonly itemLists: Map<string, CachedItems>

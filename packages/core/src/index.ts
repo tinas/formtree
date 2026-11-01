@@ -37,6 +37,8 @@ export type { ErrorInput, ErrorParams, ErrorSource, FormError, ValidateResult } 
 export { CLEAR_ON } from './errors/stored-error'
 export type { ClearOn } from './errors/stored-error'
 export { createForm } from './form/create-form'
+export { FORM_EVENT } from './form/form-events'
+export type { FormEvent, FormEventDetails, FormEventObserver, FormEventType } from './form/form-events'
 export type {
   CreateFormArguments,
   CreateFormOptions,

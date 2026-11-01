@@ -11,6 +11,7 @@ import { markTouched, writeValue } from '../state/value-transitions'
 import { forgetAsyncEntriesWithin, scheduleBlurValidation } from '../validation/async-validation'
 import { commitWithValidation } from '../validation/validation-pass'
 import { refreshSnapshotsWithin, SNAPSHOT_TRIGGER } from '../validation/visibility'
+import { emitNodeEvent, FORM_EVENT } from './form-events'
 import { commitState } from './form-runtime'
 
 export function setNodeValue(runtime: FormRuntime, nodeId: string, value: unknown): void {
@@ -18,6 +19,7 @@ export function setNodeValue(runtime: FormRuntime, nodeId: string, value: unknow
   if (state != runtime.state) {
     commitWithValidation(runtime, state)
     forgetDetachedNodes(runtime)
+    emitNodeEvent(runtime, FORM_EVENT.change, nodeId)
   }
 }
 
@@ -28,6 +30,7 @@ export function blurNode(runtime: FormRuntime, nodeId: string): void {
     { nodeId, trigger: SNAPSHOT_TRIGGER.blur },
   )
   commitState(runtime, scheduleBlurValidation(runtime, refreshed, nodeId))
+  emitNodeEvent(runtime, FORM_EVENT.blur, nodeId)
 }
 
 export function resetNodeValue(runtime: FormRuntime, nodeId: string, options: ResetOptions<unknown> = {}): void {
@@ -45,6 +48,7 @@ export function resetNodeValue(runtime: FormRuntime, nodeId: string, options: Re
   })
   commitWithValidation(runtime, { ...state, validating: withoutPathsWithin(state.validating, nodeId) })
   forgetDetachedNodes(runtime)
+  emitNodeEvent(runtime, FORM_EVENT.reset, nodeId)
 }
 
 export function editNodeArray(runtime: FormRuntime, arrayId: string, edit: ArrayEdit): void {
@@ -52,6 +56,7 @@ export function editNodeArray(runtime: FormRuntime, arrayId: string, edit: Array
   if (state != runtime.state) {
     commitWithValidation(runtime, state)
     forgetDetachedNodes(runtime)
+    emitNodeEvent(runtime, FORM_EVENT.change, arrayId)
   }
 }
 

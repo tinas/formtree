@@ -23,6 +23,7 @@ import { commitWithValidation, pendingSchemaRunsWithin } from '../validation/val
 import { isActiveNode, refreshSnapshotsWithin, SNAPSHOT_TRIGGER } from '../validation/visibility'
 import { activeErrorsWithin } from './error-operations'
 import { focusElementById, focusFirstInDocumentOrder } from './focus'
+import { emitNodeEvent, emitSubmitEnd, FORM_EVENT } from './form-events'
 import { commitState } from './form-runtime'
 
 export interface NodeSubmission {
@@ -56,15 +57,18 @@ export async function validateNode(runtime: FormRuntime, nodeId: string): Promis
 
 export async function submitNode({ runtime, nodeId, onValid, options = {} }: NodeSubmission): Promise<SubmitOutcome> {
   if (runtime.state.submitting.has(nodeId) || !isActiveNode(runtime.state, nodeId)) {
+    emitSubmitEnd(runtime, nodeId, SUBMIT_OUTCOME.skipped)
     return SUBMIT_OUTCOME.skipped
   }
   commitState(runtime, beginSubmit(runtime.state, nodeId))
+  emitNodeEvent(runtime, FORM_EVENT.submitStart, nodeId)
   await settleValidationWithin(runtime, nodeId)
   const shouldFocusError = options.shouldFocusError ?? runtime.options.shouldFocusError
   const focusElement = options.focusElement ?? runtime.options.focusElement
   const errors = activeErrorsWithin(runtime, nodeId)
   if (errors.length > 0) {
     finishSubmit(runtime, nodeId)
+    emitSubmitEnd(runtime, nodeId, SUBMIT_OUTCOME.invalid)
     focusErrors({ runtime, nodeId, shouldFocusError, focusElement })
     options.onInvalid?.(errors.map(error => toFormError(runtime.state, error)))
     return SUBMIT_OUTCOME.invalid
@@ -81,10 +85,12 @@ export async function submitNode({ runtime, nodeId, onValid, options = {} }: Nod
       }),
     )
     finishSubmit(runtime, nodeId)
+    emitSubmitEnd(runtime, nodeId, SUBMIT_OUTCOME.rejected)
     focusErrors({ runtime, nodeId, shouldFocusError, focusElement })
     return SUBMIT_OUTCOME.rejected
   }
   commitState(runtime, endSubmit(runtime.state, nodeId))
+  emitSubmitEnd(runtime, nodeId, SUBMIT_OUTCOME.success)
   return SUBMIT_OUTCOME.success
 }
 

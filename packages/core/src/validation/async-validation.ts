@@ -9,6 +9,7 @@ import { definitionAt } from '../definitions/definition-at'
 import { sharedOptionsOf } from '../definitions/runtime-options'
 import { ERROR_SOURCE, isSyncErrorSource, toErrorInputs } from '../errors/form-error'
 import { CLEAR_ON } from '../errors/stored-error'
+import { emitCheckEnd, emitNodeEvent, FORM_EVENT } from '../form/form-events'
 import { commitState } from '../form/form-runtime'
 import { stableKey } from '../paths/equality'
 import { isWithinPath } from '../paths/path'
@@ -115,7 +116,7 @@ function reconcileAsyncScope({ runtime, state, scope, options }: AsyncScopeRecon
     if (entry.status == ASYNC_STATUS.blocked) {
       return state
     }
-    cancelEntry(entry)
+    abortCheck(runtime, scope.nodeId, entry)
     entry.status = ASYNC_STATUS.blocked
     entry.outputKey = undefined
     return withAsyncErrors({ state, ownerId: scope.nodeId, inputs: [], isValidating: false })
@@ -130,7 +131,7 @@ function reconcileAsyncScope({ runtime, state, scope, options }: AsyncScopeRecon
   if (outputKey == entry.outputKey && Object.is(scope.deps, entry.deps)) {
     return state
   }
-  cancelEntry(entry)
+  abortCheck(runtime, scope.nodeId, entry)
   if (!Object.is(scope.deps, entry.deps)) {
     entry.cache.clear()
   }
@@ -140,6 +141,7 @@ function reconcileAsyncScope({ runtime, state, scope, options }: AsyncScopeRecon
   const cached = entry.cache.get(outputKey)
   if (cached != undefined) {
     entry.status = ASYNC_STATUS.idle
+    emitCheckEnd(runtime, { nodeId: scope.nodeId, errors: cached, cached: true })
     return withAsyncErrors({ state, ownerId: scope.nodeId, inputs: cached, isValidating: false })
   }
   if (existing == undefined || options.on != ASYNC_TRIGGER.change) {
@@ -210,6 +212,7 @@ function startRun(runtime: FormRuntime, ownerId: string, entry: AsyncEntry): Pro
   entry.controller = controller
   entry.status = ASYNC_STATUS.running
   commitState(runtime, { ...runtime.state, validating: withAdded(runtime.state.validating, ownerId) })
+  emitNodeEvent(runtime, FORM_EVENT.checkStart, ownerId)
   entry.running = executeRun({ options, output: entry.output, deps: entry.deps, signal: controller.signal }).then(
     inputs => {
       settleRun({ runtime, ownerId, entry, token, inputs })
@@ -252,6 +255,14 @@ function settleRun({ runtime, ownerId, entry, token, inputs }: RunSettlement): v
   entry.controller = undefined
   entry.running = undefined
   commitState(runtime, withAsyncErrors({ state: runtime.state, ownerId, inputs, isValidating: false }))
+  emitCheckEnd(runtime, { nodeId: ownerId, errors: inputs, cached: false })
+}
+
+function abortCheck(runtime: FormRuntime, ownerId: string, entry: AsyncEntry): void {
+  if (entry.status == ASYNC_STATUS.running) {
+    emitNodeEvent(runtime, FORM_EVENT.checkAbort, ownerId)
+  }
+  cancelEntry(entry)
 }
 
 function cancelEntry(entry: AsyncEntry): void {
