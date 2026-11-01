@@ -8,8 +8,15 @@
     "standard-schema",
     "validation"
   ],
+  "homepage": "https://form-tree.netlify.app",
+  "bugs": "https://github.com/tinas/formtree/issues",
   "license": "MIT",
   "author": "Ahmet Tinastepe <ahmettinastepe0@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tinas/formtree.git",
+    "directory": "packages/core"
+  },
   "files": [
     "dist"
   ],

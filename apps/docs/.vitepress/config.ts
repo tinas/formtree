@@ -10,7 +10,7 @@ import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-i
 const DESCRIPTION =
   'Forms that submit in parts. Steps, cards, rows and single fields each validate and submit on their own.'
 
-const OG_IMAGE = '/og-image.png'
+const OG_IMAGE = 'https://form-tree.netlify.app/og-image.png'
 
 const PACKAGE_SOURCES = {
   '@formtree/core': packageSource('core'),

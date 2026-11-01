@@ -92,6 +92,8 @@ VitePress 2 (alpha) site in English, styled after usewagen.dev: `guide/` (core c
 
 A `ts twoslash` block that does not compile fails the docs build; hide setup lines above `// ---cut---` and import shared definitions from `./forms/<name>`. Use `//    ^?` queries only where the displayed type reads well. Vue templates use `@submit.prevent`.
 
+The site is deployed on Netlify at https://form-tree.netlify.app. `og:image` is that site's absolute URL, since most link previews ignore a relative one. `public/og-image.png` is rendered from `.vitepress/og-image.html` at 1200×630 with headless Chrome (`--window-size=1200,630 --force-device-scale-factor=1 --allow-file-access-from-files --screenshot`).
+
 Docs are plain and leave no open question. They explain concepts, behaviour and reasons, and show them in `ts twoslash` code, which fails the build when the API changes. They never copy what the API reference lists (members, options, defaults) into prose or tables; a sentence links to the reference page instead (`/api/@formtree/core/interfaces/FieldNode`), and a dead link fails the build. No intro that recaps the sidebar and no "Next" section: the sidebar and the pager do that. `guide/index.md` introduces the library through the problems it solves; it describes other libraries generically, without naming them. No page compares formtree to another library or borrows one as a reference point ("like TanStack Table", "the same limit `z.lazy` has"); a library is named only where an example uses it (Zod, vue-i18n, react-i18next).
 
 A child is always an entry of a group's `children`, a node with a definition of its own. A key of a schema is a node too, but prose calls it a key (or a lens node), never a child; `guide/how-it-works.md` and `guide/groups.md` state the distinction, and the `children` JSDoc repeats it. The option keeps its name: it pairs with `childDeps`, and nesting definitions as `children` matches route trees.
@@ -100,7 +102,20 @@ Names in examples read as plain English: a node variable is named after its key 
 
 ## Releases
 
-Changesets 3 (`.changeset/config.json`): `@formtree/*` is a `fixed` group, so every package gets the same version; private `apps/*` are never versioned; `access: public`; `format: false` because the formatter is `vp fmt` (its config lives in `vite.config.ts`, which Changesets cannot detect), so `pnpm version-packages` runs `changeset version && vp fmt`. The repo is in `alpha` pre mode (`.changeset/pre.json`); `changeset pre exit` before the first stable release. A change to a published package's API or behaviour comes with a changeset (`pnpm changeset`); docs, playgrounds and tests do not need one. `pnpm release` runs `vp run ready`, then `changeset publish`.
+Changesets 3 (`.changeset/config.json`): `@formtree/*` is a `fixed` group, so every package gets the same version; private `apps/*` are never versioned; `access: public`; `format: false` because the formatter is `vp fmt` (its config lives in `vite.config.ts`, which Changesets cannot detect), so `pnpm version-packages` runs `changeset version && vp fmt`. The changelog is `@changesets/changelog-github`: each entry links its PR or commit and thanks the author. It reads GitHub, so a local `pnpm version-packages` needs `GITHUB_TOKEN=$(gh auth token)`. The repo is in `alpha` pre mode (`.changeset/pre.json`); `changeset pre exit` before the first stable release. A change to a published package's API or behaviour comes with a changeset (`pnpm changeset`); docs, playgrounds and tests do not need one. `pnpm release` runs `vp run ready`, then `changeset publish`; it is the manual path, CI is the usual one.
+
+| Workflow               | Role                                                                                                                                                                                                                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`               | `vp run ready` on every pull request and push to `main`                                                                                                                                                                                                          |
+| `release.yml`          | on a push to `main`, Changesets' split actions pick a mode: with pending changesets `version` opens or updates the "Version Packages (alpha)" PR; once it is merged, `pack` runs `vp run ready` and packs, `publish` publishes, tags and creates GitHub releases |
+| `changeset-status.yml` | comments on a PR whether it has a changeset; never blocks                                                                                                                                                                                                        |
+
+- npm auth is trusted publishing (OIDC), no token: each `@formtree/*` package trusts `tinas/formtree` and `release.yml`. Only the `publish` job has `id-token: write`.
+- pnpm adds provenance on its own for a public repo, and provenance fails unless the package's `repository` (with `directory`) matches the repo; every package declares it.
+- npm lets a package trust a workflow only once it exists: a new package is published once by hand (`pnpm release`), then `npm trust github <name> --file release.yml --repo tinas/formtree --allow-publish`.
+- The version PR is opened with the Actions token, so CI does not run on it; `pack` runs `vp run ready` before anything is published.
+- `changeset-status.yml` runs on `pull_request_target` so fork PRs get the comment; it checks out and reads, never runs the PR's code.
+- Actions are pinned to commit SHAs with the tag in a comment; Dependabot groups their updates monthly. `setup-vp` takes Node from `engines.node` (the newest release in the range), Vite+ from the catalog and pnpm from `devEngines`.
 
 ## Tooling
 
@@ -116,8 +131,8 @@ Changesets 3 (`.changeset/config.json`): `@formtree/*` is a `fixed` group, so ev
 
 - Hover types are hard to read: nested drafts and outputs show as `Simplify<DraftObject<…> & {} & {…}>`, group nodes as `GroupNode<GroupDefinitionOf<…>>`. Until that is fixed, docs use `//    ^?` only where the type reads well.
 - Playgrounds and docs demos have only been checked with scripted headless Chrome flows; the React playground only for a clean first render, since the repo has no browser driver.
-- Once the repo has a GitHub remote: drop `disableSources` in `apps/docs/typedoc.json` and consider `@changesets/changelog-github`.
-- Once the docs site has a domain: make `OG_IMAGE` in `apps/docs/.vitepress/config.ts` an absolute URL (most link previews ignore a relative `og:image`), and point the devtools `logo` at the site's logo. `public/og-image.png` is rendered from `.vitepress/og-image.html` at 1200×630 with headless Chrome (`--window-size=1200,630 --force-device-scale-factor=1 --allow-file-access-from-files --screenshot`).
+- The repo is on GitHub (`tinas/formtree`): drop `disableSources` in `apps/docs/typedoc.json` so the API reference links to sources.
+- Point the devtools `logo` at the docs site's logo (https://form-tree.netlify.app/logo.svg) instead of the bundled `dynamic_form` icon.
 
 ## Code conventions
 

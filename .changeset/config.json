@@ -3,7 +3,7 @@
   "baseBranch": "main",
   "access": "public",
   "format": false,
-  "changelog": "@changesets/cli/changelog",
+  "changelog": ["@changesets/changelog-github", { "repo": "tinas/formtree" }],
   "commit": false,
   "ignore": [],
   "fixed": [["@formtree/*"]],
