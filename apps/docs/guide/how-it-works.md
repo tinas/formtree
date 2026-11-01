@@ -129,6 +129,10 @@ cannot run part of a schema on its own, so its handler receives the validated in
 a transformed output. [Groups](/guide/groups#schema-or-children) explains when a part needs a
 definition of its own.
 
+A child always means a defined node: an entry of its parent's `children`. A key of the parent's
+schema is a node of the tree as well, but it takes its rules from the parent, so these docs call
+it a key, not a child.
+
 ## Ids
 
 Each node has a DOM id built from the form id and its path, such as `checkout:contact.email`,

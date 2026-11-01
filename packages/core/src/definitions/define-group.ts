@@ -94,7 +94,10 @@ type DisjointKeysRequirement<Schema, Children> = [Extract<keyof OwnInput<Schema>
 export interface DefineGroupBaseOptions<Schema, Children, ActiveKeys extends PropertyKey, Deps> {
   /** The group's own keys, as a Standard Schema or a function of the dependencies. A key is here or in `children`. */
   readonly schema?: SchemaOption<Schema, Deps>
-  /** Nested definitions, each with its own schema, rules and output. */
+  /**
+   * The group's children: keys with a definition of their own, each with its own schema, rules and output. The keys
+   * of `schema` are nodes too, but not children; they take their rules from the group.
+   */
   readonly children?: Children
   /**
    * When each listed child takes part, decided from the group's own draft. An inactive child is not validated and

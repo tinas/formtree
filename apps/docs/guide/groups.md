@@ -25,7 +25,9 @@ export const contactGroup = defineGroup({
 
 `schema` describes the keys that belong to this group and nothing else. `children` nests
 definitions that stand on their own: a field, a group, or an array made with `arrayOf`. A key
-lives in one of the two, and declaring it in both is a type error.
+lives in one of the two, and declaring it in both is a type error. Both kinds of key are nodes,
+but only the entries of `children` are the group's children: a key of the schema has no
+definition of its own and takes its rules from the group.
 
 In the draft, a child group is `{}` and a child array is `[]` from the start, and a child field
 is `undefined` until something writes it. The group's output is the output of its schema, with
