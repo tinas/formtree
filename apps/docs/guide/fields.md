@@ -97,8 +97,10 @@ export const promoCodeField = defineFieldWithDeps<{ cartId: string }>()({
 `debounceMs` how long it waits; [`AsyncValidationOptions`](/api/@formtree/core/interfaces/AsyncValidationOptions) gives
 their values and defaults.
 
-The check runs only once the schema passes, and it receives the output, so the server is asked
-about the value that would be saved: trimmed and upper-cased here. Results are cached per value,
+The check waits until the schema passes and no rule of a parent has put an error on the field;
+[Which check runs first](/guide/validation#which-check-runs-first) shows the order. It receives
+the output, so the server is asked about the value that would be saved: trimmed and upper-cased
+here. Results are cached per value,
 so going back to a code that was already checked does not ask again. A change aborts the
 running check through `signal`. While a check runs, `state.validating` is `true`, and a submit
 waits for it. A check that has not run yet runs at submit. A check that throws becomes an error

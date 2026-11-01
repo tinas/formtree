@@ -15,6 +15,12 @@ export interface PromoCodeCheck {
   readonly cartId: string
 }
 
+export interface AddressCheck {
+  readonly street: string
+  readonly postalCode: string
+  readonly country: string
+}
+
 export interface LineItemRequest {
   readonly id?: number
   readonly sku: string
@@ -32,6 +38,11 @@ let lastLineItemId = 100
 export async function checkPromoCode(check: PromoCodeCheck, signal?: AbortSignal): Promise<boolean> {
   await delay(signal)
   return VALID_PROMO_CODES.includes(check.code)
+}
+
+export async function verifyAddress(address: AddressCheck, signal?: AbortSignal): Promise<boolean> {
+  await delay(signal)
+  return /\d/.test(address.street)
 }
 
 export async function saveLineItem(item: LineItemRequest): Promise<SavedLineItem> {

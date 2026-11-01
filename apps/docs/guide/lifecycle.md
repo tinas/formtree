@@ -44,9 +44,11 @@ await form.group('delivery').handleSubmit(saveDelivery)()
    schema and its `validate` rule, a parent before its children. A node whose value and
    dependencies are the same objects as before keeps its result. Each run replaces only the errors
    it produced before, so the order never changes a result.
-4. **Reconcile asynchronous checks.** A check whose node changed waits until the schemas and rules
-   of that node's subtree pass. It then reuses a cached result for the same output, starts after
-   its debounce when it runs on change, or waits for a blur or a submit.
+4. **Hold or start asynchronous checks.** A `validateAsync` check whose node changed waits while a
+   schema or rule error sits on its node or below it, whichever node produced the error. Once none
+   is left, it reuses a cached result for the same output, starts after its debounce when it runs
+   on change, or waits for a blur or a submit.
+   [Which check runs first](/guide/validation#which-check-runs-first) shows this on one group.
 5. **Notify subscribers,** once. Inside `batch`, once for all of its writes.
 
 <LifecycleTree />
