@@ -1,7 +1,7 @@
 # Types
 
-formtree's types follow one rule: a node's type comes from its own definition. The type of the
-whole form is never carried into a component, and no union of every path is computed. The
+A node's type comes from its own definition. The type of the whole form is never carried into a
+component, and no union of every path is computed. The
 [Types](/api/@formtree/core/#types) section of the API reference lists every type helper.
 
 ## The draft type
@@ -21,8 +21,8 @@ type CheckoutDraft = DraftOf<typeof checkoutGroup>
 // }
 ```
 
-Groups and arrays that a definition declares are always there in the draft: `contact` is `{}`
-and `items` is `[]` before anything is typed. Values are optional. This is the type of what the
+Groups and arrays that a definition declares are always in the draft, so `contact` is `{}` and
+`lineItems` is `[]` before anything is typed. Values are optional. This is the type of what the
 user is in the middle of typing, and the output type is what remains once it is valid.
 
 ## Paths
@@ -53,7 +53,7 @@ A component that renders an address needs the address node and nothing about the
 
 ```ts twoslash
 import type { NodeOf } from '@formtree/core'
-import { addressGroup } from './forms/checkout'
+import { addressGroup } from './forms/delivery'
 
 function renderAddress(address: NodeOf<typeof addressGroup>) {
   address.field('city').state.value
@@ -62,8 +62,9 @@ function renderAddress(address: NodeOf<typeof addressGroup>) {
 ```
 
 The same component works in a checkout, in an account page and in a returns form, as long as
-the address comes from `addressGroup`. In Vue and React, `useFormNode(addressGroup)` gives the component this
-node without a prop: see Node Context for [Vue](/vue/node-context) and [React](/react/node-context).
+the address comes from `addressGroup`. In Vue and React, `useFormNode(addressGroup)` gives the
+component this node without a prop, as Node Context shows for [Vue](/vue/node-context) and
+[React](/react/node-context).
 
 ## Trade-offs
 
@@ -75,8 +76,7 @@ The full list of paths is never offered at once, because it is never computed.
 requires a value.
 
 **A recursive definition needs one annotation.** TypeScript cannot infer the type of a constant
-that refers to itself. See
-[Recursive Definitions](/guide/recursive-definitions).
+that refers to itself, as [Recursive Definitions](/guide/recursive-definitions) shows.
 
 **Definitions with dependencies take two calls.** `defineGroupWithDeps<Deps>()({ ... })` lets you
 write the dependency type and still have the rest inferred.

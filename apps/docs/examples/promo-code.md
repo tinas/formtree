@@ -11,15 +11,19 @@ import PromoCode from './demos/promo-code.vue'
   <PromoCode />
 </DemoFrame>
 
-::: details Show code
-
-<<< ./demos/promo-code.vue
-
-:::
-
-The schema trims and upper-cases the code, and the check runs on that output, so `welcome10`
-is checked as `WELCOME10`. While the check runs, `state.validating` is `true` and the field shows
+The schema trims and upper-cases the code, and the check runs on that output, so `welcome10` is
+checked as `WELCOME10`. While the check runs, `state.validating` is `true` and the field shows
 "Checking…".
 
-Type a code and press Enter without leaving the field: the submit runs the check that has not run
+Type a code and press Enter without leaving the field. The submit runs the check that has not run
 yet and waits for it. Going back to a code that was already checked uses the cached result.
+
+::: code-group
+
+<<< ./demos/promo-code.vue [demos/promo-code.vue]
+
+<<< ./forms/promo-code.ts [forms/promo-code.ts]
+
+<<< ./forms/api.ts [forms/api.ts]
+
+:::

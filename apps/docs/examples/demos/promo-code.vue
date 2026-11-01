@@ -2,7 +2,7 @@
 import { useField, useForm } from '@formtree/vue'
 import { ref } from 'vue'
 
-import { promoCodeField } from '../forms/checkout'
+import { promoCodeField } from '../forms/promo-code'
 
 const form = useForm(promoCodeField, { deps: { cartId: 'cart_42' } })
 const code = useField(form)

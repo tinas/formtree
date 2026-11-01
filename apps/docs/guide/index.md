@@ -1,13 +1,12 @@
 # Introduction
 
-formtree is a headless form library for TypeScript. Every part of a form, a wizard step, a
-settings card, a table row or a single field, validates and submits on its own, and every rule
-is written once, in a definition.
+formtree is a headless form library for TypeScript. Every part of a form, from a wizard step to a
+single field, validates and submits on its own, and every rule is written once, in a definition.
 
 ## A first form
 
 A sign-up form with a name and an email. The definition says what the form holds and which rules
-apply:
+apply.
 
 ```ts twoslash
 import { defineGroup } from '@formtree/core'
@@ -21,7 +20,7 @@ export const signUpGroup = defineGroup({
 })
 ```
 
-A component creates the form, binds the inputs and submits:
+A component creates the form, binds the inputs and submits.
 
 ::: code-group
 
@@ -83,9 +82,9 @@ export function SignUpForm() {
 
 :::
 
-That is the whole form. An error appears once its field is left, a submit with errors shows all
-of them and focuses the first one, and `createAccount` receives `{ name: string, email: string }`
-with the name already trimmed. Try it:
+An error appears once its field is left, and a submit with errors shows all of them and focuses
+the first. `createAccount` receives `{ name: string, email: string }` with the name already
+trimmed.
 
 <script setup>
 import SignUp from '../examples/demos/sign-up.vue'
@@ -100,7 +99,7 @@ import SignUp from '../examples/demos/sign-up.vue'
 ### Submit any part
 
 Most form libraries validate and submit at the root, so saving one step of a checkout means
-checking its fields one by one. In formtree, a step submits the same way the whole form does:
+checking its fields one by one. In formtree a step submits the same way the whole form does.
 
 ```ts twoslash
 import { createForm } from '@formtree/core'
@@ -116,32 +115,31 @@ const continueToPayment = delivery.handleSubmit(() => goToPayment())
 ```
 
 Continue checks the delivery step and nothing else, and its handler receives the output of that
-step. A settings card, a table row and a single field submit the same way.
-[Submitting](/guide/submitting#submitting-part-of-the-form) shows the rest.
+step. [Submitting](/guide/submitting#submitting-part-of-the-form) shows the rest.
 
-### Write a rule once, use it anywhere
+### Write a rule once
 
-A definition holds no state, so one definition backs as many forms as needed. Any definition can
-be the root of a form, a single field included:
+A definition holds no state, so any number of forms can share it. Any definition can also be the
+root of a form, a single field included.
 
 ```ts twoslash
 import { createForm } from '@formtree/core'
 import { priceField } from './forms/product'
 // ---cut---
-const priceCell = createForm(priceField, { initialValue: 24.9 })
+const priceForm = createForm(priceField, { initialValue: 24.9 })
 ```
 
-The rule that checks a price on the product page now checks an inline table cell.
+A price edited on its own runs the same rule as the product page.
 [Inline Edit](/examples/inline-edit) shows it live.
 
 ### Branches that come and go
 
-Card details are required only when the customer pays by card:
+Card details are required only when the customer pays by card.
 
 ```ts twoslash
 import { defineGroup } from '@formtree/core'
 import { z } from 'zod'
-import { cardGroup, invoiceGroup } from './forms/checkout'
+import { cardGroup, invoiceGroup } from './forms/payment'
 // ---cut---
 export const paymentGroup = defineGroup({
   schema: z.object({ method: z.enum(['card', 'invoice']) }),
@@ -153,14 +151,14 @@ export const paymentGroup = defineGroup({
 })
 ```
 
-A branch that is off is not validated and stays out of the output, and its values wait for the
-customer to come back. No watcher resets anything.
+A branch that is off is not validated, stays out of the output and keeps its values for when the
+customer comes back. No watcher resets anything.
 [Conditional Branches](/guide/conditional-branches) explains the rules.
 
 ### Server checks in the definition
 
-"Is this promo code still valid?" is a question for a server. It belongs to the definition, next
-to the schema:
+Whether a promo code is still valid is a question for a server, and the check belongs in the
+definition, next to the schema.
 
 ```ts twoslash
 import { defineFieldWithDeps } from '@formtree/core'
@@ -194,5 +192,5 @@ form around it. [Types](/guide/types) shows how.
 
 Mounting and unmounting change nothing. Leaving a wizard step keeps its values, and a field in a
 dialog finds its node by path or by definition, never by being next to the nearest form.
-[How It Works](/guide/how-it-works) describes the model behind all of this, and ten
+[How It Works](/guide/how-it-works) describes the model, and ten
 [design rules](/guide/design-rules) keep it predictable.

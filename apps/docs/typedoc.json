@@ -15,7 +15,7 @@
   "outputFileStrategy": "members",
   "excludeReferences": true,
   "excludeInternal": true,
-  "disableSources": true,
+  "sourceLinkTemplate": "https://github.com/tinas/formtree/blob/{gitRevision}/{path}#L{line}",
   "hidePageHeader": true,
   "hideBreadcrumbs": true,
   "useCodeBlocks": true,

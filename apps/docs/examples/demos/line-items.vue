@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineGroup, provideFormNode, useForm } from '@formtree/vue'
 
-import { lineItemsArray } from '../forms/checkout'
+import { lineItemsArray } from '../forms/line-items'
 import LineItemRow from './line-item-row.vue'
 
 const cartGroup = defineGroup({

@@ -21,7 +21,7 @@ export const cartGroup = defineGroup({
 })
 ```
 
-`arrayOf` takes the item in one of three forms:
+`arrayOf` takes the item in one of three forms.
 
 | Item                     | Example                             | Each item is                                                        |
 | ------------------------ | ----------------------------------- | ------------------------------------------------------------------- |
@@ -58,14 +58,13 @@ const rows = lineItems.items.map(lineItem => ({
 
 [`ArrayNode`](/api/@formtree/core/interfaces/ArrayNode) describes every operation.
 
-`key` identifies the item for as long as it exists, which makes it the right `key` for a `v-for`
-or a React list and for caching DOM elements. `index` is where the item is now.
+`key` identifies the item for as long as it exists, which makes it the right `key` for a `v-for` or
+a React list and for caching DOM elements. `index` is where the item is now.
 
 ## Keys, not indexes
 
-When an item moves, everything that belongs to it moves with it: its errors, whether it was
-touched, its submit count and its cached asynchronous results. A node you hold for an item keeps
-pointing at that item after a move.
+When an item moves, its errors, its touched state, its submit count and its cached asynchronous
+results move with it. A node you hold for an item keeps pointing at that item after a move.
 
 ```ts twoslash
 import { createForm } from '@formtree/core'
@@ -91,12 +90,12 @@ points at whichever item is at that position now. Prefer holding the item node.
 
 ## Rules across items
 
-A rule that compares items with each other goes on the array. `validate` receives the drafts of
-all items, and error paths start with the item index.
+A rule that compares items with each other goes on the array. `validate` receives the drafts of all
+items, and error paths start with the item index.
 
 ```ts twoslash
 import { arrayOf } from '@formtree/core'
-import { lineItemGroup } from './forms/checkout'
+import { lineItemGroup } from './forms/line-items'
 
 export const lineItemsArray = arrayOf(lineItemGroup, {
   validate: rows =>
@@ -133,5 +132,5 @@ The row validates alone, and `reset({ value })` makes the saved item the row's n
 Only that row becomes clean. A row that was added and then saved joins the initial list, so the
 list itself is clean once every row is saved. [Line Items](/examples/line-items) shows this.
 
-Adding or removing an item marks the array as touched, so an error on the array itself, such as
-an empty list, shows as soon as the list changes.
+Adding or removing an item marks the array as touched, so an error on the array itself, such as an
+empty list, shows as soon as the list changes.

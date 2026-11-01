@@ -22,11 +22,11 @@ export function CheckoutPage() {
 }
 ```
 
-`FormNodeProvider` makes its `node` available to every descendant. Providing is always explicit:
+`FormNodeProvider` makes its `node` available to every descendant. Providing is always explicit.
 `useForm` never provides by itself, so a form in a dialog cannot quietly replace the page's form
 for the components below it.
 
-Any node can be provided: the root, a step, an array item.
+Any node can be provided, whether the root, a step or an array item.
 
 ## useFormNode
 
@@ -54,7 +54,7 @@ re-renders the component when that node's state changes. If no ancestor provided
 It does not fall back to another node.
 
 A component deeper down can then ask for the delivery step by its own definition, without
-knowing that it sits inside a checkout:
+knowing that it sits inside a checkout.
 
 ```tsx
 const delivery = useFormNode(deliveryGroup)
@@ -65,7 +65,7 @@ loose type.
 
 ## Lists
 
-A row component receives its index, reads the list from its parent and provides its own item:
+A row component receives its index, reads the list from its parent and provides its own item.
 
 ```tsx
 // line-item-row.tsx
@@ -91,7 +91,7 @@ renders one row per item with `key={lineItem.key}`, so a row keeps its component
 
 A node passed through props would make every component in between carry the form's types, and
 the props would mirror state the form already holds. With a definition as the key, a component
-knows exactly one thing about the form: the definition it renders.
+knows only the definition it renders.
 
 | Component       | Receives                               |
 | --------------- | -------------------------------------- |

@@ -12,20 +12,27 @@ import CheckoutBranches from './demos/checkout-branches.vue'
   <CheckoutBranches />
 </DemoFrame>
 
-::: details Show code
-
-<<< ./demos/checkout-branches.vue
-
-<<< ./forms/checkout.ts
-
-:::
-
 Pick card, type a cardholder name, switch to invoice and submit. The draft still holds the
 cardholder name, and the output has only the invoice details. Switch back to card and the name
 is there again.
 
-Choose France as the country to see a rule built from [dependencies](/guide/dependencies): the
-list of countries the store ships to is passed in from outside, and France is not on it.
+Choose France as the country to see a rule built from [dependencies](/guide/dependencies). The
+countries the store ships to are passed in from outside, and France is not among them.
 
-The inputs are the generic components from [Field Bindings](/vue/field-bindings). Each takes a
-`name` relative to the provided form.
+::: code-group
+
+<<< ./demos/checkout-branches.vue [demos/checkout-branches.vue]
+
+<<< ./forms/delivery.ts [forms/delivery.ts]
+
+<<< ./forms/payment.ts [forms/payment.ts]
+
+<<< ./forms/schemas.ts [forms/schemas.ts]
+
+<<< ./forms/api.ts [forms/api.ts]
+
+<<< ./components/select-field.vue [components/select-field.vue]
+
+<<< ./components/text-field.vue [components/text-field.vue]
+
+:::

@@ -1,8 +1,8 @@
 # Recursive Definitions
 
-A segment builder describes a set of users with conditions that nest: everyone in Germany, and
-either on the pro plan or on a mobile device. Each group of conditions can hold more groups,
-to any depth. A definition can include itself to describe that.
+A segment builder describes a set of users with conditions that nest, such as everyone in Germany
+who is either on the pro plan or on a mobile device. Each group of conditions can hold more groups,
+to any depth, and a definition that includes itself describes that.
 
 ## A condition and a tree of conditions
 
@@ -52,19 +52,19 @@ export const conditionTreeGroup: GroupDefinition<ConditionTreeInput, ConditionTr
   })
 ```
 
-Three things make it work:
+Three things make it work.
 
 1. **`arrayOf(() => conditionTreeGroup)`** refers to the definition lazily, because it does not
    exist yet when its own options are written.
-2. **The type annotation** on `conditionTreeGroup`. TypeScript cannot infer the type of a
-   constant that refers to itself in its own initializer. The annotation gives the input, the output and the dependencies.
-3. **`childDeps`** passes the attributes down to every level, so a condition five levels deep
-   checks its attribute against the same list as one at the top.
+2. **The type annotation** on `conditionTreeGroup` gives the input, the output and the dependencies.
+   TypeScript cannot infer the type of a constant that refers to itself in its own initializer.
+3. **`childDeps`** passes the attributes down to every level, so a condition five levels deep checks
+   its attribute against the same list as one at the top.
 
 ## Every level validates
 
-The tree is built as deep as the value is, and every level runs its own schema and rules. An
-empty group at any depth reports `Add a condition or a group` on its own `conditions`.
+The tree is built as deep as the value is, and every level runs its own schema and rules. An empty
+group at any depth reports `Add a condition or a group` on its own `conditions`.
 
 ```ts twoslash
 import { createForm } from '@formtree/core'
@@ -86,8 +86,8 @@ nestedGroup.state.valid // true
 
 ## Types at any depth
 
-Navigating a recursive tree does not slow the type checker, because a path is only checked as far
-as it is written. Each level is again a `conditionTreeGroup` node.
+Navigating a recursive tree does not slow the type checker, because a path is only checked as far as
+it is written. Each level is again a `conditionTreeGroup` node.
 
 ```ts twoslash
 import { createForm } from '@formtree/core'
@@ -102,12 +102,11 @@ const deepGroup = form.group('rules').array('groups').items[0]?.array('groups').
 deepGroup?.field('match').state.value // 'all' | 'any' | undefined
 ```
 
-Because the annotation gives the types, the children of an annotated recursive definition are
-typed from the annotated input. They are still defined nodes at runtime, with their own schemas
-and rules.
+The children of an annotated recursive definition are typed from the annotated input. At runtime
+they are still defined nodes, with their own schemas and rules.
 
 ## Rendering
 
-A recursive definition is rendered by a recursive component: the component for a condition group
+A recursive definition is rendered by a recursive component. The component for a condition group
 renders its conditions and, for each nested group, itself.
 [Segment Builder](/examples/segment-builder) does this in Vue.

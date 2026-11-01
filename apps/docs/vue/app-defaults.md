@@ -1,8 +1,8 @@
 # App Defaults
 
-Some choices are the same for every form of an app: errors appear in the user's language, a
-failed submit scrolls the same way, every form shows up in the same devtools. `createFormtree`
-makes those choices once, as an app plugin:
+Some choices are the same for every form of an app, such as the language errors appear in, how a
+failed submit scrolls and the devtools that show the forms. `createFormtree` makes those choices
+once, as an app plugin.
 
 ```ts
 // main.ts
@@ -21,7 +21,7 @@ lists them.
 ## Translating errors
 
 The schemas of an app report translation keys, such as `'checkout.city.required'`, and every
-error has to reach the screen in the user's language. Give the plugin one `formatError`:
+error has to reach the screen in the user's language. Give the plugin one `formatError`.
 
 ```ts
 // main.ts
@@ -44,7 +44,7 @@ createApp(App)
 ```
 
 Every input then shows `errorMessage`, the field's first visible error as text, and knows nothing
-about translation:
+about translation.
 
 ```vue
 <p :id="field.errorId">{{ field.errorMessage }}</p>
@@ -59,7 +59,7 @@ a schema library writes by default.
 ## Moving focus
 
 A failed submit focuses the first invalid field. Under a sticky header, that field can end up
-hidden, and a jump to it can feel abrupt. `focusElement` decides how every form moves focus:
+hidden, and a jump to it can feel abrupt. `focusElement` decides how every form moves focus.
 
 ```ts
 createFormtree({
@@ -81,7 +81,7 @@ explains both options.
 ## When errors appear
 
 By default an error appears once its field is left. An app whose forms should stay quiet until
-the first submit says so once:
+the first submit says so once.
 
 ```ts
 createFormtree({ mode: 'onSubmit' })
@@ -92,7 +92,7 @@ createFormtree({ mode: 'onSubmit' })
 
 ## Overriding a default
 
-A default is a starting point. An option passed to `useForm` wins for that form:
+An option passed to `useForm` wins for that form.
 
 ```ts
 const form = useForm(newsletterGroup, { mode: 'onChange' })
@@ -109,8 +109,9 @@ does not see it and uses the core's defaults.
 
 A customer presses Continue on the delivery step and nothing happens. No error is on screen, so
 the question is which node is still invalid, and why its error is not shown yet. While
-developing, `createFormtree` adds a formtree tab to Vue Devtools that answers it: the forms of the
-app as trees of nodes with the state of each, and a timeline of every change, check and submit.
+developing, `createFormtree` adds a formtree tab to Vue Devtools that answers it. The tab shows the
+forms of the app as trees of nodes with the state of each, and a timeline of every change, check
+and submit.
 
 Vue Devtools itself runs as a browser extension or through `vite-plugin-vue-devtools`. The plugin
 talks to it through `@vue/devtools-api`, a peer dependency of `@formtree/vue` that npm and pnpm
@@ -118,7 +119,7 @@ install along with it.
 
 A production build leaves the devtools out. Their code runs only while `process.env.NODE_ENV` is
 not `'production'`, which every bundler replaces, so nothing of it ships. To leave the forms out
-of the devtools while developing as well:
+of the devtools while developing too, turn them off.
 
 ```ts
 createFormtree({ devtools: false })
@@ -129,19 +130,19 @@ createFormtree({ devtools: false })
 ![The formtree inspector in Vue Devtools, showing a checkout form as a tree of nodes](/devtools-inspector.png)
 
 Every form created with `useForm` inside the app appears in the formtree inspector, under the
-name of the component that created it and its id. Its nodes follow the tree of the form: a
-group's children first, then the keys of its schema. The first tag says where a node comes from:
-`field`, `group` or `array` for a node with a definition of its own, `lens` for a key of its
-parent's schema. Hovering a tag explains it.
+name of the component that created it and its id. Its nodes follow the tree of the form, a
+group's children first and then the keys of its schema. The first tag says where a node comes
+from, with `field`, `group` or `array` for a node with a definition of its own and `lens` for a
+key of its parent's schema. Hovering a tag explains it.
 
 The other tags describe the state of the subtree. Errors are counted by whether the user sees
-them: `1 error shown` is on screen, `2 errors hidden` exist but wait for the display mode, a
-blur or a submit. Every value is validated on every change, so a step the customer has not
+them. `1 error shown` is on screen, while `2 errors hidden` exist but wait for the display mode,
+a blur or a submit. Every value is validated on every change, so a step the customer has not
 reached yet already counts its hidden errors. `submitted ×1` counts the submits of the node
-itself: submitting a step marks the step, not the form. `inactive`, `checking`, `submitting` and
+itself, so submitting a step marks the step, not the form. `inactive`, `checking`, `submitting` and
 `dirty` follow the node's state.
 
-That answers the delivery step: `delivery.method` shows `1 error hidden` because no method is
+In the delivery step from above, `delivery.method` shows `1 error hidden` because no method is
 chosen, and its error waits for the field to be blurred. Selecting a node shows its state and its
 errors, the visible ones and all of them.
 
@@ -155,8 +156,7 @@ error. An optional key that is still empty is not listed.
 The Timeline tab of the formtree inspector records what happens in the forms once its record
 button is on. A change, a blur and a reset name the path they touched. An asynchronous check
 records its start and its end, with the errors it returned, or that it was reused from the cache
-or cancelled by the next change. A submit records its start and its outcome: `success`,
-`invalid`, `rejected` or `skipped`.
+or cancelled by the next change. A submit records its start and its outcome.
 
 Selecting an event shows the form, the path and the value at that path after the event.
 

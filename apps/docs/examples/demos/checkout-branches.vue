@@ -7,7 +7,8 @@ import { computed, shallowRef } from 'vue'
 import SelectField from '../components/select-field.vue'
 import TextField from '../components/text-field.vue'
 import { SHIPPING_COUNTRIES } from '../forms/api'
-import { deliveryGroup, paymentGroup } from '../forms/checkout'
+import { deliveryGroup } from '../forms/delivery'
+import { paymentGroup } from '../forms/payment'
 
 const orderGroup = defineGroupWithDeps<{ countries: ReadonlyArray<string> }>()({
   children: { delivery: deliveryGroup, payment: paymentGroup },
