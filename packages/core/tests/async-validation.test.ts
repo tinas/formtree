@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vite-plus/test'
 import { z } from 'zod'
 
-import { ASYNC_FAILED_CODE, createForm, defineField } from '../src'
+import { ASYNC_FAILED_CODE, createForm, defineField, defineGroup } from '../src'
 import { nameChecks } from './fixtures/promotion'
 import { createPromotionForm } from './fixtures/create-promotion-form'
 
@@ -36,6 +36,37 @@ describe('async validation', () => {
     await vi.advanceTimersByTimeAsync(300)
 
     expect(nameChecks).toHaveLength(0)
+  })
+
+  test('a check waits while a parent rule puts an error on its node', async () => {
+    const checkedCodes: Array<string> = []
+    const promoCodeField = defineField({
+      schema: z.string(),
+      validateAsync: {
+        on: 'change',
+        run: async code => {
+          checkedCodes.push(code)
+          return undefined
+        },
+      },
+    })
+    const orderGroup = defineGroup({
+      schema: z.object({ paymentMethod: z.enum(['card', 'invoice']) }),
+      children: { promoCode: promoCodeField },
+      validate: ({ value }) =>
+        value.paymentMethod == 'invoice' && value.promoCode != undefined
+          ? { path: 'promoCode', code: 'Promo codes apply to card payments only' }
+          : undefined,
+    })
+    const form = createForm(orderGroup, { initialValue: { paymentMethod: 'invoice' } })
+
+    form.field('promoCode').setValue('WELCOME10')
+    await vi.advanceTimersByTimeAsync(300)
+    expect(checkedCodes).toEqual([])
+
+    form.field('paymentMethod').setValue('card')
+    await vi.advanceTimersByTimeAsync(300)
+    expect(checkedCodes).toEqual(['WELCOME10'])
   })
 
   test('results become async errors and are cached per value', async () => {

@@ -41,6 +41,28 @@ describe('schema, validate and display modes', () => {
     ])
   })
 
+  test('a group validate rule runs on the draft while the schema fails', () => {
+    const rangeGroup = defineGroup({
+      schema: z.object({
+        label: z.string({ error: 'Enter a label' }),
+        min: z.number(),
+        max: z.number(),
+      }),
+      validate: ({ value }) =>
+        value.min != undefined && value.max != undefined && value.min > value.max
+          ? { path: 'max', code: 'Max is below min' }
+          : undefined,
+    })
+    const form = createForm(rangeGroup, { initialValue: { min: 5, max: 1 } })
+
+    expect(form.field('label').listErrors({ includeHidden: true })).toEqual([
+      expect.objectContaining({ code: 'Enter a label', source: 'schema' }),
+    ])
+    expect(form.field('max').listErrors({ includeHidden: true })).toEqual([
+      expect.objectContaining({ code: 'Max is below min', source: 'validate' }),
+    ])
+  })
+
   test('an array validate rule relates rows to each other', () => {
     const slots = createPromotionForm().array('spending.slots')
 
