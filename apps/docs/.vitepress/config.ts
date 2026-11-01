@@ -7,7 +7,8 @@ import ts from 'typescript'
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 
-const DESCRIPTION = 'A headless form tree. Every node, a single field included, validates and submits on its own.'
+const DESCRIPTION =
+  'Forms that submit in parts. Steps, cards, rows and single fields each validate and submit on their own.'
 
 const PACKAGE_SOURCES = {
   '@formtree/core': packageSource('core'),

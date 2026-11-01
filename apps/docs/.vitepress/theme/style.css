@@ -25,6 +25,11 @@
  * Component: Home
  * -------------------------------------------------------------------------- */
 
+.VPHero .text,
+.VPHero .tagline {
+  text-wrap: balance;
+}
+
 .VPFeature .icon {
   color: var(--vp-c-brand-1);
 }
