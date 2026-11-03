@@ -4,11 +4,12 @@ import type { OutputOf } from '@formtree/vue'
 import { defineGroupWithDeps, provideFormNode, useForm } from '@formtree/vue'
 import { computed, shallowRef } from 'vue'
 
+import NumberField from '../components/number-field.vue'
 import SelectField from '../components/select-field.vue'
 import TextField from '../components/text-field.vue'
 import { SHIPPING_COUNTRIES } from '../forms/api'
 import { deliveryGroup } from '../forms/delivery'
-import { paymentGroup } from '../forms/payment'
+import { DEFAULT_DUE_IN_DAYS, paymentGroup } from '../forms/payment'
 
 const orderGroup = defineGroupWithDeps<{ countries: ReadonlyArray<string> }>()({
   children: { delivery: deliveryGroup, payment: paymentGroup },
@@ -71,6 +72,11 @@ const PAYMENT_OPTIONS = [
         <template v-if="payment.group('invoice').state.active">
           <TextField name="payment.invoice.company" label="Company" />
           <TextField name="payment.invoice.taxId" label="Tax ID" />
+          <NumberField
+            name="payment.invoice.dueInDays"
+            label="Due in days"
+            :placeholder="String(DEFAULT_DUE_IN_DAYS)"
+          />
         </template>
       </fieldset>
 

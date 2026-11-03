@@ -1,8 +1,8 @@
 import { describe, expect, test, vi } from 'vite-plus/test'
 import { z } from 'zod'
 
-import { createForm, defineGroup } from '../src'
-import { promotionGroup, maxDiscountField } from './fixtures/promotion'
+import { createForm, defineField, defineGroup } from '../src'
+import { promotionGroup, maxDiscountField, WRAPPING } from './fixtures/promotion'
 import { PROMOTION_DEPS, createPromotionForm } from './fixtures/create-promotion-form'
 
 describe('submit', () => {
@@ -50,6 +50,22 @@ describe('submit', () => {
       spending: { period: 'DAILY', maxDiscount: 100, slots: [] },
       eligibility: { operator: 'AND', conditions: [{ attribute: 'orders', operator: 'GT', value: 2 }], groups: [] },
     })
+  })
+
+  test('a schema default fills the output, never the draft', async () => {
+    const packagingGroup = defineGroup({
+      schema: z.object({ wrapping: z.enum(WRAPPING).default(WRAPPING.PAPER) }),
+      children: { cardCount: defineField({ schema: z.number().int().default(1) }) },
+    })
+    const form = createForm(packagingGroup)
+    const onValid = vi.fn()
+
+    expect(form.state.valid).toBe(true)
+    await expect(form.handleSubmit(onValid)()).resolves.toBe('success')
+
+    expect(onValid).toHaveBeenCalledWith({ wrapping: WRAPPING.PAPER, cardCount: 1 })
+    expect(form.state.value).toEqual({})
+    expect(form.state.dirty).toBe(false)
   })
 
   test('a field submits on its own, like an inline edit', async () => {

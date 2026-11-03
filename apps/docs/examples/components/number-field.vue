@@ -2,7 +2,7 @@
 import { useField } from '@formtree/vue'
 import { computed } from 'vue'
 
-const props = defineProps<{ name: string; label: string }>()
+const props = defineProps<{ name: string; label: string; placeholder?: string }>()
 
 const field = useField<number>(() => props.name)
 
@@ -17,7 +17,7 @@ const text = computed({
 <template>
   <div class="demo-field">
     <label :for="field.id">{{ label }}</label>
-    <input v-model="text" v-bind="field.attrs" type="number" />
+    <input v-model="text" v-bind="field.attrs" type="number" :placeholder="placeholder" />
     <p :id="field.errorId" class="demo-error">{{ field.errorMessage }}</p>
   </div>
 </template>

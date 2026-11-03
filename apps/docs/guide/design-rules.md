@@ -31,15 +31,15 @@ of the library follows from them.
 
 ## What formtree does not do
 
-| Not included                                    | Why                                                                                                      |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Components, renderless `Field`, directives      | Elements belong to you. The core gives state and behaviour.                                              |
-| `canSubmit`                                     | A submit button is not disabled for an invalid form. Edit forms gate on `dirty`.                         |
-| Unregistering on unmount                        | Rule 1. Turn a branch off with `activeWhen`, clear it with `reset`.                                      |
-| `null` for empty, defaults derived from schemas | Rule 7. Empty is `undefined`, a new row is `push({})`.                                                   |
-| Adapters per schema library                     | Standard Schema only. Definitions build the tree, so no schema is ever split.                            |
-| Wildcard paths for asynchronous rules           | A check belongs to a definition and runs wherever that definition is used.                               |
-| Dependencies between siblings                   | Rule 10. Move the shared value into the parent's schema.                                                 |
-| Built-in messages                               | An error carries a code. [`formatError`](/guide/errors-and-focus#translating-errors) turns it into text. |
-| Persistence and "unsaved changes" prompts       | `subscribe` and `state.dirty` are enough to build them in the app.                                       |
-| A `watch` API                                   | `subscribe` and `node.state` cover it, and adapters use their framework's own watch.                     |
+| Not included                                          | Why                                                                                                                                                 |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Components, renderless `Field`, directives            | Elements belong to you. The core gives state and behaviour.                                                                                         |
+| `canSubmit`                                           | A submit button is not disabled for an invalid form. Edit forms gate on `dirty`.                                                                    |
+| Unregistering on unmount                              | Rule 1. Turn a branch off with `activeWhen`, clear it with `reset`.                                                                                 |
+| `null` for empty, a draft filled from schema defaults | Rule 7. Empty is `undefined`, a new row is `push({})`. A schema default fills only the [output](/guide/fields#starting-values-and-schema-defaults). |
+| Adapters per schema library                           | Standard Schema only. Definitions build the tree, so no schema is ever split.                                                                       |
+| Wildcard paths for asynchronous rules                 | A check belongs to a definition and runs wherever that definition is used.                                                                          |
+| Dependencies between siblings                         | Rule 10. Move the shared value into the parent's schema.                                                                                            |
+| Built-in messages                                     | An error carries a code. [`formatError`](/guide/errors-and-focus#translating-errors) turns it into text.                                            |
+| Persistence and "unsaved changes" prompts             | `subscribe` and `state.dirty` are enough to build them in the app.                                                                                  |
+| A `watch` API                                         | `subscribe` and `node.state` cover it, and adapters use their framework's own watch.                                                                |
