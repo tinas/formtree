@@ -43,6 +43,47 @@ type Output = OutputOf<typeof priceField>
 The form holds `number | undefined`, and the handler receives a `number`. A value that comes from an
 API as `null` is turned into `undefined` once, where the API response becomes a draft.
 
+## Starting values and schema defaults
+
+A value the user should see when the form opens belongs in the draft. `initialValue` writes it for
+the form, `push({ quantity: 1 })` for a new row and `reset({ value })` after a save. The input
+shows it, and `dirty` and `reset` measure from it.
+
+A default in the schema answers another question, what to send when a value is left empty. The
+library never fills the draft from a schema, so the input stays empty and the value is valid while
+it is. The schema puts the default into the output, which the submit handler and `validateAsync`
+receive.
+
+```ts twoslash
+import type { OutputOf } from '@formtree/core'
+import { createForm } from '@formtree/core'
+import { invoiceGroup } from './forms/payment'
+
+declare function sendInvoice(invoice: OutputOf<typeof invoiceGroup>): Promise<void>
+// ---cut---
+const invoice = createForm(invoiceGroup, { initialValue: { company: 'Acme GmbH', taxId: 'DE123456789' } })
+
+const sendOrder = invoice.handleSubmit(async order => {
+  await sendInvoice(order)
+})
+```
+
+The draft holds the company and the tax ID but no due date, and `sendInvoice` receives
+`dueInDays: 30`. The output type has no `undefined` there, because it comes from the schema.
+
+A default replaces `undefined` only. A text input that is typed into and cleared writes `''`, which
+the schema keeps, so a text value with a default needs an input that writes `undefined` when it is
+empty, as the number input of the examples does. A group's `validate` receives the draft, so it
+sees `undefined` where the output will hold the default, as
+[Rules across keys](/guide/groups#rules-across-keys) explains.
+
+Choose by what the user should see. A value they start from goes into the draft. An empty value
+that stands for a value goes into the schema, and the empty input says what will be sent, for
+example with a placeholder. With both, the draft value is sent, and the default applies once the
+value is `undefined` again. [Checkout Branches](/examples/) shows a default in a number input,
+next to the draft and the output, and [Line Items](/examples/line-items) starts each new row with a
+quantity of 1.
+
 ## Working with a field
 
 ```ts twoslash

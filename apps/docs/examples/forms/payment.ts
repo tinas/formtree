@@ -8,6 +8,8 @@ export const PAYMENT_METHOD = {
   invoice: 'invoice',
 } as const
 
+export const DEFAULT_DUE_IN_DAYS = 30
+
 export const cardGroup = defineGroup({
   schema: z.object({
     holder: requiredText('Cardholder name is required'),
@@ -21,6 +23,11 @@ export const invoiceGroup = defineGroup({
   schema: z.object({
     company: requiredText('Company name is required'),
     taxId: requiredText('Tax ID is required'),
+    dueInDays: z
+      .number()
+      .int({ error: 'Enter whole days' })
+      .positive({ error: 'Enter at least one day' })
+      .default(DEFAULT_DUE_IN_DAYS),
   }),
 })
 
