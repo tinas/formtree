@@ -7,7 +7,7 @@ const props = defineProps<{ name: string; label: string; placeholder?: string }>
 const field = useField<number>(() => props.name)
 
 const text = computed({
-  get: () => (field.model === undefined ? '' : String(field.model)),
+  get: () => (field.model == undefined ? '' : String(field.model)),
   set: value => {
     field.model = value === '' ? undefined : Number(value)
   },

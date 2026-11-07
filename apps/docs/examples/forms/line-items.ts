@@ -22,7 +22,7 @@ interface LineItemDraft {
 function duplicateProducts(rows: ReadonlyArray<LineItemDraft>) {
   const seen = new Set<string>()
   return rows.flatMap((row, index) => {
-    if (row.sku === undefined || row.sku === '') {
+    if (row.sku == undefined || row.sku == '') {
       return []
     }
     if (seen.has(row.sku)) {

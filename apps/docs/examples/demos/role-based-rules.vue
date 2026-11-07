@@ -36,7 +36,7 @@ const createAccount = form.handleSubmit(account => {
       <SelectField name="role" label="Role" :options="ROLE_OPTIONS" />
       <TextField name="password" label="Password" />
       <p class="demo-hint">
-        {{ form.state.value.role === ROLE.admin ? 'Admins need 12 characters.' : 'Members need 8 characters.' }}
+        {{ form.state.value.role == ROLE.admin ? 'Admins need 12 characters.' : 'Members need 8 characters.' }}
       </p>
       <TextField name="confirmPassword" label="Repeat password" />
       <div class="demo-row">

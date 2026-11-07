@@ -27,7 +27,7 @@ export const addressGroup = defineGroupWithDeps<ShippingDeps>()({
     }),
   children: { state: stateField },
   activeWhen: {
-    state: ({ value }) => value.country === 'US',
+    state: ({ value }) => value.country == 'US',
   },
 })
 
@@ -41,8 +41,8 @@ export const deliveryGroup = defineGroupWithDeps<ShippingDeps>()({
   }),
   children: { address: addressGroup, store: storeField },
   activeWhen: {
-    address: ({ value }) => value.method === DELIVERY_METHOD.shipping,
-    store: ({ value }) => value.method === DELIVERY_METHOD.pickup,
+    address: ({ value }) => value.method == DELIVERY_METHOD.shipping,
+    store: ({ value }) => value.method == DELIVERY_METHOD.pickup,
   },
   childDeps: {
     address: ({ deps }) => deps,

@@ -22,7 +22,7 @@ const status = computed(() => {
   if (row.state.submitting) {
     return 'Saving…'
   }
-  if (row.state.value.id === undefined) {
+  if (row.state.value.id == undefined) {
     return 'Not saved'
   }
   return row.state.dirty ? 'Unsaved changes' : 'Saved'
@@ -39,7 +39,7 @@ const save = row.handleSubmit(async item => {
     <NumberField name="quantity" label="Quantity" />
     <div class="demo-row" style="margin-top: 22px">
       <button type="button" @click="save">Save</button>
-      <button type="button" :disabled="index === 0" @click="lineItems.move(index, index - 1)">Move up</button>
+      <button type="button" :disabled="index == 0" @click="lineItems.move(index, index - 1)">Move up</button>
       <button type="button" @click="lineItems.remove(index)">Remove</button>
       <span class="demo-hint">{{ status }}</span>
     </div>

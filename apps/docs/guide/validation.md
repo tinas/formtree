@@ -15,7 +15,7 @@ export const signUpForm = defineGroup({
     confirmPassword: z.string({ error: 'Repeat the password' }),
   }),
   validate: ({ value }) =>
-    value.confirmPassword !== undefined && value.confirmPassword !== value.password
+    value.confirmPassword != undefined && value.confirmPassword != value.password
       ? { path: 'confirmPassword', code: 'Passwords do not match' }
       : undefined,
 })
@@ -43,7 +43,7 @@ export const signUpForm = defineGroup({
       password: z.string({ error: 'Enter a password' }).min(8, { error: 'Use at least 8 characters' }),
       confirmPassword: z.string({ error: 'Repeat the password' }),
     })
-    .refine(value => value.confirmPassword === value.password, {
+    .refine(value => value.confirmPassword == value.password, {
       path: ['confirmPassword'],
       error: 'Passwords do not match',
     }),
@@ -71,7 +71,7 @@ const signUpForm = defineGroup({
     confirmPassword: z.string({ error: 'Repeat the password' }),
   }),
   validate: ({ value }) =>
-    value.confirmPassword !== undefined && value.confirmPassword !== value.password
+    value.confirmPassword != undefined && value.confirmPassword != value.password
       ? { path: 'confirmPassword', code: 'Passwords do not match' }
       : undefined,
 })
@@ -103,7 +103,7 @@ const signUpForm = defineGroup({
     confirmPassword: z.string({ error: 'Repeat the password' }),
   }),
   validate: ({ value }) =>
-    value.confirmPassword !== undefined && value.confirmPassword !== value.password
+    value.confirmPassword != undefined && value.confirmPassword != value.password
       ? { path: 'confirmPassword', code: 'Passwords do not match' }
       : undefined,
 })

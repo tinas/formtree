@@ -11,7 +11,7 @@ const cell = useForm(priceField, { initialValue: props.price })
 const price = useField(cell)
 
 const text = computed({
-  get: () => (price.model === undefined ? '' : String(price.model)),
+  get: () => (price.model == undefined ? '' : String(price.model)),
   set: value => {
     price.model = value === '' ? undefined : Number(value)
   },
