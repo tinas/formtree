@@ -7,12 +7,15 @@ import ts from 'typescript'
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 
+import { markdownPagesPlugin, writeMarkdownPages } from './page-markdown'
 import { FRAMEWORK_HEAD_SCRIPT, FRAMEWORK_STYLE } from './theme/framework'
 
 const DESCRIPTION =
   'Forms that submit in parts. Steps, cards, rows and single fields each validate and submit on their own.'
 
-const OG_IMAGE = 'https://form-tree.netlify.app/og-image.png'
+const SITE_URL = 'https://form-tree.netlify.app'
+
+const OG_IMAGE = `${SITE_URL}/og-image.png`
 
 const PACKAGE_SOURCES = {
   '@formtree/core': packageSource('core'),
@@ -155,6 +158,8 @@ export default defineConfig({
     },
   },
 
+  buildEnd: siteConfig => writeMarkdownPages(siteConfig, SITE_URL),
+
   head: [
     ['script', {}, FRAMEWORK_HEAD_SCRIPT],
     ['style', {}, FRAMEWORK_STYLE],
@@ -198,7 +203,7 @@ export default defineConfig({
   },
 
   vite: {
-    plugins: [groupIconVitePlugin()],
+    plugins: [groupIconVitePlugin(), markdownPagesPlugin(SITE_URL)],
     resolve: {
       alias: PACKAGE_SOURCES,
     },

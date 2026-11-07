@@ -9,6 +9,7 @@ import '@shikijs/vitepress-twoslash/style.css'
 import 'virtual:group-icons.css'
 import './style.css'
 
+import CopyPage from '../components/copy-page.vue'
 import DemoFrame from '../components/demo-frame.vue'
 import FrameworkSelect from '../components/framework-select.vue'
 import { redirectApiHome, restoreFrameworkFromUrl, writeFrameworkToUrl } from './framework-preference'
@@ -18,6 +19,7 @@ export default {
   Layout: () =>
     h(DefaultTheme.Layout, null, {
       'sidebar-nav-before': () => h(FrameworkSelect),
+      'doc-before': () => h(CopyPage),
     }),
   enhanceApp({ app, router }) {
     if (inBrowser) {
