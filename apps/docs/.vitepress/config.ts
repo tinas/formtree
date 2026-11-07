@@ -7,6 +7,8 @@ import ts from 'typescript'
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 
+import { FRAMEWORK_HEAD_SCRIPT, FRAMEWORK_STYLE } from './theme/framework'
+
 const DESCRIPTION =
   'Forms that submit in parts. Steps, cards, rows and single fields each validate and submit on their own.'
 
@@ -154,6 +156,8 @@ export default defineConfig({
   },
 
   head: [
+    ['script', {}, FRAMEWORK_HEAD_SCRIPT],
+    ['style', {}, FRAMEWORK_STYLE],
     ['link', { rel: 'icon', href: '/logo.svg', sizes: 'any', type: 'image/svg+xml' }],
     ['meta', { name: 'author', content: 'Ahmet Tinastepe' }],
     ['meta', { property: 'og:type', content: 'website' }],
