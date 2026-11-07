@@ -1,7 +1,6 @@
 # Inline Edit
 
-Prices edited in place, one form per cell. The root of each form is `priceField`, the definition a
-product page would use, so the table and the page apply the same rule.
+A table where each price is a form of its own, built from `priceField`.
 
 <script setup>
 import InlineEdit from './demos/inline-edit.vue'
@@ -11,9 +10,7 @@ import InlineEdit from './demos/inline-edit.vue'
   <InlineEdit />
 </DemoFrame>
 
-Change a price and press Enter. The cell submits its one field, and `reset({ value })` makes the
-saved price the cell's new initial value. Clear the price or enter a negative number to see the
-errors a product form would show.
+Change a price and press Enter to save it. Clear it or make it negative to see an error.
 
 ::: code-group
 

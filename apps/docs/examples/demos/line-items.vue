@@ -4,11 +4,11 @@ import { defineGroup, provideFormNode, useForm } from '@formtree/vue'
 import { lineItemsArray } from '../forms/line-items'
 import LineItemRow from './line-item-row.vue'
 
-const cartGroup = defineGroup({
+const cartForm = defineGroup({
   children: { lineItems: lineItemsArray },
 })
 
-const form = useForm(cartGroup, {
+const form = useForm(cartForm, {
   initialValue: {
     lineItems: [
       { id: 101, sku: 'MUG-01', quantity: 2 },

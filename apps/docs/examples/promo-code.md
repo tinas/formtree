@@ -1,22 +1,16 @@
 # Promo Code
 
-A promo code is checked against the server after the customer leaves the field. The field is the
-root of its own form, with the cart id as a dependency.
+A promo code that the server checks when the customer leaves the field.
 
 <script setup>
 import PromoCode from './demos/promo-code.vue'
 </script>
 
-<DemoFrame title="validateAsync">
+<DemoFrame title="A check only the server can answer">
   <PromoCode />
 </DemoFrame>
 
-The schema trims and upper-cases the code, and the check runs on that output, so `welcome10` is
-checked as `WELCOME10`. While the check runs, `state.validating` is `true` and the field shows
-"Checking…".
-
-Type a code and press Enter without leaving the field. The submit runs the check that has not run
-yet and waits for it. Going back to a code that was already checked uses the cached result.
+Type a code and leave the field, or press Enter and the submit waits for the check.
 
 ::: code-group
 

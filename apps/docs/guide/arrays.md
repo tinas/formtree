@@ -1,136 +1,122 @@
 # Arrays
 
-An array repeats a definition. Each item is a node with a stable key, so its errors, its touched
-state and its pending checks stay with it when the list is reordered.
+## Defining a List
 
-## Defining an array
+A part that repeats, like the rows of a cart, is defined once for one row and wrapped in `arrayOf`:
 
 ```ts twoslash
+// @noStaticSemanticInfo
 import { arrayOf, defineGroup } from '@formtree/core'
 import { z } from 'zod'
-
-export const lineItemGroup = defineGroup({
+// ---cut---
+const lineItemGroup = defineGroup({
   schema: z.object({
-    sku: z.string({ error: 'Product is required' }).min(1, { error: 'Product is required' }),
-    quantity: z.number({ error: 'Quantity is required' }).int().positive(),
+    sku: z.string({ error: 'Product is required' }),
+    quantity: z.number({ error: 'Quantity is required' }).int().positive({ error: 'Quantity must be at least 1' }),
   }),
 })
 
-export const cartGroup = defineGroup({
+const cartForm = defineGroup({
   children: { lineItems: arrayOf(lineItemGroup) },
 })
 ```
 
-`arrayOf` takes the item in one of three forms.
+Each row is a node of `lineItemGroup`, and a new form starts with an empty list.
 
-| Item                     | Example                             | Each item is                                                        |
-| ------------------------ | ----------------------------------- | ------------------------------------------------------------------- |
-| a definition             | `arrayOf(lineItemGroup)`            | a node of that definition                                           |
-| a function returning one | `arrayOf(() => conditionTreeGroup)` | the same, for [recursive definitions](/guide/recursive-definitions) |
-| a Standard Schema        | `arrayOf(z.string().email())`       | a field with that schema                                            |
+::: tip Lists of Single Values
+For a list of single values, pass a schema instead, as in `arrayOf(z.email())`.
+:::
 
-An array of plain values that the UI edits as one value, such as the ids of a multi-select, does
-not need `arrayOf`. It can stay in the parent's schema and be read with `field()`.
+## Adding and Removing Rows
 
-## Items and operations
+`form.array` returns the list's node, which adds and removes rows:
 
 ```ts twoslash
-import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
+// @noStaticSemanticInfo
+import { createForm, defineGroup } from '@formtree/core'
+import { lineItemsArray } from './forms/line-items'
 
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: ['DE', 'NL'] },
-})
+const cartForm = defineGroup({ children: { lineItems: lineItemsArray } })
+const form = createForm(cartForm)
 // ---cut---
 const lineItems = form.array('lineItems')
 
-lineItems.push({ sku: 'MUG-01', quantity: 1 })
 lineItems.push({})
-lineItems.move(1, 0)
 lineItems.remove(0)
-
-const rows = lineItems.items.map(lineItem => ({
-  key: lineItem.key,
-  position: lineItem.index + 1,
-  quantity: lineItem.field('quantity').state.value,
-}))
 ```
 
-[`ArrayNode`](/api/@formtree/core/interfaces/ArrayNode) describes every operation.
+`push({})` adds an empty row, because formtree fills in nothing for you.
+[`ArrayNode`](/api/@formtree/core/interfaces/ArrayNode) lists every operation.
 
-`key` identifies the item for as long as it exists, which makes it the right `key` for a `v-for` or
-a React list and for caching DOM elements. `index` is where the item is now.
+## Keeping Track of Rows
 
-## Keys, not indexes
-
-When an item moves, its errors, its touched state, its submit count and its cached asynchronous
-results move with it. A node you hold for an item keeps pointing at that item after a move.
+Each row in `items` has a `key` that stays the same when rows move, and an `index` that follows its
+position:
 
 ```ts twoslash
-import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
+// @noStaticSemanticInfo
+import { createForm, defineGroup } from '@formtree/core'
+import { lineItemsArray } from './forms/line-items'
 
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: ['DE', 'NL'] },
-})
+const cartForm = defineGroup({ children: { lineItems: lineItemsArray } })
+const form = createForm(cartForm)
 const lineItems = form.array('lineItems')
 lineItems.push({ sku: 'MUG-01', quantity: 1 })
 lineItems.push({ sku: 'TEE-02', quantity: 2 })
 // ---cut---
-const teeRow = lineItems.items[1]!
+const row = lineItems.items[1]!
 
 lineItems.move(1, 0)
 
-teeRow.index // 0
-teeRow.field('sku').state.value // 'TEE-02'
+console.log(row.index) // 0
 ```
 
-A dotted path with a number, such as `'lineItems.1.sku'`, is accepted but not suggested, because it
-points at whichever item is at that position now. Prefer holding the item node.
+A row's errors and touched state are kept under its `key` and move with it, so use `key`, not the
+index, when you render the list.
 
-## Rules across items
+## Rules Across Rows
 
-A rule that compares items with each other goes on the array. `validate` receives the drafts of all
-items, and error paths start with the item index.
+A rule that compares rows, such as one against repeated products, goes in the `validate` option of
+`arrayOf`:
 
 ```ts twoslash
+// @noStaticSemanticInfo
 import { arrayOf } from '@formtree/core'
 import { lineItemGroup } from './forms/line-items'
-
-export const lineItemsArray = arrayOf(lineItemGroup, {
+// ---cut---
+const lineItemsArray = arrayOf(lineItemGroup, {
   validate: rows =>
     rows.flatMap((row, index) =>
-      rows.findIndex(other => other.sku === row.sku) < index
+      row.sku != undefined && rows.findIndex(other => other.sku == row.sku) < index
         ? [{ path: `${index}.sku`, code: 'This product is already in the cart' }]
         : [],
     ),
 })
 ```
 
-## Saving one row
+The rule receives every row, and each error's path starts with the row's index.
 
-Each item of a defined array is a full node, so a table that saves row by row submits the row.
+## Saving One Row
+
+Each row is a node, so it can be submitted on its own, such as from a Save button on the row:
 
 ```ts twoslash
-import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
+// @noStaticSemanticInfo
+import { createForm, defineGroup } from '@formtree/core'
 import { saveLineItem } from './forms/api'
+import { lineItemsArray } from './forms/line-items'
 
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: ['DE', 'NL'] },
-})
-form.array('lineItems').push({ sku: 'MUG-01', quantity: 1 })
+const cartForm = defineGroup({ children: { lineItems: lineItemsArray } })
+const form = createForm(cartForm)
+const lineItems = form.array('lineItems')
+lineItems.push({ sku: 'MUG-01', quantity: 1 })
 // ---cut---
-const row = form.array('lineItems').items[0]!
+const row = lineItems.items[0]!
 
 const saveRow = row.handleSubmit(async lineItem => {
-  row.reset({ value: await saveLineItem(lineItem) })
+  await saveLineItem(lineItem)
 })
 ```
 
-The row validates alone, and `reset({ value })` makes the saved item the row's new initial value.
-Only that row becomes clean. A row that was added and then saved joins the initial list, so the
-list itself is clean once every row is saved. [Line Items](/examples/line-items) shows this.
-
-Adding or removing an item marks the array as touched, so an error on the array itself, such as an
-empty list, shows as soon as the list changes.
+`saveRow` validates only its own row. [Line Items](/examples/line-items) shows a list that saves row
+by row.

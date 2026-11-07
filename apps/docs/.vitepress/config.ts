@@ -7,10 +7,17 @@ import ts from 'typescript'
 import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 
-const DESCRIPTION =
-  'Forms that submit in parts. Steps, cards, rows and single fields each validate and submit on their own.'
+import { markdownPagesPlugin, writeMarkdownPages } from './page-markdown'
+import { FRAMEWORK_HEAD_SCRIPT, FRAMEWORK_STYLE } from './theme/framework'
 
-const OG_IMAGE = 'https://form-tree.netlify.app/og-image.png'
+const DESCRIPTION =
+  'Headless, framework-agnostic forms. Describe a form once with a schema and its rules, and formtree validates it, submits it, and keeps it typed.'
+
+const SITE_URL = 'https://form-tree.netlify.app'
+
+const OG_IMAGE = `${SITE_URL}/og-image.png`
+
+const REPOSITORY = 'https://github.com/tinas/formtree'
 
 const PACKAGE_SOURCES = {
   '@formtree/core': packageSource('core'),
@@ -29,7 +36,7 @@ const EXAMPLE_FORMS = [
   'account',
   'segment',
   'product',
-  'sign-up',
+  'contact-form',
 ]
 
 const API_SIDEBAR_FILE = new URL('../api/typedoc-sidebar.json', import.meta.url)
@@ -45,8 +52,6 @@ export default defineConfig({
 
     nav: [
       { text: 'Guide', link: '/guide/', activeMatch: '/guide/' },
-      { text: 'Vue', link: '/vue/', activeMatch: '/vue/' },
-      { text: 'React', link: '/react/', activeMatch: '/react/' },
       { text: 'Examples', link: '/examples/', activeMatch: '/examples/' },
       { text: 'API', link: '/api/', activeMatch: '/api/' },
     ],
@@ -54,66 +59,41 @@ export default defineConfig({
     sidebar: {
       '/guide/': [
         {
-          text: 'Guide',
+          text: 'Getting Started',
           items: [
             { text: 'Introduction', link: '/guide/' },
-            { text: 'Getting Started', link: '/guide/getting-started' },
-            { text: 'How It Works', link: '/guide/how-it-works' },
+            { text: 'Quick Start', link: '/guide/quick-start' },
           ],
         },
         {
-          text: 'Building Blocks',
+          text: 'Essentials',
           items: [
-            { text: 'Fields', link: '/guide/fields' },
             { text: 'Groups', link: '/guide/groups' },
+            { text: 'Fields', link: '/guide/fields' },
             { text: 'Arrays', link: '/guide/arrays' },
-          ],
-        },
-        {
-          text: 'Shape and Context',
-          items: [
-            { text: 'Conditional Branches', link: '/guide/conditional-branches' },
-            { text: 'Dependencies', link: '/guide/dependencies' },
-            { text: 'Recursive Definitions', link: '/guide/recursive-definitions' },
-          ],
-        },
-        {
-          text: 'Behaviour',
-          items: [
-            { text: 'Lifecycle', link: '/guide/lifecycle' },
+            { text: 'Conditional Fields', link: '/guide/conditional-fields' },
             { text: 'Validation', link: '/guide/validation' },
+            { text: 'Async Validation', link: '/guide/async-validation' },
+            { text: 'Showing Errors', link: '/guide/showing-errors' },
             { text: 'Submitting', link: '/guide/submitting' },
-            { text: 'Errors and Focus', link: '/guide/errors-and-focus' },
+            { text: 'Initial Values and Reset', link: '/guide/initial-values' },
           ],
         },
         {
-          text: 'Reference',
+          text: 'Building the UI',
           items: [
-            { text: 'Types', link: '/guide/types' },
-            { text: 'Design Rules', link: '/guide/design-rules' },
+            { text: 'App Defaults', link: '/guide/app-defaults' },
+            { text: 'Binding Inputs', link: '/guide/binding-inputs' },
+            { text: 'Splitting into Components', link: '/guide/components' },
+            { text: 'Devtools', link: '/guide/devtools' },
           ],
         },
-      ],
-
-      '/vue/': [
         {
-          text: 'Vue',
+          text: 'Going Further',
           items: [
-            { text: 'Overview', link: '/vue/' },
-            { text: 'App Defaults', link: '/vue/app-defaults' },
-            { text: 'Node Context', link: '/vue/node-context' },
-            { text: 'Field Bindings', link: '/vue/field-bindings' },
-          ],
-        },
-      ],
-
-      '/react/': [
-        {
-          text: 'React',
-          items: [
-            { text: 'Overview', link: '/react/' },
-            { text: 'Node Context', link: '/react/node-context' },
-            { text: 'Field Bindings', link: '/react/field-bindings' },
+            { text: 'Passing Data to Rules', link: '/guide/passing-data' },
+            { text: 'Recursive Forms', link: '/guide/recursive-forms' },
+            { text: 'TypeScript', link: '/guide/typescript' },
           ],
         },
       ],
@@ -122,12 +102,13 @@ export default defineConfig({
         {
           text: 'Examples',
           items: [
-            { text: 'Checkout Branches', link: '/examples/' },
-            { text: 'Role-based Rules', link: '/examples/role-based-rules' },
-            { text: 'Segment Builder', link: '/examples/segment-builder' },
-            { text: 'Line Items', link: '/examples/line-items' },
-            { text: 'Promo Code', link: '/examples/promo-code' },
+            { text: 'Contact Form', link: '/examples/' },
             { text: 'Inline Edit', link: '/examples/inline-edit' },
+            { text: 'Promo Code', link: '/examples/promo-code' },
+            { text: 'Role-based Rules', link: '/examples/role-based-rules' },
+            { text: 'Line Items', link: '/examples/line-items' },
+            { text: 'Checkout Branches', link: '/examples/checkout-branches' },
+            { text: 'Segment Builder', link: '/examples/segment-builder' },
           ],
         },
       ],
@@ -140,7 +121,12 @@ export default defineConfig({
       ],
     },
 
-    socialLinks: [{ icon: 'github', link: 'https://github.com/tinas/formtree' }],
+    editLink: {
+      pattern: `${REPOSITORY}/edit/main/apps/docs/:path`,
+      text: 'Edit this page on GitHub',
+    },
+
+    socialLinks: [{ icon: 'github', link: REPOSITORY }],
 
     search: { provider: 'local' },
 
@@ -152,7 +138,17 @@ export default defineConfig({
     },
   },
 
+  buildEnd: siteConfig => writeMarkdownPages(siteConfig, SITE_URL),
+
+  transformPageData(pageData) {
+    if (pageData.relativePath.startsWith('api/')) {
+      pageData.frontmatter.editLink = false
+    }
+  },
+
   head: [
+    ['script', {}, FRAMEWORK_HEAD_SCRIPT],
+    ['style', {}, FRAMEWORK_STYLE],
     ['link', { rel: 'icon', href: '/logo.svg', sizes: 'any', type: 'image/svg+xml' }],
     ['meta', { name: 'author', content: 'Ahmet Tinastepe' }],
     ['meta', { property: 'og:type', content: 'website' }],
@@ -193,7 +189,7 @@ export default defineConfig({
   },
 
   vite: {
-    plugins: [groupIconVitePlugin()],
+    plugins: [groupIconVitePlugin(), markdownPagesPlugin(SITE_URL)],
     resolve: {
       alias: PACKAGE_SOURCES,
     },

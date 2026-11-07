@@ -13,7 +13,7 @@ export interface CheckoutDeps extends ShippingDeps {
   readonly cartId: string
 }
 
-export const checkoutGroup = defineGroupWithDeps<CheckoutDeps>()({
+export const checkoutForm = defineGroupWithDeps<CheckoutDeps>()({
   schema: z.object({
     acceptTerms: z.literal(true, { error: 'Accept the terms to place the order' }),
   }),

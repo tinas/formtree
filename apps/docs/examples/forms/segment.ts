@@ -60,7 +60,7 @@ export const conditionTreeGroup: GroupDefinition<ConditionTreeInput, ConditionTr
         : undefined,
   })
 
-export const segmentGroup = defineGroupWithDeps<AttributeDeps>()({
+export const segmentForm = defineGroupWithDeps<AttributeDeps>()({
   schema: z.object({ name: requiredText('Name the segment') }),
   children: { rules: conditionTreeGroup },
   childDeps: {

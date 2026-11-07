@@ -11,16 +11,16 @@ import { SHIPPING_COUNTRIES } from '../forms/api'
 import { deliveryGroup } from '../forms/delivery'
 import { DEFAULT_DUE_IN_DAYS, paymentGroup } from '../forms/payment'
 
-const orderGroup = defineGroupWithDeps<{ countries: ReadonlyArray<string> }>()({
+const orderForm = defineGroupWithDeps<{ countries: ReadonlyArray<string> }>()({
   children: { delivery: deliveryGroup, payment: paymentGroup },
   childDeps: { delivery: ({ deps }) => deps },
 })
 
-const form = provideFormNode(useForm(orderGroup, { deps: { countries: SHIPPING_COUNTRIES } }))
+const form = provideFormNode(useForm(orderForm, { deps: { countries: SHIPPING_COUNTRIES } }))
 const delivery = form.group('delivery')
 const payment = form.group('payment')
 
-const output = shallowRef<OutputOf<typeof orderGroup>>()
+const output = shallowRef<OutputOf<typeof orderForm>>()
 const draft = computed(() => JSON.stringify(form.state.value, null, 2))
 
 const placeOrder = form.handleSubmit(order => {
