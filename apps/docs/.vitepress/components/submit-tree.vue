@@ -1,8 +1,7 @@
 <script setup lang="ts">
 const NODE_STATUS = {
-  revalidated: 'revalidated',
-  changed: 'changed',
-  cached: 'cached',
+  covered: 'covered',
+  outside: 'outside',
   inactive: 'inactive',
 } as const
 
@@ -12,7 +11,6 @@ interface TreeRow {
   readonly name: string
   readonly depth: number
   readonly status: NodeStatus
-  readonly note?: string
 }
 
 interface Rail {
@@ -26,37 +24,27 @@ interface RowRange {
   readonly last: number
 }
 
-const STATUS_LABELS: Record<NodeStatus, string> = {
-  revalidated: 'runs again',
-  changed: 'changed',
-  cached: 'cached',
-  inactive: 'inactive',
-}
-
 const ROWS: ReadonlyArray<TreeRow> = [
-  { name: 'checkout', depth: 0, status: NODE_STATUS.revalidated, note: 'the root' },
-  { name: 'contact', depth: 1, status: NODE_STATUS.cached },
-  { name: 'email', depth: 2, status: NODE_STATUS.cached },
-  { name: 'delivery', depth: 1, status: NODE_STATUS.revalidated },
-  { name: 'address', depth: 2, status: NODE_STATUS.revalidated },
-  { name: 'city', depth: 3, status: NODE_STATUS.changed, note: "a key of address's schema" },
-  { name: 'state', depth: 3, status: NODE_STATUS.inactive, note: 'country is not US' },
-  { name: 'store', depth: 2, status: NODE_STATUS.inactive, note: 'method is shipping' },
-  { name: 'payment', depth: 1, status: NODE_STATUS.cached },
-  { name: 'card', depth: 2, status: NODE_STATUS.cached },
-  { name: 'invoice', depth: 2, status: NODE_STATUS.inactive, note: 'method is card' },
-  { name: 'lineItems', depth: 1, status: NODE_STATUS.cached },
-  { name: 'promoCode', depth: 1, status: NODE_STATUS.cached },
+  { name: 'checkout', depth: 0, status: NODE_STATUS.outside },
+  { name: 'contact', depth: 1, status: NODE_STATUS.outside },
+  { name: 'email', depth: 2, status: NODE_STATUS.outside },
+  { name: 'delivery', depth: 1, status: NODE_STATUS.covered },
+  { name: 'address', depth: 2, status: NODE_STATUS.covered },
+  { name: 'state', depth: 3, status: NODE_STATUS.inactive },
+  { name: 'store', depth: 2, status: NODE_STATUS.inactive },
+  { name: 'payment', depth: 1, status: NODE_STATUS.outside },
+  { name: 'card', depth: 2, status: NODE_STATUS.outside },
+  { name: 'invoice', depth: 2, status: NODE_STATUS.outside },
+  { name: 'lineItems', depth: 1, status: NODE_STATUS.outside },
+  { name: 'promoCode', depth: 1, status: NODE_STATUS.outside },
 ]
 
 const SUBMITTED_ROOT = 'delivery'
 const TOP = 12
 const ROW_PITCH = 30
 const INDENT = 28
-const NOTE_X = 200
-const CHIP_X = 420
-const CHIP_WIDTH = 96
-const BOX_RIGHT = 528
+const NOTE_X = 196
+const BOX_RIGHT = 292
 
 const RAILS = ROWS.flatMap((_row, index) => railOf(index))
 const SUBMITTED_RANGE = subtreeRange(SUBMITTED_ROOT)
@@ -105,12 +93,13 @@ function subtreeRange(name: string): RowRange {
 
 <template>
   <figure class="diagram">
-    <svg viewBox="0 0 688 400" role="img" aria-labelledby="lifecycle-tree-title lifecycle-tree-description">
-      <title id="lifecycle-tree-title">What a change of city validates and what a submit of delivery covers</title>
-      <desc id="lifecycle-tree-description">
-        The checkout tree. After city changes, the schemas and rules of checkout, delivery and address run again,
-        contact, payment, the line items and the promo code keep their cached results, and state, store and invoice are
-        inactive. A dashed box marks the delivery subtree, which a submit of delivery covers.
+    <svg viewBox="0 0 480 384" role="img" aria-labelledby="submit-tree-title submit-tree-description">
+      <title id="submit-tree-title">What a submit of the delivery step covers</title>
+      <desc id="submit-tree-description">
+        The checkout tree. A dashed box marks delivery and everything below it, which a submit of delivery validates.
+        The root, contact, payment, the line items and the promo code are outside the box and do not count. Inside it,
+        the store and the state are inactive while the customer has chosen shipping to a country other than the US, so
+        they do not count either.
       </desc>
 
       <rect
@@ -121,9 +110,9 @@ function subtreeRange(name: string): RowRange {
         rx="8"
         class="submit-box"
       />
-      <text :x="BOX_RIGHT + 12" :y="rowCenter(SUBMITTED_RANGE.first) + 4" class="submit-label">delivery's submit</text>
-      <text :x="BOX_RIGHT + 12" :y="rowCenter(SUBMITTED_RANGE.first) + 20" class="submit-detail">
-        counts errors here
+      <text :x="BOX_RIGHT + 14" :y="rowCenter(SUBMITTED_RANGE.first) + 4" class="submit-label">delivery's submit</text>
+      <text :x="BOX_RIGHT + 14" :y="rowCenter(SUBMITTED_RANGE.first) + 20" class="submit-detail">
+        checks this part only
       </text>
 
       <line
@@ -147,22 +136,8 @@ function subtreeRange(name: string): RowRange {
         />
         <circle :cx="dotX(row.depth)" :cy="rowCenter(index)" r="4.5" :class="['dot', row.status]" />
         <text :x="dotX(row.depth) + 12" :y="rowCenter(index) + 4.5" :class="['name', row.status]">{{ row.name }}</text>
-        <text v-if="row.note" :x="NOTE_X" :y="rowCenter(index) + 4.5" class="note">{{ row.note }}</text>
-        <rect
-          :x="CHIP_X"
-          :y="rowCenter(index) - 11"
-          :width="CHIP_WIDTH"
-          height="22"
-          rx="11"
-          :class="['chip', row.status]"
-        />
-        <text
-          :x="CHIP_X + CHIP_WIDTH / 2"
-          :y="rowCenter(index) + 4"
-          text-anchor="middle"
-          :class="['chip-text', row.status]"
-        >
-          {{ STATUS_LABELS[row.status] }}
+        <text v-if="row.status == NODE_STATUS.inactive" :x="NOTE_X" :y="rowCenter(index) + 4.5" class="note">
+          inactive
         </text>
       </g>
     </svg>
@@ -178,7 +153,8 @@ function subtreeRange(name: string): RowRange {
 svg {
   display: block;
   width: 100%;
-  min-width: 560px;
+  max-width: 560px;
+  min-width: 400px;
   height: auto;
 }
 
@@ -188,7 +164,7 @@ svg {
 }
 
 .submit-box {
-  fill: none;
+  fill: var(--vp-c-brand-soft);
   stroke: var(--vp-c-brand-1);
   stroke-width: 1.25;
   stroke-dasharray: 6 4;
@@ -204,12 +180,11 @@ svg {
   fill: var(--vp-c-text-2);
 }
 
-.dot.revalidated,
-.dot.changed {
+.dot.covered {
   fill: var(--vp-c-brand-1);
 }
 
-.dot.cached {
+.dot.outside {
   fill: var(--vp-c-text-3);
 }
 
@@ -221,7 +196,14 @@ svg {
 
 .name {
   font: 13px var(--vp-font-family-mono);
+}
+
+.name.covered {
   fill: var(--vp-c-text-1);
+}
+
+.name.outside {
+  fill: var(--vp-c-text-2);
 }
 
 .name.inactive {
@@ -229,42 +211,7 @@ svg {
 }
 
 .note {
-  font: 12px var(--vp-font-family-base);
-  fill: var(--vp-c-text-2);
-}
-
-.chip.revalidated {
-  fill: var(--vp-c-brand-soft);
-}
-
-.chip.changed {
-  fill: var(--vp-c-brand-1);
-}
-
-.chip.cached {
-  fill: var(--vp-c-default-soft);
-}
-
-.chip.inactive {
-  fill: none;
-  stroke: var(--vp-c-text-3);
-  stroke-dasharray: 3 3;
-}
-
-.chip-text {
-  font: 500 11.5px var(--vp-font-family-base);
-}
-
-.chip-text.revalidated {
-  fill: var(--vp-c-brand-1);
-}
-
-.chip-text.changed {
-  fill: var(--vp-c-white);
-}
-
-.chip-text.cached,
-.chip-text.inactive {
-  fill: var(--vp-c-text-2);
+  font: italic 12px var(--vp-font-family-base);
+  fill: var(--vp-c-text-3);
 }
 </style>

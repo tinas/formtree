@@ -1,94 +1,144 @@
-# Types
+# TypeScript
 
-A node's type comes from its own definition. The type of the whole form is never carried into a
-component, and no union of every path is computed. The
-[Types](/api/@formtree/core/#types) section of the API reference lists every type helper.
+## Reading a Definition's Types
 
-## The draft type
+Read the types of a definition with `DraftOf`, `InputOf`, and `OutputOf` instead of writing them by
+hand:
 
 ```ts twoslash
-import type { DraftOf } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
+import type { DraftOf, InputOf, OutputOf } from '@formtree/core'
+import { defineField } from '@formtree/core'
+import { z } from 'zod'
+// ---cut---
+const birthdayField = defineField({
+  schema: z.iso.date({ error: 'Enter a date' }).transform(text => new Date(text)),
+})
 
-type CheckoutDraft = DraftOf<typeof checkoutGroup>
-// {
-//   acceptTerms?: true
-//   contact: { fullName?: string, email?: string }
-//   delivery: { method?: 'shipping' | 'pickup', address: { … }, store?: string }
-//   payment: { method?: 'card' | 'invoice', card: { … }, invoice: { … } }
-//   lineItems: Array<{ id?: number, sku?: string, quantity?: number }>
-//   promoCode?: string
-// }
+type BirthdayDraft = DraftOf<typeof birthdayField>
+//   ^?
+type BirthdayInput = InputOf<typeof birthdayField>
+//   ^?
+type Birthday = OutputOf<typeof birthdayField>
+//   ^?
 ```
 
-Groups and arrays that a definition declares are always in the draft, so `contact` is `{}` and
-`lineItems` is `[]` before anything is typed. Values are optional. This is the type of what the
-user is in the middle of typing, and the output type is what remains once it is valid.
+The form holds the draft while the user types, the schema accepts the input, and a submit handler
+receives the output. `DepsOf` reads a definition's dependencies the same way.
 
-## Paths
+## Typed Paths
 
-`field`, `group` and `array` take one key or a dotted path. A dotted path is checked one segment
-at a time, and each segment suggests the keys of the level before it.
+Paths passed to `field`, `group`, and `array` are checked as you type:
 
 ```ts twoslash
 import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
+import { checkoutForm } from './forms/checkout'
 
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: ['DE'] },
+const form = createForm(checkoutForm, {
+  deps: { cartId: 'cart_42', countries: ['DE', 'NL'] },
 })
 // ---cut---
 // @errors: 2345
-form.field('delivery.adress.city')
+const city = form.field('delivery.adress.city')
 ```
 
-Libraries that check a path against the union of every path in the form compute that union for
-each check. It grows with the size of the form, has no end for recursive shapes and eventually
-produces "Type instantiation is excessively deep". Walking the written path costs as much as the
-path is long.
+::: tip Large Forms
+TypeScript follows the path one key at a time and never builds a list of every path, so large and
+[recursive](/guide/recursive-forms) forms stay fast to check.
+:::
 
-## Components know their definition
+## Typing a Component
 
-A component that renders an address needs the address node and nothing about the form around it.
+A component that reads its node by definition is typed by that definition alone:
 
-```ts twoslash
-import type { NodeOf } from '@formtree/core'
+<div class="vue-only">
+
+```vue [address-fields.vue]
+<script setup lang="ts">
+import { useFormNode } from '@formtree/vue'
 import { addressGroup } from './forms/delivery'
 
-function renderAddress(address: NodeOf<typeof addressGroup>) {
-  address.field('city').state.value
-  //                          ^?
+const address = useFormNode(addressGroup)
+const city = address.field('city')
+</script>
+```
+
+</div>
+
+<div class="react-only">
+
+```tsx [address-fields.tsx]
+import { useFormNode } from '@formtree/react'
+import { addressGroup } from './forms/delivery'
+
+export function AddressFields() {
+  const address = useFormNode(addressGroup)
+  const city = address.field('city')
 }
 ```
 
-The same component works in a checkout, in an account page and in a returns form, as long as
-the address comes from `addressGroup`. In Vue and React, `useFormNode(addressGroup)` gives the
-component this node without a prop, as Node Context shows for [Vue](/vue/node-context) and
-[React](/react/node-context).
+</div>
 
-## Trade-offs
+<div class="javascript-only">
 
-**Suggestions come one level at a time.** Typing `'delivery.'` suggests the keys of `delivery`.
-The full list of paths is never offered at once, because it is never computed.
+```ts twoslash [address-fields.ts]
+import type { NodeOf } from '@formtree/core'
 
-**Reading a value includes `undefined`.** A draft value may be empty, so an input binds
-`value ?? ''`. The output type, which a handler receives, has no `undefined` where the schema
-requires a value.
+import { addressGroup } from './forms/delivery'
 
-**A recursive definition needs one annotation.** TypeScript cannot infer the type of a constant
-that refers to itself, as [Recursive Definitions](/guide/recursive-definitions) shows.
+export function renderAddress(address: NodeOf<typeof addressGroup>) {
+  const city = address.field('city')
+  //    ^?
+}
+```
 
-**Definitions with dependencies take two calls.** `defineGroupWithDeps<Deps>()({ ... })` lets you
-write the dependency type and still have the rest inferred.
+</div>
 
-**Option order matters.** `schema` and `children` come before `activeWhen`, `childDeps` and
-`validate`, so the callbacks are typed from them.
+It works in any form that holds an `addressGroup`. [Splitting into Components](/guide/components)
+shows how a component finds its node.
 
-**`activeWhen` and `childDeps` see the group's own schema only.** They cannot read a child's
-value. A value a decision depends on lives in the parent's schema.
+## Ordering Options
 
-**Node types are invariant.** A `FieldNode<'card' | 'invoice'>` is not a `FieldNode<string>`.
-A generic text input could otherwise write any string into a field that only accepts two.
+Write `schema` and `children` before the options that read them, because TypeScript types a
+definition's callbacks in the order they are written:
 
-**`items[i]` is a runtime index.** With `noUncheckedIndexedAccess`, it may be `undefined`.
-Prefer holding an item node over indexing again.
+```ts twoslash
+// @noStaticSemanticInfo
+import { defineField, defineGroupWithDeps } from '@formtree/core'
+import { z } from 'zod'
+
+const stateField = defineField({
+  schema: z.string({ error: 'State is required' }),
+})
+// ---cut---
+export const addressGroup = defineGroupWithDeps<{ countries: ReadonlyArray<string> }>()({
+  schema: ({ deps }) =>
+    z.object({
+      street: z.string({ error: 'Street is required' }),
+      country: z
+        .string({ error: 'Country is required' })
+        .refine(country => deps.countries.includes(country), { error: 'We do not ship to this country yet' }),
+    }),
+  children: { state: stateField },
+  activeWhen: {
+    state: ({ value }) => value.country == 'US',
+  },
+})
+```
+
+A schema that reads dependencies is a function too, and a callback written above it would see no
+keys.
+
+## Reading Hover Types
+
+When a hover shows helper names such as `Simplify` instead of an object, declare a type for the part
+you want to read:
+
+```ts twoslash
+import type { OutputOf } from '@formtree/core'
+import { addressGroup } from './forms/delivery'
+// ---cut---
+type Address = OutputOf<typeof addressGroup>
+//   ^?
+```
+
+For a node, hover one of its fields instead of the node itself.

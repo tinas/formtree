@@ -1,83 +1,378 @@
-# Node Context
+# Splitting into Components
 
-A checkout page owns the form, and each step is a component of its own. The steps need their
-part of the form, and their inputs need the step. `provideFormNode` and `useFormNode` pass
-nodes down the component tree without props.
+## Using a Part in a Component
 
-## provideFormNode
+<div class="vue-only">
 
-```vue
-<!-- checkout-page.vue -->
-<script setup lang="ts">
-import { provideFormNode, useForm } from '@formtree/vue'
-import { checkoutGroup } from './forms/checkout'
+A component below the one that provides the form gets its part with `useFormNode`, which takes the
+definition of the node it wants:
 
-const form = provideFormNode(useForm(checkoutGroup, { deps: { cartId: 'cart_42', countries: ['DE', 'NL'] } }))
-</script>
-```
-
-`provideFormNode(node)` makes a node available to every descendant and returns it, so it wraps
-the call that creates the node. Providing is always explicit. `useForm` never provides by
-itself, so a form in a dialog cannot quietly replace the page's form for the components below it.
-
-Any node can be provided, whether the root, a step or an array item.
-
-## useFormNode
-
-```vue
-<!-- delivery-step.vue -->
+```vue [contact-section.vue]
 <script setup lang="ts">
 import { provideFormNode, useFormNode } from '@formtree/vue'
-import { checkoutGroup } from './forms/checkout'
+import { orderForm } from './forms/order'
+import TextField from './text-field.vue'
 
-const emit = defineEmits<{ next: [] }>()
-
-const delivery = provideFormNode(useFormNode(checkoutGroup).group('delivery'))
-
-const submit = delivery.handleSubmit(() => emit('next'))
+provideFormNode(useFormNode(orderForm).group('contact'))
 </script>
+
+<template>
+  <TextField name="fullName" label="Name" />
+  <TextField name="email" label="Email" />
+</template>
 ```
 
-`useFormNode(definition)` returns the nearest provided node of that definition, typed by it.
-If no ancestor provided one, it throws. It does not fall back to another node.
+The section provides the contact details in turn, so its inputs bind by names relative to them.
 
-A component deeper down can then ask for the delivery step by its own definition, without
-knowing that it sits inside a checkout.
+::: tip No Fallback
+`useFormNode` throws when no ancestor provided a node of that definition.
+:::
 
-```ts
-const delivery = useFormNode(deliveryGroup)
+</div>
+
+<div class="react-only">
+
+A component below the one that provides the form gets its part with `useFormNode`, which takes the
+definition of the node it wants:
+
+```tsx [contact-section.tsx]
+import { FormNodeProvider, useFormNode } from '@formtree/react'
+import { orderForm } from './forms/order'
+import { TextField } from './text-field'
+
+export function ContactSection() {
+  const contact = useFormNode(orderForm).group('contact')
+
+  return (
+    <FormNodeProvider node={contact}>
+      <TextField name="fullName" label="Name" />
+      <TextField name="email" label="Email" />
+    </FormNodeProvider>
+  )
+}
 ```
 
-`useFormNode()` without an argument returns the nearest provided node of any definition, with
-a loose type. Generic input components use it through `useField(name)`.
+The section provides the contact details in turn, so its inputs bind by names relative to them.
 
-## Lists
+::: tip No Fallback
+`useFormNode` throws when no ancestor provided a node of that definition.
+:::
 
-A row component receives its index, injects the list's parent and provides its own item.
+</div>
 
-```vue
-<!-- line-item-row.vue -->
+<div class="javascript-only">
+
+Set up each part in a function that takes the part's node, typed with `NodeOf` from its definition:
+
+```ts twoslash [order-form.ts]
+// @noStaticSemanticInfo
+// @filename: forms/order.ts
+import { defineGroup } from '@formtree/core'
+import { contactGroup } from './contact'
+import { lineItemsArray } from './line-items'
+
+export const orderForm = defineGroup({
+  children: { contact: contactGroup, lineItems: lineItemsArray },
+})
+// @filename: bind-input.ts
+import type { FieldNode } from '@formtree/core'
+
+export declare function bindInput(field: FieldNode<string | undefined, unknown>): () => void
+// @filename: order-form.ts
+// ---cut---
+import type { NodeOf } from '@formtree/core'
+import { createForm } from '@formtree/core'
+import { bindInput } from './bind-input'
+import { contactGroup } from './forms/contact'
+import { orderForm } from './forms/order'
+
+const form = createForm(orderForm)
+
+form.subscribe(bindContactSection(form.group('contact')))
+
+function bindContactSection(contact: NodeOf<typeof contactGroup>) {
+  const showErrors = [bindInput(contact.field('fullName')), bindInput(contact.field('email'))]
+
+  return () => showErrors.forEach(showError => showError())
+}
+```
+
+The function knows only the contact definition, so it works for contact details in any form.
+
+</div>
+
+## Rendering Rows
+
+<div class="vue-only">
+
+Render one row component per item, keyed by the item's `key`, and pass it the item's `index`:
+
+```vue [line-item-list.vue]
 <script setup lang="ts">
 import { provideFormNode, useFormNode } from '@formtree/vue'
-import { checkoutGroup } from './forms/checkout'
+import { orderForm } from './forms/order'
+import LineItemRow from './line-item-row.vue'
+
+const lineItems = provideFormNode(useFormNode(orderForm).array('lineItems'))
+</script>
+
+<template>
+  <LineItemRow v-for="lineItem in lineItems.items" :key="lineItem.key" :index="lineItem.index" />
+</template>
+```
+
+The row reads the list by its definition and provides its item:
+
+```vue [line-item-row.vue]
+<script setup lang="ts">
+import { provideFormNode, useFormNode } from '@formtree/vue'
+import { lineItemsArray } from './forms/line-items'
+import NumberField from './number-field.vue'
+import TextField from './text-field.vue'
 
 const props = defineProps<{ index: number }>()
 
-const lineItems = useFormNode(checkoutGroup).array('lineItems')
-const row = provideFormNode(lineItems.items[props.index]!)
+provideFormNode(useFormNode(lineItemsArray).items[props.index]!)
 </script>
+
+<template>
+  <TextField name="sku" label="Product" />
+  <NumberField name="quantity" label="Quantity" />
+</template>
 ```
 
-Inputs inside the row bind to `'sku'` and `'quantity'` by name, relative to the row.
+Keyed by `key`, each component stays with its item when the list is reordered.
 
-## Why no node props
+</div>
 
-A node passed through props would make every component in between carry the form's types, and
-the props would mirror state the form already holds. With a definition as the key, a component
-knows only the definition it renders.
+<div class="react-only">
 
-| Component       | Receives                               |
-| --------------- | -------------------------------------- |
-| A step or card  | nothing; it injects its definition     |
-| A generic input | a `name`, relative to the nearest node |
-| A row           | an `index`                             |
+Render one row component per item, keyed by the item's `key`, and pass it the item's `index`:
+
+```tsx [line-item-list.tsx]
+import { FormNodeProvider, useFormNode } from '@formtree/react'
+import { orderForm } from './forms/order'
+import { LineItemRow } from './line-item-row'
+
+export function LineItemList() {
+  const lineItems = useFormNode(orderForm).array('lineItems')
+
+  return (
+    <FormNodeProvider node={lineItems}>
+      {lineItems.items.map(lineItem => (
+        <LineItemRow key={lineItem.key} index={lineItem.index} />
+      ))}
+    </FormNodeProvider>
+  )
+}
+```
+
+The row reads the list by its definition and provides its item:
+
+```tsx [line-item-row.tsx]
+import { FormNodeProvider, useFormNode } from '@formtree/react'
+import { lineItemsArray } from './forms/line-items'
+import { NumberField } from './number-field'
+import { TextField } from './text-field'
+
+export function LineItemRow({ index }: { index: number }) {
+  const row = useFormNode(lineItemsArray).items[index]!
+
+  return (
+    <FormNodeProvider node={row}>
+      <TextField name="sku" label="Product" />
+      <NumberField name="quantity" label="Quantity" />
+    </FormNodeProvider>
+  )
+}
+```
+
+Keyed by `key`, each component stays with its item when the list is reordered.
+
+</div>
+
+<div class="javascript-only">
+
+Create each row's element once and keep it by the item's `key`:
+
+```ts twoslash [line-item-list.ts]
+// @noStaticSemanticInfo
+// @filename: forms/order.ts
+import { defineGroup } from '@formtree/core'
+import { contactGroup } from './contact'
+import { lineItemsArray } from './line-items'
+
+export const orderForm = defineGroup({
+  children: { contact: contactGroup, lineItems: lineItemsArray },
+})
+// @filename: line-item-list.ts
+// ---cut---
+import type { ArrayItem, NodeOf } from '@formtree/core'
+import { createForm } from '@formtree/core'
+import { lineItemGroup } from './forms/line-items'
+import { orderForm } from './forms/order'
+
+const form = createForm(orderForm)
+const lineItems = form.array('lineItems')
+const list = document.getElementById('line-items')!
+const rowTemplate = document.getElementById('line-item-row') as HTMLTemplateElement
+const rowElements = new Map<string, HTMLElement>()
+
+renderRows()
+
+function renderRows() {
+  list.replaceChildren(
+    ...lineItems.items.map(lineItem => {
+      const element = rowElements.get(lineItem.key) ?? createRow(lineItem)
+      rowElements.set(lineItem.key, element)
+      return element
+    }),
+  )
+}
+
+function createRow(row: NodeOf<typeof lineItemGroup> & ArrayItem) {
+  const element = rowTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement
+
+  element.querySelector('.remove')!.addEventListener('click', () => {
+    rowElements.delete(row.key)
+    lineItems.remove(row.index)
+    renderRows()
+  })
+  return element
+}
+```
+
+Each element stays with its item when the list is reordered, and `row.index` is always the item's
+current position.
+
+</div>
+
+## Showing a Row's State
+
+<div class="vue-only">
+
+Read `row.state` in the template to show what the row is doing, such as a save in progress:
+
+```vue{3,10,12-14,20-22} [line-item-row.vue]
+<script setup lang="ts">
+import { provideFormNode, useFormNode } from '@formtree/vue'
+import { saveLineItem } from './api'
+import { lineItemsArray } from './forms/line-items'
+import NumberField from './number-field.vue'
+import TextField from './text-field.vue'
+
+const props = defineProps<{ index: number }>()
+
+const row = provideFormNode(useFormNode(lineItemsArray).items[props.index]!)
+
+const save = row.handleSubmit(async lineItem => {
+  await saveLineItem(lineItem)
+})
+</script>
+
+<template>
+  <TextField name="sku" label="Product" />
+  <NumberField name="quantity" label="Quantity" />
+  <button type="button" :aria-busy="row.state.submitting" @click="save">
+    {{ row.state.submitting ? 'Saving…' : 'Save' }}
+  </button>
+</template>
+```
+
+`state` is reactive, so the button updates when the save starts and when it ends.
+
+</div>
+
+<div class="react-only">
+
+Read the row's state with `useNodeState`, which re-renders the component when that node changes:
+
+```tsx{1-2,9-12,18-20} [line-item-row.tsx]
+import { FormNodeProvider, useFormNode, useNodeState } from '@formtree/react'
+import { saveLineItem } from './api'
+import { lineItemsArray } from './forms/line-items'
+import { NumberField } from './number-field'
+import { TextField } from './text-field'
+
+export function LineItemRow({ index }: { index: number }) {
+  const row = useFormNode(lineItemsArray).items[index]!
+  const { submitting } = useNodeState(row)
+  const save = row.handleSubmit(async lineItem => {
+    await saveLineItem(lineItem)
+  })
+
+  return (
+    <FormNodeProvider node={row}>
+      <TextField name="sku" label="Product" />
+      <NumberField name="quantity" label="Quantity" />
+      <button type="button" aria-busy={submitting} onClick={() => save()}>
+        {submitting ? 'Saving…' : 'Save'}
+      </button>
+    </FormNodeProvider>
+  )
+}
+```
+
+`useFormNode` subscribed the component only to the list, so reading `row.state` directly would show
+the state from the last render.
+
+</div>
+
+<div class="javascript-only">
+
+Update the row from `form.subscribe` to show what it is doing, such as a save in progress:
+
+```ts{3,5-14,17} twoslash [line-item-list.ts]
+// @noStaticSemanticInfo
+// @filename: forms/order.ts
+import { defineGroup } from '@formtree/core'
+import { contactGroup } from './contact'
+import { lineItemsArray } from './line-items'
+
+export const orderForm = defineGroup({
+  children: { contact: contactGroup, lineItems: lineItemsArray },
+})
+// @filename: api.ts
+export { saveLineItem } from './forms/api'
+// @filename: line-item-list.ts
+import type { ArrayItem, NodeOf } from '@formtree/core'
+import { createForm } from '@formtree/core'
+import { saveLineItem } from './api'
+import { lineItemGroup } from './forms/line-items'
+import { orderForm } from './forms/order'
+
+const form = createForm(orderForm)
+const lineItems = form.array('lineItems')
+const rowTemplate = document.getElementById('line-item-row') as HTMLTemplateElement
+const rowElements = new Map<string, HTMLElement>()
+
+declare function renderRows(): void
+// ---cut---
+function createRow(row: NodeOf<typeof lineItemGroup> & ArrayItem) {
+  const element = rowTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement
+  const save = element.querySelector<HTMLButtonElement>('.save')!
+
+  save.addEventListener(
+    'click',
+    row.handleSubmit(async lineItem => {
+      await saveLineItem(lineItem)
+    }),
+  )
+  const stopShowingStatus = form.subscribe(() => {
+    save.textContent = row.state.submitting ? 'Saving…' : 'Save'
+    save.setAttribute('aria-busy', String(row.state.submitting))
+  })
+
+  element.querySelector('.remove')!.addEventListener('click', () => {
+    stopShowingStatus()
+    rowElements.delete(row.key)
+    lineItems.remove(row.index)
+    renderRows()
+  })
+  return element
+}
+```
+
+Removing the row stops its subscription.
+
+</div>

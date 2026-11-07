@@ -1,34 +1,90 @@
 # App Defaults
 
-Some choices are the same for every form of an app, such as the language errors appear in, how a
-failed submit scrolls and the devtools that show the forms. `createFormtree` makes those choices
-once, as an app plugin.
+## Setting Defaults
 
-```ts
-// main.ts
+<div class="vue-only">
+
+Pass the options every form shares to `createFormtree` when you install it:
+
+```ts [main.ts]
 import { createFormtree } from '@formtree/vue'
 import { createApp } from 'vue'
-import App from './app.vue'
+import App from './App.vue'
 
-createApp(App).use(createFormtree()).mount('#app')
+createApp(App)
+  .use(createFormtree({ mode: 'onSubmit' }))
+  .mount('#app')
 ```
 
-With no options, forms behave exactly as without the plugin, and while developing they appear in
-[Vue Devtools](#devtools). Each option below changes one behaviour for every form created with
-`useForm` inside the app. [`FormtreeOptions`](/api/@formtree/vue/interfaces/FormtreeOptions)
-lists them.
+</div>
 
-## Translating errors
+<div class="react-only">
 
-The schemas of an app report translation keys, such as `'checkout.city.required'`, and every
-error has to reach the screen in the user's language. Give the plugin one `formatError`.
+Pass the options every form shares to `<FormtreeProvider>` at the root of the app:
 
-```ts
-// main.ts
+```tsx [app.tsx]
+import { FormtreeProvider } from '@formtree/react'
+import { ContactForm } from './contact-form'
+
+export function App() {
+  return (
+    <FormtreeProvider mode="onSubmit">
+      <ContactForm />
+    </FormtreeProvider>
+  )
+}
+```
+
+</div>
+
+<div class="javascript-only">
+
+Keep the options every form shares in one object, and pass it to each `createForm`:
+
+::: code-group
+
+```ts twoslash [form-defaults.ts]
+// @noStaticSemanticInfo
+import type { FormDefaults } from '@formtree/core'
+
+export const formDefaults: FormDefaults = {
+  mode: 'onSubmit',
+}
+```
+
+```ts twoslash [contact-form.ts]
+// @noStaticSemanticInfo
+// @filename: form-defaults.ts
+import type { FormDefaults } from '@formtree/core'
+
+export const formDefaults: FormDefaults = { mode: 'onSubmit' }
+// @filename: contact-form.ts
+// ---cut---
+import { createForm } from '@formtree/core'
+import { formDefaults } from './form-defaults'
+import { contactForm } from './forms/contact-form'
+
+const form = createForm(contactForm, formDefaults)
+```
+
+:::
+
+</div>
+
+Every form starts from these options. [Showing Errors](/guide/showing-errors) and
+[Submitting](/guide/submitting) explain what each one does.
+
+## Translating Errors
+
+Add `formatError` to the defaults, and every form shows its errors in the user's language:
+
+<div class="vue-only">
+
+```ts{3,5,7,10,14} [main.ts]
 import { createFormtree } from '@formtree/vue'
 import { createApp } from 'vue'
 import { createI18n } from 'vue-i18n'
-import App from './app.vue'
+import App from './App.vue'
 import { messages } from './messages'
 
 const i18n = createI18n({ legacy: false, locale: 'en', messages })
@@ -37,131 +93,111 @@ createApp(App)
   .use(i18n)
   .use(
     createFormtree({
+      mode: 'onSubmit',
       formatError: error => i18n.global.t(error.code, { ...error.params }),
     }),
   )
   .mount('#app')
 ```
 
-Every input then shows `errorMessage`, the field's first visible error as text, and knows nothing
-about translation.
+</div>
+
+<div class="react-only">
+
+```tsx{1,3,8,14-16} [app.tsx]
+import type { FormError } from '@formtree/react'
+import { FormtreeProvider } from '@formtree/react'
+import i18next from 'i18next'
+import { ContactForm } from './contact-form'
+
+export function App() {
+  return (
+    <FormtreeProvider mode="onSubmit" formatError={formatError}>
+      <ContactForm />
+    </FormtreeProvider>
+  )
+}
+
+function formatError(error: FormError) {
+  return i18next.t(error.code, { ...error.params })
+}
+```
+
+</div>
+
+<div class="javascript-only">
+
+```ts{2,6} twoslash [form-defaults.ts]
+// @noStaticSemanticInfo
+// @filename: i18next.d.ts
+declare module 'i18next' {
+  const i18next: { t: (key: string, options?: Record<string, unknown>) => string }
+  export default i18next
+}
+// @filename: form-defaults.ts
+// ---cut---
+import type { FormDefaults } from '@formtree/core'
+import i18next from 'i18next'
+
+export const formDefaults: FormDefaults = {
+  mode: 'onSubmit',
+  formatError: error => i18next.t(error.code, { ...error.params }),
+}
+```
+
+</div>
+
+[Binding Inputs](/guide/binding-inputs) shows how errors on screen follow a language switch.
+
+## Overriding a Default
+
+An option given to one form wins over the app's default:
+
+<div class="vue-only">
 
 ```vue
-<p :id="field.errorId">{{ field.errorMessage }}</p>
+<script setup lang="ts">
+import { useForm } from '@formtree/vue'
+import { contactForm } from './forms/contact-form'
+
+const form = useForm(contactForm, { mode: 'onTouched' })
+</script>
 ```
 
-`errorMessage` runs `formatError` each time a template reads it, so switching the locale
-re-renders every visible message in the new language without validating again. An error summary
-uses the same function through `form.formatError(error)`.
-[Translating errors](/guide/errors-and-focus#translating-errors) covers `params` and the messages
-a schema library writes by default.
+</div>
 
-## Moving focus
+<div class="react-only">
 
-A failed submit focuses the first invalid field. Under a sticky header, that field can end up
-hidden, and a jump to it can feel abrupt. `focusElement` decides how every form moves focus.
+```tsx
+import { useForm } from '@formtree/react'
+import { contactForm } from './forms/contact-form'
 
-```ts
-createFormtree({
-  focusElement: element => {
-    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
-    element.focus({ preventScroll: true })
-    element.scrollIntoView({
-      block: 'center',
-      behavior: reducedMotion ? 'instant' : 'smooth',
-    })
-  },
-})
+export function ContactForm() {
+  const form = useForm(contactForm, { mode: 'onTouched' })
+}
 ```
 
-An app that shows an error summary at the top of every form sends focus there instead, with
-`shouldFocusError: 'summary'`. [Errors and Focus](/guide/errors-and-focus#focus-after-a-failed-submit)
-explains both options.
+</div>
 
-## When errors appear
+<div class="javascript-only">
 
-By default an error appears once its field is left. An app whose forms should stay quiet until
-the first submit says so once.
+```ts twoslash
+// @noStaticSemanticInfo
+// @filename: form-defaults.ts
+import type { FormDefaults } from '@formtree/core'
 
-```ts
-createFormtree({ mode: 'onSubmit' })
+export const formDefaults: FormDefaults = { mode: 'onSubmit' }
+// @filename: contact-form.ts
+// ---cut---
+import { createForm } from '@formtree/core'
+import { formDefaults } from './form-defaults'
+import { contactForm } from './forms/contact-form'
+
+const form = createForm(contactForm, { ...formDefaults, mode: 'onTouched' })
 ```
 
-`reValidateMode` decides what happens after an error has been visible.
-[Validation](/guide/validation#display-modes) describes every mode.
+</div>
 
-## Overriding a default
-
-An option passed to `useForm` wins for that form.
-
-```ts
-const form = useForm(newsletterGroup, { mode: 'onChange' })
-```
-
-An option passed as `undefined` falls back to the default, so a component can forward an
-optional prop without erasing it. A definition can still set its own `mode` and
-`reValidateMode`, and the nearest one wins, as in the core.
-
-The plugin is optional. A form created outside the app, such as one in a test's `effectScope`,
-does not see it and uses the core's defaults.
-
-## Devtools
-
-A customer presses Continue on the delivery step and nothing happens. No error is on screen, so
-the question is which node is still invalid, and why its error is not shown yet. While
-developing, `createFormtree` adds a formtree tab to Vue Devtools that answers it. The tab shows the
-forms of the app as trees of nodes with the state of each, and a timeline of every change, check
-and submit.
-
-Vue Devtools itself runs as a browser extension or through `vite-plugin-vue-devtools`. The plugin
-talks to it through `@vue/devtools-api`, a peer dependency of `@formtree/vue` that npm and pnpm
-install along with it.
-
-A production build leaves the devtools out. Their code runs only while `process.env.NODE_ENV` is
-not `'production'`, which every bundler replaces, so nothing of it ships. To leave the forms out
-of the devtools while developing too, turn them off.
-
-```ts
-createFormtree({ devtools: false })
-```
-
-### The inspector
-
-![The formtree inspector in Vue Devtools, showing a checkout form as a tree of nodes](/devtools-inspector.png)
-
-Every form created with `useForm` inside the app appears in the formtree inspector, under the
-name of the component that created it and its id. Its nodes follow the tree of the form, a
-group's children first and then the keys of its schema. The first tag says where a node comes
-from, with `field`, `group` or `array` for a node with a definition of its own and `lens` for a
-key of its parent's schema. Hovering a tag explains it.
-
-The other tags describe the state of the subtree. Errors are counted by whether the user sees
-them. `1 error shown` is on screen, while `2 errors hidden` exist but wait for the display mode,
-a blur or a submit. Every value is validated on every change, so a step the customer has not
-reached yet already counts its hidden errors. `submitted ×1` counts the submits of the node
-itself, so submitting a step marks the step, not the form. `inactive`, `checking`, `submitting` and
-`dirty` follow the node's state.
-
-In the delivery step from above, `delivery.method` shows `1 error hidden` because no method is
-chosen, and its error waits for the field to be blurred. Selecting a node shows its state and its
-errors, the visible ones and all of them.
-
-A schema cannot be asked for its keys, so a key of a schema appears once it has a value or an
-error. An optional key that is still empty is not listed.
-
-### The timeline
-
-![The formtree timeline in Vue Devtools, showing a submit, an asynchronous check and a change](/devtools-timeline.png)
-
-The Timeline tab of the formtree inspector records what happens in the forms once its record
-button is on. A change, a blur and a reset name the path they touched. An asynchronous check
-records its start and its end, with the errors it returned, or that it was reused from the cache
-or cancelled by the next change. A submit records its start and its outcome.
-
-Selecting an event shows the form, the path and the value at that path after the event.
-
-### Read-only
-
-Nothing can be edited from the devtools. A value changed there would bypass the components that
-write it and the rules that check it, and every error would no longer come from a schema, a rule,
-a check or the server. The plugin only reads.
+::: tip Definitions Win
+A `mode` set in a definition wins over both.
+:::

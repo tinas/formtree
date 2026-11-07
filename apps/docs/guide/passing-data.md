@@ -1,31 +1,20 @@
-# Dependencies
+# Passing Data to Rules
 
-Some rules read values the user never edits. The countries a store ships to come from a server, a
-promo code is checked against the current cart, and an admin needs a longer password than a member.
-These values are dependencies, `deps` for short. The form does not hold them, but its rules read
-them.
+## Declaring Dependencies
 
-Dependencies work like the parameters of a function. A definition declares what it takes, and the
-place that uses it passes it in. A value belongs in dependencies when rules read it, the user never
-edits it and it is not part of the output. A value the user edits belongs in a schema.
-
-## A rule that needs data from the server
-
-The store ships to a few countries, and the list comes from an API so that adding a country does
-not need a release. The address step has to reject a country that is not on the list.
-
-The list is not known at module level, where definitions are written. Building the schema later,
-inside the screen that loads the list, ties the rule to that screen, and the address can no longer
-be declared once and imported by every form that asks for one.
-
-A definition that needs outside values declares them in its type, with the `WithDeps` variant of
-its function.
+A rule that needs data from outside the form, such as countries loaded from the server, declares
+that data as dependencies. Define it with `defineGroupWithDeps` and the type of the data:
 
 ```ts twoslash
+// @noStaticSemanticInfo
 import { defineGroupWithDeps } from '@formtree/core'
 import { z } from 'zod'
+// ---cut---
+export interface ShippingDeps {
+  readonly countries: ReadonlyArray<string>
+}
 
-export const addressGroup = defineGroupWithDeps<{ countries: ReadonlyArray<string> }>()({
+export const addressGroup = defineGroupWithDeps<ShippingDeps>()({
   schema: ({ deps }) =>
     z.object({
       street: z.string({ error: 'Street is required' }),
@@ -36,72 +25,115 @@ export const addressGroup = defineGroupWithDeps<{ countries: ReadonlyArray<strin
 })
 ```
 
-`addressGroup` still lives at module level. It states that it needs a list of countries and does
-not know where the list comes from, so any form that provides one can use it. Every function in the
-options of a `WithDeps` definition receives the same `deps`.
+Every function in the options receives `deps`.
 
-`defineGroupWithDeps<Deps>()` and `defineFieldWithDeps<Deps>()` take the type of the dependencies
-first and the options in a second call. TypeScript cannot take one type argument from you and infer
-the others, so the dependencies get a call of their own while the schema and the rules are still
-inferred. A definition without dependencies uses the plain `defineGroup` or `defineField`.
+::: tip Fields
+`defineFieldWithDeps` does the same for a field.
+:::
 
-## Passing data to a nested part
+## Providing the Data
 
-The address sits in the delivery step, which sits in the checkout, and only the checkout is created
-with the list of countries. The address must not reach up for it, or it could only be used inside
-this checkout. A group hands dependencies to the children that need them with `childDeps`.
+Pass the data with the `deps` option, and give the form the new data when it changes:
+
+<div class="vue-only">
+
+```vue
+<script setup lang="ts">
+import { useForm } from '@formtree/vue'
+import { ref } from 'vue'
+import { fetchShippingCountries } from './api'
+import { addressGroup } from './forms/address'
+
+const countries = ref<ReadonlyArray<string>>([])
+
+const form = useForm(addressGroup, {
+  deps: () => ({ countries: countries.value }),
+})
+
+fetchShippingCountries().then(list => {
+  countries.value = list
+})
+</script>
+```
+
+</div>
+
+<div class="react-only">
+
+```tsx
+import { useForm } from '@formtree/react'
+import { useEffect, useState } from 'react'
+import { fetchShippingCountries } from './api'
+import { addressGroup } from './forms/address'
+
+export function AddressForm() {
+  const [countries, setCountries] = useState<ReadonlyArray<string>>([])
+  const form = useForm(addressGroup, { deps: { countries } })
+
+  useEffect(() => {
+    fetchShippingCountries().then(setCountries)
+  }, [])
+}
+```
+
+</div>
+
+<div class="javascript-only">
 
 ```ts twoslash
-import { defineGroupWithDeps } from '@formtree/core'
-import { z } from 'zod'
-import { addressGroup } from './forms/delivery'
+// @noStaticSemanticInfo
+// @filename: api.ts
+export declare function fetchShippingCountries(): Promise<Array<string>>
+// @filename: forms/address.ts
+export { addressGroup } from './delivery'
+// @filename: index.ts
+// ---cut---
+import { createForm } from '@formtree/core'
+import { fetchShippingCountries } from './api'
+import { addressGroup } from './forms/address'
 
-export const deliveryGroup = defineGroupWithDeps<{ countries: ReadonlyArray<string> }>()({
-  schema: z.object({ method: z.enum(['shipping', 'pickup']) }),
+const form = createForm(addressGroup, { deps: { countries: [] } })
+
+fetchShippingCountries().then(countries => {
+  form.setDeps({ countries })
+})
+```
+
+</div>
+
+Rules that read the data run again with the new data. Values are kept, so a country that is no
+longer on the list turns invalid.
+
+## Passing Data to a Child
+
+A group passes dependencies to its children with `childDeps`:
+
+```ts twoslash
+// @noStaticSemanticInfo
+import type { ShippingDeps } from './forms/delivery'
+
+import { defineGroupWithDeps } from '@formtree/core'
+import { addressGroup } from './forms/delivery'
+// ---cut---
+export const deliveryGroup = defineGroupWithDeps<ShippingDeps>()({
   children: { address: addressGroup },
-  activeWhen: { address: ({ value }) => value.method === 'shipping' },
   childDeps: {
-    address: ({ deps }) => ({ countries: deps.countries }),
+    address: ({ deps }) => deps,
   },
 })
 ```
 
-`deliveryGroup` declares `countries` although only its address reads them, because a group can only
-pass on what it has. Each level states what it needs and what it passes, so the definitions alone
-show the path of the list from the checkout down to the country check.
+`childDeps` is required for every child that needs dependencies.
 
-`childDeps` has one entry per child that needs dependencies. Each entry receives `{ value, deps }`
-and returns that child's dependencies, typed by what the child declared. `deps` holds the group's
-own dependencies, so a child that needs exactly those gets them with `({ deps }) => deps`. `value`
-is the draft of the group's own schema, without its children, as in `activeWhen`.
+## Deriving Data from an Answer
 
-`childDeps` is required as soon as a child needs dependencies, and it lists exactly those children.
-Leaving it out is a type error, so a definition cannot end up in a form that forgets to provide what
-it needs.
-
-The functions run again after every change, for active children only. A result equal key by key to
-the previous one keeps the previous object, so a function that returns a new object each time
-rebuilds nothing below it.
-
-For an array, the entry in `childDeps` gives the same dependencies to every item. A value that
-differs per item belongs in the item's schema, not in dependencies. The array's own `validate`
-receives none, so a rule that needs them goes on the parent group.
-
-## A rule that depends on another answer
-
-An account form asks for a role and a password. Admins need at least 12 characters, members 8. The
-role is in the same form, so the password rule depends on the user's own answer.
-
-Written as a refinement on the whole account object, the rule moves away from the password. The
-password can no longer be used without the role next to it, and Zod runs the refinement only once
-every key of the object has a value.
-
-A parent can turn one of its values into a dependency of a child instead.
+`childDeps` can also build a child's dependencies from the group's own values:
 
 ```ts twoslash
+// @noStaticSemanticInfo
 import { defineFieldWithDeps, defineGroup } from '@formtree/core'
 import { z } from 'zod'
-
+// ---cut---
 export const passwordField = defineFieldWithDeps<{ minLength: number }>()({
   schema: ({ deps }) =>
     z
@@ -109,83 +141,81 @@ export const passwordField = defineFieldWithDeps<{ minLength: number }>()({
       .min(deps.minLength, { error: `Use at least ${deps.minLength} characters` }),
 })
 
-export const accountGroup = defineGroup({
+export const accountForm = defineGroup({
   schema: z.object({
     role: z.enum(['member', 'admin'], { error: 'Choose a role' }),
   }),
   children: { password: passwordField },
   childDeps: {
-    password: ({ value }) => ({ minLength: value.role === 'admin' ? 12 : 8 }),
+    password: ({ value }) => ({ minLength: value.role == 'admin' ? 12 : 8 }),
   },
 })
 ```
 
-`passwordField` knows about a minimum length and nothing about roles. `accountGroup` needs no
-dependencies of its own, because it supplies the child's from its value. A 10-character password is
-valid for a member. Switching the role to admin rebuilds the password schema, and the same password
-is invalid at once, without a watcher and without touching the value.
+Switching the role to admin rebuilds the password rule with the new length.
 [Role-based Rules](/examples/role-based-rules) shows it live.
 
-Use this when the child owns the rule and only a parameter of it comes from the parent. A rule that
-compares two values, such as a repeated password, is a
-[`validate`](/guide/groups#rules-across-keys) rule on the group instead.
+## Sharing a Value Between Siblings
 
-## Data that arrives after the form
-
-The checkout renders at once, while the request for the countries is still running. The form does
-not wait. It is created with what is known and given the list when it arrives.
+Dependencies flow only from a parent to its children, so siblings cannot pass data to each other.
+Put the value in their parent's schema, and pass it to both:
 
 ```ts twoslash
-import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
+// @noStaticSemanticInfo
+import { defineFieldWithDeps, defineGroup, defineGroupWithDeps } from '@formtree/core'
+import { z } from 'zod'
+
+interface CountryDeps {
+  readonly country: string | undefined
+}
+
+declare function isPostalCodeOf(country: string | undefined, postalCode: string): boolean
+declare function storesIn(country: string | undefined): ReadonlyArray<string>
+
+const addressGroup = defineGroupWithDeps<CountryDeps>()({
+  schema: ({ deps }) =>
+    z.object({
+      street: z.string({ error: 'Street is required' }),
+      postalCode: z
+        .string({ error: 'Postal code is required' })
+        .refine(postalCode => isPostalCodeOf(deps.country, postalCode), { error: 'Check the postal code' }),
+    }),
+})
+
+const storeField = defineFieldWithDeps<CountryDeps>()({
+  schema: ({ deps }) =>
+    z
+      .string({ error: 'Choose a store' })
+      .refine(store => storesIn(deps.country).includes(store), { error: 'Choose a store in this country' }),
+})
+// ---cut---
+export const deliveryGroup = defineGroup({
+  schema: z.object({
+    country: z.string({ error: 'Choose a country' }),
+  }),
+  children: { address: addressGroup, store: storeField },
+  childDeps: {
+    address: ({ value }) => ({ country: value.country }),
+    store: ({ value }) => ({ country: value.country }),
+  },
+})
+```
+
+## Typing Dependencies
+
+`DepsOf` reads the dependency type from a definition, for example for a function that loads the
+data:
+
+```ts twoslash
+// @noStaticSemanticInfo
+import type { DepsOf } from '@formtree/core'
+import { checkoutForm } from './forms/checkout'
 
 declare function fetchShippingCountries(): Promise<Array<string>>
 // ---cut---
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: [] },
-})
-
-fetchShippingCountries().then(countries => {
-  form.setDeps({ cartId: 'cart_42', countries })
-})
+async function loadCheckoutDeps(cartId: string): Promise<DepsOf<typeof checkoutForm>> {
+  return { cartId, countries: await fetchShippingCountries() }
+}
 ```
 
-The root's dependencies are an option of `createForm`, required when the root needs dependencies
-and not accepted otherwise. The adapters call `setDeps` for you. In Vue, `useForm` follows a ref or
-a getter ([Vue](/vue/#dependencies)), and in React it receives each new `deps` value
-([React](/react/#dependencies)).
-
-`setDeps` replaces the root's dependencies, and every `childDeps` below runs again. For a node whose
-dependencies changed, three things happen.
-
-- A schema built from them is rebuilt, and the node is validated again with it.
-- `activeWhen` decides again which children take part.
-- An asynchronous check drops its cached results and its error, and runs again, at once for a check
-  on change and otherwise on its next trigger or at submit.
-
-Values are never touched. When a later list drops a country the customer already picked, the
-country stays and turns invalid instead of disappearing.
-
-## A value two siblings need
-
-Pickup stores depend on the country too. In the delivery step, the address and the store are
-siblings, and the store cannot read the country out of the address, because dependencies flow from
-a parent to its children, never between siblings and never upwards.
-
-The value moves to where both can be reached from. Ask for the country in the delivery step's own
-schema, and pass it to the address and to the store with `childDeps`. A definition's options then
-show everything its rules depend on.
-
-## Types
-
-```ts twoslash
-import type { DepsOf } from '@formtree/core'
-import { passwordField } from './forms/account'
-
-type PasswordDeps = DepsOf<typeof passwordField>
-//   ^?
-```
-
-`accountGroup` from the example above supplies its child's dependencies from its value and has none
-of its own. `DepsOf<typeof accountGroup>` is `undefined`, and `createForm(accountGroup)` takes no
-`deps` option.
+[TypeScript](/guide/typescript) covers the other types formtree reads from a definition.

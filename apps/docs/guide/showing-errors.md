@@ -1,195 +1,291 @@
-# Errors and Focus
+# Showing Errors
 
-## The error object
+## When Errors Appear
+
+By default, an error shows once the user has left its input. Use the `mode` option to pick another
+moment, such as the first submit:
+
+<div class="vue-only">
 
 ```ts twoslash
-import type { FormError } from '@formtree/core'
-
-declare const error: FormError
+// @noStaticSemanticInfo
+import { useForm } from '@formtree/vue'
+import { contactForm } from './forms/contact-form'
 // ---cut---
-error.path // 'delivery.address.city'
-error.code // 'City is required'
-error.params // the rest of the schema issue, such as { code: 'too_small', minimum: 1 }
-error.source // 'schema' | 'validate' | 'async' | 'server' | your own
+const form = useForm(contactForm, { mode: 'onSubmit' })
 ```
 
-An error carries a `code`, not a sentence the library wrote. For a schema error, the code is the
-message the schema reports, and `params` holds the rest of the issue, so `params.code` is the schema
-library's own issue code. The UI turns `code` into text.
+</div>
 
-## Translating errors
+<div class="react-only">
 
-formtree does not write messages. Write translation keys as codes, and give the form one
-`formatError` that turns an error into text. Below, `t` stands for the translate function of your
-i18n library.
+```ts
+const form = useForm(contactForm, { mode: 'onSubmit' })
+```
+
+</div>
+
+<div class="javascript-only">
 
 ```ts twoslash
-import type { ErrorParams } from '@formtree/core'
-import { createForm, defineField } from '@formtree/core'
-import { z } from 'zod'
-
-declare function t(key: string, params?: ErrorParams): string
-declare const message: HTMLElement
+// @noStaticSemanticInfo
+import { createForm } from '@formtree/core'
+import { contactForm } from './forms/contact-form'
 // ---cut---
-const quantityField = defineField({
-  schema: z.number({ error: 'cart.quantity.required' }).min(1, { error: 'cart.quantity.min' }),
-})
+const form = createForm(contactForm, { mode: 'onSubmit' })
+```
 
-const quantity = createForm(quantityField, {
+</div>
+
+The form still validates on every change, so `state.valid` is right before any error shows.
+[`VALIDATION_MODE`](/api/@formtree/core/variables/VALIDATION_MODE) lists the modes.
+
+::: tip After a Submit
+`reValidateMode` decides when errors update after a submit.
+:::
+
+## Translating Errors
+
+Write translation keys as the schema's messages, and turn each error into text with `formatError`:
+
+<div class="vue-only">
+
+```ts twoslash
+// @noStaticSemanticInfo
+// @filename: i18n.ts
+export declare function t(key: string, params?: Readonly<Record<string, unknown>>): string
+// @filename: contact-form.ts
+import { useForm } from '@formtree/vue'
+import { contactForm } from './forms/contact-form'
+// ---cut---
+import { t } from './i18n'
+
+const form = useForm(contactForm, {
   formatError: error => t(error.code, error.params),
 })
+```
 
-quantity.subscribe(() => {
-  message.textContent = quantity.errorMessage ?? ''
+</div>
+
+<div class="react-only">
+
+```ts
+import { t } from './i18n'
+
+const form = useForm(contactForm, {
+  formatError: error => t(error.code, error.params),
 })
 ```
 
-`errorMessage` is the node's first visible error, passed through `formatError`. Without a
-`formatError` it is the code itself, which is all a form needs while its codes are readable
-messages.
+</div>
 
-`params` carries the values of the schema issue for the message to use. `min(1)` reports
-`minimum: 1`, and a message such as `'Order at least {minimum}'` reads it. Rules, checks and server
-errors return `{ code, params }` themselves and are translated the same way.
-
-`errorMessage` is not cached. It runs `formatError` each time it is read, and the form keeps the
-keys, so switching the language updates every visible message without validating again. The
-adapters take `formatError` once for the whole app, in [Vue](/vue/app-defaults#translating-errors)
-and [React](/react/#app-defaults).
-
-A rule without its own message reports the schema library's default, which is an English sentence,
-not a key. Give every rule an `error`, or map issues to keys once with the library's global hook,
-which is `z.config` in Zod.
+<div class="javascript-only">
 
 ```ts twoslash
-import { z } from 'zod'
-
-z.config({
-  customError: issue => `errors.${issue.code}`,
-})
-```
-
-A message given with `error` still wins. Every other issue reports a key such as
-`errors.too_small`.
-
-## Setting and clearing errors yourself
-
-```ts twoslash
+// @noStaticSemanticInfo
+// @filename: i18n.ts
+export declare function t(key: string, params?: Readonly<Record<string, unknown>>): string
+// @filename: contact-form.ts
 import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
+import { contactForm } from './forms/contact-form'
+// ---cut---
+import { t } from './i18n'
 
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: ['DE'] },
+const form = createForm(contactForm, {
+  formatError: error => t(error.code, error.params),
+})
+```
+
+</div>
+
+Every `errorMessage` now passes through your function, which reads the key from `code` and values
+such as `minimum` from `params`.
+
+::: tip Every Form at Once
+[App Defaults](/guide/app-defaults) sets `formatError` once for every form.
+:::
+
+## Connecting Errors to Inputs
+
+A screen reader reads an error with its input when the error element has the field's `errorId` and
+the input has the field's attributes:
+
+<div class="vue-only">
+
+```vue
+<label :for="email.id">Email</label>
+<input v-model="email.model" v-bind="email.attrs" />
+<p :id="email.errorId">{{ email.errorMessage }}</p>
+```
+
+</div>
+
+<div class="react-only">
+
+```tsx
+<label htmlFor={email.id}>Email</label>
+<input {...email.attrs} value={email.value ?? ''} onChange={event => email.setValue(event.target.value)} />
+<p id={email.errorId}>{email.errorMessage}</p>
+```
+
+</div>
+
+<div class="javascript-only">
+
+::: code-group
+
+```ts twoslash [contact-form.ts]
+// @noStaticSemanticInfo
+import { createForm } from '@formtree/core'
+import { contactForm } from './forms/contact-form'
+// ---cut---
+const form = createForm(contactForm, { id: 'contact' })
+
+function bindInput(key: 'name' | 'email' | 'message') {
+  const field = form.field(key)
+  const input = document.getElementById(field.id) as HTMLInputElement | HTMLTextAreaElement
+  const error = document.getElementById(field.errorId)!
+
+  input.addEventListener('input', () => field.setValue(input.value))
+  input.addEventListener('blur', () => field.blur())
+  form.subscribe(() => {
+    error.textContent = field.errorMessage ?? ''
+    for (const [attribute, value] of Object.entries(field.getAttributes())) {
+      if (value == null) {
+        input.removeAttribute(attribute)
+      } else {
+        input.setAttribute(attribute, value)
+      }
+    }
+  })
+}
+```
+
+```html [index.html]
+<label for="contact:email">Email</label>
+<input id="contact:email" />
+<p id="contact:email:error"></p>
+```
+
+:::
+
+The form's `id` is the prefix of every id, so the HTML can use them.
+
+</div>
+
+::: tip ARIA Attributes
+While an error shows, the input gets `aria-invalid="true"` and an `aria-describedby` that points at
+the error element.
+:::
+
+## Listing All Errors
+
+For an error summary, `listErrors({ deep: true })` returns the shown errors of a node and everything
+below it, each with the id of the input it belongs to:
+
+<div class="vue-only">
+
+```vue
+<script setup lang="ts">
+import { useForm } from '@formtree/vue'
+import { computed } from 'vue'
+import { contactForm } from './forms/contact'
+
+const form = useForm(contactForm)
+const errors = computed(() => form.listErrors({ deep: true }))
+</script>
+
+<template>
+  <ul :id="form.summaryId" tabindex="-1">
+    <li v-for="error in errors" :key="`${error.targetId}:${error.code}`">
+      <a :href="`#${error.targetId}`">{{ form.formatError(error) }}</a>
+    </li>
+  </ul>
+</template>
+```
+
+</div>
+
+<div class="react-only">
+
+```tsx
+const errors = form.listErrors({ deep: true })
+
+return (
+  <ul id={form.summaryId} tabIndex={-1}>
+    {errors.map(error => (
+      <li key={`${error.targetId}:${error.code}`}>
+        <a href={`#${error.targetId}`}>{form.formatError(error)}</a>
+      </li>
+    ))}
+  </ul>
+)
+```
+
+</div>
+
+<div class="javascript-only">
+
+::: code-group
+
+```ts twoslash [contact-form.ts]
+// @noStaticSemanticInfo
+import { createForm } from '@formtree/core'
+import { contactForm } from './forms/contact-form'
+
+const form = createForm(contactForm, { id: 'contact' })
+// ---cut---
+import type { ListedError } from '@formtree/core'
+
+const summary = document.getElementById(form.summaryId)!
+
+form.subscribe(() => {
+  summary.replaceChildren(...form.listErrors({ deep: true }).map(summaryItem))
+})
+
+function summaryItem(error: ListedError): HTMLLIElement {
+  const link = document.createElement('a')
+  link.href = `#${error.targetId}`
+  link.textContent = form.formatError(error)
+  const item = document.createElement('li')
+  item.append(link)
+  return item
+}
+```
+
+```html [index.html]
+<ul id="contact:summary" tabindex="-1"></ul>
+```
+
+:::
+
+</div>
+
+`form.formatError` gives each error the text its input shows. The `summaryId` and `tabindex="-1"`
+let a failed submit focus the list, as [Submitting](/guide/submitting) shows.
+
+## Setting Errors Yourself
+
+To show an error the definition cannot know about, such as a store that has just closed, call
+`setErrors` on a node, with paths relative to that node:
+
+```ts twoslash
+// @noStaticSemanticInfo
+import { createForm } from '@formtree/core'
+import { checkoutForm } from './forms/checkout'
+
+const form = createForm(checkoutForm, {
+  deps: { cartId: 'cart_42', countries: ['DE', 'NL'] },
 })
 // ---cut---
 const delivery = form.group('delivery')
 
-delivery.setErrors([{ path: 'address.street', code: 'This street could not be found' }])
-delivery.setErrors([{ code: 'Delivery is not available today' }], { clearOn: 'submit' })
-delivery.clearErrors({ source: 'server' })
+delivery.setErrors([{ path: 'store', code: 'This store has closed for today' }])
 ```
 
-Paths are relative to the node you call it on. Errors set this way have the source `'server'`
-unless you give your own, and they are cleared when the value at their path changes unless
-`clearOn` says otherwise ([`SetErrorsOptions`](/api/@formtree/core/interfaces/SetErrorsOptions)).
-They are visible at once, whatever the display mode, because something outside the form wants the
-user to see them. `clearErrors` removes external errors only, and a schema error goes away when the
-value is fixed.
+The error shows at once, whatever the mode, and goes away when the store changes.
+[`SetErrorsOptions`](/api/@formtree/core/interfaces/SetErrorsOptions) covers keeping it longer.
 
-## Ids and ARIA
-
-A field gives its input everything it needs to be described by its error.
-
-```ts twoslash
-import { createForm } from '@formtree/core'
-import { contactGroup } from './forms/contact'
-
-const form = createForm(contactGroup, { id: 'checkout' })
-// ---cut---
-const email = form.field('email')
-
-email.getAttributes()
-// { id: 'checkout:email', name: 'email', 'aria-invalid': 'false', 'aria-describedby': null }
-
-email.errorId // 'checkout:email:error'
-email.descriptionId // 'checkout:email:description'
-```
-
-Give the error message element `errorId`. While an error is visible, `aria-describedby` points at it
-and `aria-invalid` is `'true'`. A `null` attribute is one to remove, and the adapters map it to
-`undefined` for you.
-
-## Error summary
-
-A summary at the top of a step lists what is left to fix and links to each field. `listErrors` with
-`deep: true` returns the visible errors of a subtree, each with the DOM id of the element it belongs
-to.
-
-```ts twoslash
-import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
-
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: ['DE'] },
-})
-// ---cut---
-const delivery = form.group('delivery')
-
-const links = delivery.listErrors({ deep: true }).map(error => ({
-  href: `#${error.targetId}`,
-  text: form.formatError(error),
-}))
-```
-
-Give the summary element the node's `summaryId` and `tabindex="-1"`, and submit with
-`shouldFocusError: 'summary'` to move focus to it instead of to the first field.
-
-## Focus after a failed submit
-
-With `shouldFocusError: true`, the default, a failed submit moves focus to the first invalid element
-of the subtree. First means first in the document, not first in the schema, which is the order a
-user reads in a form with conditional sections. `'summary'` focuses the summary, and `false` leaves
-focus alone.
-
-How the element is focused is a separate option. `focusElement` receives the element and focuses it,
-and the default calls `element.focus()`.
-
-```ts twoslash
-import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
-// ---cut---
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: ['DE'] },
-  focusElement: element => {
-    element.focus({ preventScroll: true })
-    element.scrollIntoView({
-      block: 'center',
-      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
-    })
-  },
-})
-```
-
-The same function is used for the summary and for `node.focus()`, so smooth scrolling is defined
-once. A single submit can pass its own `focusElement`, for example to focus the real input inside a
-custom component whose id sits on a wrapper.
-
-```ts twoslash
-import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
-
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: ['DE'] },
-})
-// ---cut---
-const submit = form.group('payment').handleSubmit(() => {}, {
-  focusElement: element => (element.querySelector('input') ?? element).focus(),
-})
-```
-
-Two cases need no API. A sticky header that covers the focused field is handled in CSS with
-`scroll-margin-top` on the inputs. A field that is not rendered, such as one on another step, has no
-element to focus, so nothing is focused, and moving to that step is a job for `onInvalid`.
-
-Without a `document`, in Node or in tests, focusing does nothing. It is the only place where the
-core touches the DOM.
+::: tip One Owner per Error
+Schema runs replace only schema errors, so they never remove an error you set.
+:::

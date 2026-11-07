@@ -1,107 +1,163 @@
-# Conditional Branches
+# Conditional Fields
 
-Many forms change shape with their own data. A checkout asks for a shipping address only when the
-order is shipped, and for card details only when the customer pays by card. `activeWhen` says when
-a child takes part in the form.
+## Turning a Part On and Off
 
-## The problem
-
-Without a way to switch a branch off, every field is part of the schema all the time, and the
-required ones turn into conditions.
-
-```ts
-const checkoutSchema = z
-  .object({
-    paymentMethod: z.enum(['card', 'invoice']),
-    cardNumber: z.string().optional(),
-    company: z.string().optional(),
-  })
-  .superRefine((value, context) => {
-    if (value.paymentMethod === 'card' && !value.cardNumber) {
-      context.addIssue({ code: 'custom', path: ['cardNumber'], message: 'Card number is required' })
-    }
-    if (value.paymentMethod === 'invoice' && !value.company) {
-      context.addIssue({ code: 'custom', path: ['company'], message: 'Company name is required' })
-    }
-  })
-```
-
-The schema no longer says what is required. The payload sends card details along with an invoice
-unless someone clears them, so components start watching the method and resetting fields, with a
-watcher for each branch.
-
-## activeWhen
+To ask for some fields only after a certain answer, such as card details for a card payment, put
+them in a child and say when it applies with the group's `activeWhen`:
 
 ```ts twoslash
+// @noStaticSemanticInfo
 import { defineGroup } from '@formtree/core'
 import { z } from 'zod'
-import { cardGroup, invoiceGroup } from './forms/payment'
+// ---cut---
+const cardGroup = defineGroup({
+  schema: z.object({
+    holder: z.string({ error: 'Cardholder name is required' }),
+    number: z.string({ error: 'Card number is required' }),
+  }),
+})
 
-export const paymentGroup = defineGroup({
+export const paymentForm = defineGroup({
   schema: z.object({
     method: z.enum(['card', 'invoice'], { error: 'Choose a payment method' }),
   }),
-  children: { card: cardGroup, invoice: invoiceGroup },
+  children: { card: cardGroup },
   activeWhen: {
-    card: ({ value }) => value.method === 'card',
-    invoice: ({ value }) => value.method === 'invoice',
+    card: ({ value }) => value.method == 'card',
   },
 })
 ```
 
-Each key of `activeWhen` names a child, and its function decides from the group's own draft whether
-that child is active. The children stay complete definitions with plain, unconditional schemas. The
-decision lives in the parent, because the parent holds the value it depends on.
+Each function receives the value of the group's own schema and runs again after every change.
 
-Only children can be conditional. A key of `activeWhen` that is not in `children` is a type error,
-so a key that should come and go gets a definition of its own, like `stateField` in
-[Nested branches](#nested-branches). A child that is not listed is always active. The functions run
-again after every change, so a branch follows the value while the user types.
+::: tip Option Order
+Write `activeWhen` after `schema` and `children`, because its functions are typed from them, as
+[TypeScript](/guide/typescript) explains.
+:::
 
-## What an inactive branch does
+## Inactive Parts
 
-An inactive branch is not validated, so its errors do not block a submit. It is not part of the
-output, so it cannot leak into the payload. Its values are kept, so a customer who picks invoice,
-types a company name, switches to card and comes back finds the company name still there. Errors
-inside an inactive branch, whoever produced them, are ignored until it is active again, and
-submitting a node inside it returns `'skipped'` without calling the handler.
-
-The output type says the same, because a child with an `activeWhen` is optional in the output.
+An inactive part is not validated and is left out of the submitted values, so `card` is optional in
+the submit function:
 
 ```ts twoslash
-import type { OutputOf } from '@formtree/core'
-import { paymentGroup } from './forms/payment'
+// @noStaticSemanticInfo
+// @filename: api.ts
+export declare function chargeCard(card: { holder: string; number: string }): Promise<void>
+// @filename: index.ts
+import { createForm, defineGroup } from '@formtree/core'
+import { z } from 'zod'
+import { chargeCard } from './api'
 
-type Payment = OutputOf<typeof paymentGroup>
-// {
-//   method: 'card' | 'invoice'
-//   card?: { holder: string, number: string }
-//   invoice?: { company: string, taxId: string }
-// }
+const paymentForm = defineGroup({
+  schema: z.object({
+    method: z.enum(['card', 'invoice'], { error: 'Choose a payment method' }),
+  }),
+  children: {
+    card: defineGroup({
+      schema: z.object({
+        holder: z.string({ error: 'Cardholder name is required' }),
+        number: z.string({ error: 'Card number is required' }),
+      }),
+    }),
+  },
+  activeWhen: {
+    card: ({ value }) => value.method == 'card',
+  },
+})
+
+const form = createForm(paymentForm)
+// ---cut---
+const placeOrder = form.handleSubmit(async payment => {
+  if (payment.card) {
+    await chargeCard(payment.card)
+  }
+})
 ```
 
-`state.active` tells the UI whether to render a branch.
+Its value is kept, so a customer who switches back to card finds the details as they left them.
+[Checkout Branches](/examples/checkout-branches) shows this live.
+
+## Showing Active Parts
+
+`state.active` tells the page whether a part applies:
+
+<div class="vue-only">
 
 ```vue
-<fieldset v-if="payment.group('card').state.active">
-  <TextField name="card.holder" label="Cardholder" />
-  <TextField name="card.number" label="Card number" />
-</fieldset>
+<script setup lang="ts">
+import { useForm } from '@formtree/vue'
+import { paymentForm } from './forms/payment'
+
+const form = useForm(paymentForm)
+const card = form.group('card')
+</script>
+
+<template>
+  <fieldset v-if="card.state.active">
+    <legend>Card</legend>
+  </fieldset>
+</template>
 ```
 
-Hiding the fieldset is the UI's decision, and the form does not depend on it. An inactive branch is
-left out whether it is rendered or not.
+</div>
 
-## Nested branches
+<div class="react-only">
 
-Branches nest, and each one follows its own parent. The delivery step shows an address only for
-shipping, and the address asks for a state only for the United States.
+```tsx
+import { useForm } from '@formtree/react'
+import { paymentForm } from './forms/payment'
+
+export function PaymentForm() {
+  const form = useForm(paymentForm)
+  const card = form.group('card')
+
+  return card.state.active ? (
+    <fieldset>
+      <legend>Card</legend>
+    </fieldset>
+  ) : null
+}
+```
+
+</div>
+
+<div class="javascript-only">
+
+```ts
+import { createForm } from '@formtree/core'
+import { paymentForm } from './forms/payment'
+
+const form = createForm(paymentForm)
+const card = form.group('card')
+const cardFieldset = document.querySelector<HTMLFieldSetElement>('#card')!
+
+toggleCardFieldset()
+form.subscribe(toggleCardFieldset)
+
+function toggleCardFieldset() {
+  cardFieldset.hidden = !card.state.active
+}
+```
+
+</div>
+
+::: tip Hiding Is Up to the Page
+Hiding a part is only the page's choice, because the form never depends on what is rendered.
+:::
+
+## Nested Conditions
+
+Conditions nest with their groups, so a part inside an inactive part is inactive too:
 
 ```ts twoslash
+// @noStaticSemanticInfo
 import { defineField, defineGroup } from '@formtree/core'
 import { z } from 'zod'
-
-const stateField = defineField({ schema: z.string({ error: 'State is required' }) })
+// ---cut---
+const stateField = defineField({
+  schema: z.string({ error: 'State is required' }),
+})
 
 const addressGroup = defineGroup({
   schema: z.object({
@@ -109,42 +165,56 @@ const addressGroup = defineGroup({
     country: z.string({ error: 'Country is required' }),
   }),
   children: { state: stateField },
-  activeWhen: { state: ({ value }) => value.country === 'US' },
+  activeWhen: {
+    state: ({ value }) => value.country == 'US',
+  },
 })
 
-export const deliveryGroup = defineGroup({
-  schema: z.object({ method: z.enum(['shipping', 'pickup']) }),
+const deliveryGroup = defineGroup({
+  schema: z.object({
+    method: z.enum(['shipping', 'pickup'], { error: 'Choose a delivery method' }),
+  }),
   children: { address: addressGroup },
-  activeWhen: { address: ({ value }) => value.method === 'shipping' },
+  activeWhen: {
+    address: ({ value }) => value.method == 'shipping',
+  },
 })
 ```
 
-`state` is active only when its address is active and the country is `US`. Switching delivery to
-pickup turns off the whole address, state included.
+::: tip Single Values
+`activeWhen` accepts only keys of `children`, so a single value that comes and goes, like the
+state, gets a definition of its own.
+:::
 
-## What activeWhen can see
+## Clearing a Part
 
-An `activeWhen` function receives `{ value, deps }`. `value` is the draft of the group's own schema,
-without its children. If a decision depends on a value that lives in a child, move that value into
-the parent's schema. Every decision then runs from parent to child, and a function never waits for
-the types of the children it controls.
-
-`deps` holds the group's [dependencies](/guide/dependencies), for branches that depend on
-configuration from outside the form, such as a feature that only some accounts have.
-
-## Clearing a branch
-
-Inactive values are kept by default, because that is what users expect when they change their mind.
-When a branch should start over, reset it explicitly.
+To clear an inactive part instead of keeping its values, reset it:
 
 ```ts twoslash
-import { createForm } from '@formtree/core'
-import { paymentGroup } from './forms/payment'
+// @noStaticSemanticInfo
+import { createForm, defineGroup } from '@formtree/core'
+import { z } from 'zod'
 
-const form = createForm(paymentGroup)
+const paymentForm = defineGroup({
+  schema: z.object({
+    method: z.enum(['card', 'invoice'], { error: 'Choose a payment method' }),
+  }),
+  children: {
+    card: defineGroup({
+      schema: z.object({
+        holder: z.string({ error: 'Cardholder name is required' }),
+        number: z.string({ error: 'Card number is required' }),
+      }),
+    }),
+  },
+  activeWhen: {
+    card: ({ value }) => value.method == 'card',
+  },
+})
+
+const form = createForm(paymentForm)
 // ---cut---
-form.field('method').setValue('invoice')
 form.group('card').reset({ value: {} })
 ```
 
-[Checkout Branches](/examples/) shows both steps live, with the output next to them.
+The card fields then come back empty if the customer picks card again.

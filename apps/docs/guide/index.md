@@ -1,196 +1,57 @@
 # Introduction
 
-formtree is a headless form library for TypeScript. Every part of a form, from a wizard step to a
-single field, validates and submits on its own, and every rule is written once, in a definition.
+## What is formtree?
 
-## A first form
+formtree is a headless, framework-agnostic form library for TypeScript. You describe what a form
+holds and which rules it follows, and formtree keeps track of the values, validates them, and hands
+the valid result to your submit function. It renders nothing, so how the form looks stays up to
+you.
 
-A sign-up form with a name and an email. The definition says what the form holds and which rules
-apply.
+## Why Forms Get Hard
 
-```ts twoslash
-import { defineGroup } from '@formtree/core'
-import { z } from 'zod'
+Most forms start simple. A few inputs, a schema, and a submit handler are enough, and the code is
+easy to follow.
 
-export const signUpGroup = defineGroup({
-  schema: z.object({
-    name: z.string({ error: 'Enter your name' }).trim().min(1, { error: 'Enter your name' }),
-    email: z.email({ error: 'Enter a valid email address' }),
-  }),
-})
-```
+Then the form grows. Errors show up before the user has finished typing, so the component gets a
+flag to hide them. The next request adds another flag, and the one after that a condition. Soon the
+form works, but nobody can tell what it requires without reading the whole component.
 
-A component creates the form, binds the inputs and submits.
+## A Form Built from Parts
 
-::: code-group
+formtree moves the form's rules out of the component and into a description of the form, called a
+definition, and leaves the component with the markup. Forms are made of parts, so a definition can
+hold a smaller definition for each part, each with its own rules. That nesting is the tree in
+formtree's name.
 
-```vue [Vue]
-<script setup lang="ts">
-import { useField, useForm } from '@formtree/vue'
-import { createAccount } from './api'
-import { signUpGroup } from './forms/sign-up'
+When you create a form from a definition, every part becomes a node with its own value and errors,
+and each node can be validated and submitted on its own.
 
-const form = useForm(signUpGroup)
-const name = useField(form.field('name'))
-const email = useField(form.field('email'))
+## Submitting a Form in Steps
 
-const signUp = form.handleSubmit(account => createAccount(account))
-</script>
+Long forms are often split into steps. The button that leads to the next step should check only the
+current step, not fields the user has not seen yet.
 
-<template>
-  <form novalidate @submit.prevent="signUp">
-    <label :for="name.id">Name</label>
-    <input v-model="name.model" v-bind="name.attrs" />
-    <p :id="name.errorId">{{ name.errorMessage }}</p>
+In formtree, each step is a part of the form, so its button can validate and submit just that part.
 
-    <label :for="email.id">Email</label>
-    <input v-model="email.model" v-bind="email.attrs" />
-    <p :id="email.errorId">{{ email.errorMessage }}</p>
+## Fields That Depend on Another Answer
 
-    <button type="submit">Sign up</button>
-  </form>
-</template>
-```
+Some fields matter only after a certain answer. Card details, for example, are needed only when the
+customer pays by card, and someone who pays by invoice should not be stopped by an empty card
+number.
 
-```tsx [React]
-import { useField, useForm } from '@formtree/react'
-import { createAccount } from './api'
-import { signUpGroup } from './forms/sign-up'
+A definition can say when one of its parts applies. While it does not, the fields in that part are
+not validated and are left out of the submitted values.
 
-export function SignUpForm() {
-  const form = useForm(signUpGroup)
-  const name = useField(form.field('name'))
-  const email = useField(form.field('email'))
+## Checking a Value with the Server
 
-  const signUp = form.handleSubmit(account => createAccount(account))
+A sign-up form asks for a username, and only the server knows whether it is still free. Checks like
+this are easy to get wrong. An answer for an older value can arrive last, and the form shows the
+result for a name the user has already changed.
 
-  return (
-    <form noValidate onSubmit={signUp}>
-      <label htmlFor={name.id}>Name</label>
-      <input {...name.attrs} value={name.value ?? ''} onChange={event => name.setValue(event.target.value)} />
-      <p id={name.errorId}>{name.errorMessage}</p>
+In formtree, the check lives in the definition, next to the schema. formtree cancels the request
+for a value that has changed, so the answer always belongs to what is on the screen.
 
-      <label htmlFor={email.id}>Email</label>
-      <input {...email.attrs} value={email.value ?? ''} onChange={event => email.setValue(event.target.value)} />
-      <p id={email.errorId}>{email.errorMessage}</p>
+## Still Got Questions?
 
-      <button type="submit">Sign up</button>
-    </form>
-  )
-}
-```
-
-:::
-
-An error appears once its field is left, and a submit with errors shows all of them and focuses
-the first. `createAccount` receives `{ name: string, email: string }` with the name already
-trimmed.
-
-<script setup>
-import SignUp from '../examples/demos/sign-up.vue'
-</script>
-
-<DemoFrame title="A first form">
-  <SignUp />
-</DemoFrame>
-
-## What is different
-
-### Submit any part
-
-Most form libraries validate and submit at the root, so saving one step of a checkout means
-checking its fields one by one. In formtree a step submits the same way the whole form does.
-
-```ts twoslash
-import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
-
-declare function goToPayment(): void
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: ['DE', 'NL'] },
-})
-// ---cut---
-const delivery = form.group('delivery')
-const continueToPayment = delivery.handleSubmit(() => goToPayment())
-```
-
-Continue checks the delivery step and nothing else, and its handler receives the output of that
-step. [Submitting](/guide/submitting#submitting-part-of-the-form) shows the rest.
-
-### Write a rule once
-
-A definition holds no state, so any number of forms can share it. Any definition can also be the
-root of a form, a single field included.
-
-```ts twoslash
-import { createForm } from '@formtree/core'
-import { priceField } from './forms/product'
-// ---cut---
-const priceForm = createForm(priceField, { initialValue: 24.9 })
-```
-
-A price edited on its own runs the same rule as the product page.
-[Inline Edit](/examples/inline-edit) shows it live.
-
-### Branches that come and go
-
-Card details are required only when the customer pays by card.
-
-```ts twoslash
-import { defineGroup } from '@formtree/core'
-import { z } from 'zod'
-import { cardGroup, invoiceGroup } from './forms/payment'
-// ---cut---
-export const paymentGroup = defineGroup({
-  schema: z.object({ method: z.enum(['card', 'invoice']) }),
-  children: { card: cardGroup, invoice: invoiceGroup },
-  activeWhen: {
-    card: ({ value }) => value.method === 'card',
-    invoice: ({ value }) => value.method === 'invoice',
-  },
-})
-```
-
-A branch that is off is not validated, stays out of the output and keeps its values for when the
-customer comes back. No watcher resets anything.
-[Conditional Branches](/guide/conditional-branches) explains the rules.
-
-### Server checks in the definition
-
-Whether a promo code is still valid is a question for a server, and the check belongs in the
-definition, next to the schema.
-
-```ts twoslash
-import { defineFieldWithDeps } from '@formtree/core'
-import { z } from 'zod'
-import { checkPromoCode } from './forms/api'
-// ---cut---
-export const promoCodeField = defineFieldWithDeps<{ cartId: string }>()({
-  schema: z.string().trim().toUpperCase(),
-  validateAsync: {
-    on: 'blur',
-    run: async (code, { signal, deps }) => {
-      const valid = await checkPromoCode({ code, cartId: deps.cartId }, signal)
-      return valid ? undefined : { code: 'This code is not valid' }
-    },
-  },
-})
-```
-
-The check waits for a pause, is cancelled by the next change, remembers each answer and runs on
-the trimmed, upper-cased value. A submit waits for it.
-[Asynchronous checks](/guide/fields#asynchronous-checks) covers the details.
-
-### Types that scale
-
-A node takes its type from its own definition. A path is checked one segment at a time, never
-against a union of every path in the form, so large and recursive forms stay typed and fast to
-check. A component that renders an address knows the address definition and nothing about the
-form around it. [Types](/guide/types) shows how.
-
-### Nothing depends on what is on screen
-
-Mounting and unmounting change nothing. Leaving a wizard step keeps its values, and a field in a
-dialog finds its node by path or by definition, never by being next to the nearest form.
-[How It Works](/guide/how-it-works) describes the model, and ten
-[design rules](/guide/design-rules) keep it predictable.
+Open an issue with the [Docs or question](https://github.com/tinas/formtree/issues/new/choose)
+template. A question the docs did not answer is a gap we want to fix.

@@ -1,135 +1,172 @@
+<script setup>
+import SubmitTree from '../.vitepress/components/submit-tree.vue'
+</script>
+
 # Submitting
 
-A form is rarely submitted only as a whole. In a checkout wizard, Continue submits the step the
-customer is on, a cart row saves on its own, and only Place order submits the whole form. Each of
-them calls `handleSubmit` on its own node. A submit validates that node's subtree, shows its
-errors if there are any, and otherwise hands the node's output to the handler.
+## Handling a Submit
 
-## handleSubmit
-
-```ts twoslash
-import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
-
-declare function placeOrder(order: unknown): Promise<void>
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: ['DE'] },
-})
-// ---cut---
-const submit = form.handleSubmit(
-  async order => {
-    await placeOrder(order)
-  },
-  {
-    onInvalid: errors => console.log(errors.length, 'errors'),
-    shouldFocusError: true,
-  },
-)
-
-const outcome = await submit()
-//    ^?
-```
-
-`handleSubmit` returns a function. Pass it straight to a submit listener, and it calls
-`preventDefault()` on the event first. Calling it without an event works too. In Vue templates,
-write `@submit.prevent` anyway, so the markup itself says the form never posts.
-
-The second argument holds options for this submit alone, such as `onInvalid`, and
-[`SubmitOptions`](/api/@formtree/core/interfaces/SubmitOptions) describes them. A submit runs the
-same steps every time, and its outcome says where it stopped.
-[Lifecycle](/guide/lifecycle#a-submit) lists the steps, and
-[What a submit covers](/guide/lifecycle#what-a-submit-covers) shows which errors count.
-
-## Submitting part of the form
-
-A handler receives the output of the node it was called on.
+`handleSubmit` wraps your function in a submit function that validates the form, waits for its
+server checks, and calls your function only with valid values:
 
 ```ts twoslash
 import type { OutputOf } from '@formtree/core'
 import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
+import { contactForm } from './forms/contact-form'
+
+declare function sendMessage(contact: OutputOf<typeof contactForm>): Promise<void>
+const form = createForm(contactForm)
+// ---cut---
+const send = form.handleSubmit(async contact => {
+  await sendMessage(contact)
+})
+
+const outcome = await send()
+//    ^?
+```
+
+A call resolves to `'invalid'` when errors remain, which then show, and to `'skipped'` while a submit
+is already running, so a double click sends once.
+
+## Submitting One Part
+
+Every node has its own `handleSubmit`, so a wizard's Continue button can submit only its step:
+
+```ts twoslash
+// @noStaticSemanticInfo
+import type { OutputOf } from '@formtree/core'
+import { createForm } from '@formtree/core'
+import { checkoutForm } from './forms/checkout'
 import { deliveryGroup } from './forms/delivery'
 
-declare const checkout: { next(): void }
 declare function saveDelivery(delivery: OutputOf<typeof deliveryGroup>): Promise<void>
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: ['DE'] },
+declare function showStep(step: 'delivery' | 'payment'): void
+const form = createForm(checkoutForm, {
+  deps: { cartId: 'cart_42', countries: ['DE', 'NL'] },
 })
 // ---cut---
-const continueFromDelivery = form.group('delivery').handleSubmit(async delivery => {
+const continueToPayment = form.group('delivery').handleSubmit(async delivery => {
   await saveDelivery(delivery)
-  checkout.next()
-})
-
-const applyPromoCode = form.field('promoCode').handleSubmit(code => {
-  //                                                        ^?
+  showStep('payment')
 })
 ```
 
-The delivery step moves on only when the step is valid, and the promo code is applied on its own.
-Errors elsewhere in the form are not shown and do not block either of them.
+<SubmitTree />
 
-A [lens node](/guide/how-it-works#defined-nodes-and-lens-nodes), one that lives in its parent's
-schema, submits its validated input, because part of a schema cannot run on its own.
+The submit covers the node and everything below it, so errors elsewhere neither block it nor show,
+and a part that is turned off resolves to `'skipped'`.
 
-## Errors from the server
+::: tip Submitting the Whole Form Later
+A later submit of the whole form reuses the step's results for values that have not changed.
+:::
 
-A handler can return the errors a server sent back, with paths relative to the submitted node.
-They are stored with the source `'server'`, shown at once and cleared when the value at that path
-changes.
+## Errors from the Server
+
+Return the server's errors from your function, with paths relative to the submitted node:
 
 ```ts twoslash
-import type { ErrorInput } from '@formtree/core'
+// @noStaticSemanticInfo
+import type { OutputOf } from '@formtree/core'
 import { createForm } from '@formtree/core'
-import { checkoutGroup } from './forms/checkout'
+import { accountForm } from './forms/account'
 
-declare function saveAddress(address: unknown): Promise<{ errors?: Array<{ field: string; message: string }> }>
-const form = createForm(checkoutGroup, {
-  deps: { cartId: 'cart_42', countries: ['DE'] },
-})
+interface FieldError {
+  readonly field: string
+  readonly message: string
+}
+declare function createAccount(account: OutputOf<typeof accountForm>): Promise<{ errors?: Array<FieldError> }>
+const form = createForm(accountForm)
 // ---cut---
-const address = form.group('delivery.address')
-
-const saveAddressCard = address.handleSubmit(async value => {
-  const response = await saveAddress(value)
-  return response.errors?.map((error): ErrorInput => ({ path: error.field, code: error.message }))
+const signUp = form.handleSubmit(async account => {
+  const response = await createAccount(account)
+  return response.errors?.map(error => ({ path: error.field, code: error.message }))
 })
 ```
 
-The paths are relative to `address`, so the server response does not have to be translated into
-paths of the whole form. A rejected submit resolves to `'rejected'`.
+The call resolves to `'rejected'`, and each error shows on its field and blocks every submit that
+covers it until the user changes that value.
 
-## After a save
+## Focusing the First Error
 
-`reset({ value })` makes a value the new initial value of a node. After a save, it marks the saved
-subtree as clean and leaves the rest of the form as it was.
+A failed submit focuses the first field with an error, or the error summary with
+`shouldFocusError: 'summary'`:
 
 ```ts twoslash
+// @noStaticSemanticInfo
+import type { OutputOf } from '@formtree/core'
 import { createForm } from '@formtree/core'
-import { contactGroup } from './forms/contact'
+import { contactForm } from './forms/contact-form'
 
-declare function saveContact(contact: { fullName: string; email: string }): Promise<{ fullName: string; email: string }>
+declare function sendMessage(contact: OutputOf<typeof contactForm>): Promise<void>
+const form = createForm(contactForm)
 // ---cut---
-const form = createForm(contactGroup)
-
-const save = form.handleSubmit(async contact => {
-  const saved = await saveContact(contact)
-  form.reset({ value: saved })
-})
+const send = form.handleSubmit(
+  async contact => {
+    await sendMessage(contact)
+  },
+  { shouldFocusError: 'summary' },
+)
 ```
 
-Without `value`, `reset()` returns the subtree to its current initial value, array items included.
-[`ResetOptions`](/api/@formtree/core/interfaces/ResetOptions) describes what a reset can keep.
+`focusElement` decides how an element is focused, for example with smooth scrolling.
 
-## A submit button outside the form
+::: tip Every Form at Once
+[App Defaults](/guide/app-defaults) sets both options for every form.
+:::
 
-A footer button outside the `<form>` element can still submit it with the HTML `form` attribute,
-once the form element has the node's id.
+## A Button Outside the Form
+
+A button outside the `<form>` element submits it through the HTML `form` attribute:
+
+<div class="vue-only">
 
 ```vue
-<form :id="delivery.id" novalidate @submit.prevent="continueFromDelivery">…</form>
+<template>
+  <form id="delivery-step" novalidate @submit.prevent="continueToPayment">…</form>
+
+  <footer>
+    <button type="submit" form="delivery-step">Continue</button>
+  </footer>
+</template>
+```
+
+</div>
+
+<div class="react-only">
+
+```tsx
+return (
+  <>
+    <form id="delivery-step" noValidate onSubmit={continueToPayment}>
+      …
+    </form>
+
+    <footer>
+      <button type="submit" form="delivery-step">
+        Continue
+      </button>
+    </footer>
+  </>
+)
+```
+
+</div>
+
+<div class="javascript-only">
+
+```html
+<form id="delivery-step" novalidate>…</form>
 
 <footer>
-  <button type="submit" :form="delivery.id">Continue</button>
+  <button type="submit" form="delivery-step">Continue</button>
 </footer>
 ```
+
+</div>
+
+## Keeping the Button Enabled
+
+formtree has no flag that disables the submit button while the form is invalid. Pressing an enabled
+button shows every error and focuses the first one, while a disabled button does not say what is
+wrong. An edit form can disable Save until something changes, as
+[Initial Values and Reset](/guide/initial-values) shows.
