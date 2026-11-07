@@ -13,7 +13,7 @@ export const passwordField = defineFieldWithDeps<{ minLength: number }>()({
       .min(deps.minLength, { error: `Use at least ${deps.minLength} characters` }),
 })
 
-export const accountGroup = defineGroup({
+export const accountForm = defineGroup({
   schema: z.object({
     email: z.email({ error: 'Enter a valid email address' }),
     role: z.enum(ROLE, { error: 'Choose a role' }),

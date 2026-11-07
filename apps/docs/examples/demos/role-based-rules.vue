@@ -6,14 +6,14 @@ import { computed, shallowRef } from 'vue'
 
 import SelectField from '../components/select-field.vue'
 import TextField from '../components/text-field.vue'
-import { accountGroup, ROLE } from '../forms/account'
+import { accountForm, ROLE } from '../forms/account'
 
 const ROLE_OPTIONS = [
   { value: ROLE.member, label: 'Member' },
   { value: ROLE.admin, label: 'Admin' },
 ]
 
-const form = provideFormNode(useForm(accountGroup, { initialValue: { role: ROLE.member } }))
+const form = provideFormNode(useForm(accountForm, { initialValue: { role: ROLE.member } }))
 
 const password = form.field('password')
 
@@ -22,7 +22,7 @@ const passwordCheck = computed(() => {
   return JSON.stringify({ valid: password.state.valid, errors }, null, 2)
 })
 
-const output = shallowRef<OutputOf<typeof accountGroup>>()
+const output = shallowRef<OutputOf<typeof accountForm>>()
 
 const createAccount = form.handleSubmit(account => {
   output.value = account

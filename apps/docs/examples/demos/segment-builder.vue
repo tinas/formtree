@@ -5,7 +5,7 @@ import { provideFormNode, useField, useForm } from '@formtree/vue'
 import { computed, ref, shallowRef } from 'vue'
 
 import { ATTRIBUTES } from '../forms/api'
-import { MATCH, segmentGroup } from '../forms/segment'
+import { MATCH, segmentForm } from '../forms/segment'
 import ConditionTree from './condition-tree.vue'
 
 const deviceAvailable = ref(true)
@@ -14,7 +14,7 @@ const attributes = computed(() => {
   return deviceAvailable.value ? ATTRIBUTES : ATTRIBUTES.filter(attribute => attribute.id !== 'device')
 })
 
-const form = useForm(segmentGroup, {
+const form = useForm(segmentForm, {
   deps: () => ({ attributes: attributes.value }),
   mode: 'all',
   initialValue: {
@@ -39,7 +39,7 @@ const form = useForm(segmentGroup, {
 const name = useField(form.field('name'))
 provideFormNode(form.group('rules'))
 
-const output = shallowRef<OutputOf<typeof segmentGroup>>()
+const output = shallowRef<OutputOf<typeof segmentForm>>()
 
 const saveSegment = form.handleSubmit(segment => {
   output.value = segment
