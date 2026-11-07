@@ -11,7 +11,7 @@ import { markdownPagesPlugin, writeMarkdownPages } from './page-markdown'
 import { FRAMEWORK_HEAD_SCRIPT, FRAMEWORK_STYLE } from './theme/framework'
 
 const DESCRIPTION =
-  'Forms that submit in parts. Steps, cards, rows and single fields each validate and submit on their own.'
+  'Headless, framework-agnostic forms. Describe a form once with a schema and its rules, and formtree validates it, submits it, and keeps it typed.'
 
 const SITE_URL = 'https://form-tree.netlify.app'
 
