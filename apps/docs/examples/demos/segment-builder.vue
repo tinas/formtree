@@ -11,7 +11,7 @@ import ConditionTree from './condition-tree.vue'
 const deviceAvailable = ref(true)
 
 const attributes = computed(() => {
-  return deviceAvailable.value ? ATTRIBUTES : ATTRIBUTES.filter(attribute => attribute.id !== 'device')
+  return deviceAvailable.value ? ATTRIBUTES : ATTRIBUTES.filter(attribute => attribute.id != 'device')
 })
 
 const form = useForm(segmentForm, {

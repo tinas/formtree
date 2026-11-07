@@ -8,7 +8,7 @@ export const promoCodeField = defineFieldWithDeps<{ cartId: string }>()({
   validateAsync: {
     on: 'blur',
     run: async (code, { signal, deps }) => {
-      if (code === undefined || code === '') {
+      if (code == undefined || code == '') {
         return undefined
       }
       const valid = await checkPromoCode({ code, cartId: deps.cartId }, signal)

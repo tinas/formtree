@@ -29,7 +29,7 @@ export const conditionGroup = defineGroupWithDeps<AttributeDeps>()({
     z.object({
       attribute: z
         .string({ error: 'Choose an attribute' })
-        .refine(id => deps.attributes.some(attribute => attribute.id === id), {
+        .refine(id => deps.attributes.some(attribute => attribute.id == id), {
           error: 'This attribute is not available',
         }),
       operator: z.enum(OPERATOR, { error: 'Choose an operator' }),
@@ -55,7 +55,7 @@ export const conditionTreeGroup: GroupDefinition<ConditionTreeInput, ConditionTr
       groups: ({ deps }) => deps,
     },
     validate: ({ value }) =>
-      value.conditions.length + value.groups.length === 0
+      value.conditions.length + value.groups.length == 0
         ? { path: 'conditions', code: 'Add a condition or a group' }
         : undefined,
   })

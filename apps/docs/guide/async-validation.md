@@ -185,7 +185,7 @@ const promoCodeField = defineField({
   schema: z.string().trim().toUpperCase().optional(),
   validateAsync: {
     run: async (code, { signal }) =>
-      code === undefined || code === '' || (await isPromoCodeValid(code, signal))
+      code == undefined || code == '' || (await isPromoCodeValid(code, signal))
         ? undefined
         : { code: 'This code is not valid' },
   },
@@ -197,7 +197,7 @@ export const paymentGroup = defineGroup({
   }),
   children: { promoCode: promoCodeField },
   validate: ({ value }) =>
-    value.method === 'invoice' && value.promoCode
+    value.method == 'invoice' && value.promoCode
       ? { path: 'promoCode', code: 'Promo codes apply to card payments only' }
       : undefined,
 })

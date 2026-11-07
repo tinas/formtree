@@ -21,10 +21,10 @@ export const accountForm = defineGroup({
   }),
   children: { password: passwordField },
   childDeps: {
-    password: ({ value }) => ({ minLength: value.role === ROLE.admin ? 12 : 8 }),
+    password: ({ value }) => ({ minLength: value.role == ROLE.admin ? 12 : 8 }),
   },
   validate: ({ value }) =>
-    value.confirmPassword !== undefined && value.confirmPassword !== value.password
+    value.confirmPassword != undefined && value.confirmPassword != value.password
       ? { path: 'confirmPassword', code: 'Passwords do not match' }
       : undefined,
 })

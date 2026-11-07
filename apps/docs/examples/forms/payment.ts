@@ -37,7 +37,7 @@ export const paymentGroup = defineGroup({
   }),
   children: { card: cardGroup, invoice: invoiceGroup },
   activeWhen: {
-    card: ({ value }) => value.method === PAYMENT_METHOD.card,
-    invoice: ({ value }) => value.method === PAYMENT_METHOD.invoice,
+    card: ({ value }) => value.method == PAYMENT_METHOD.card,
+    invoice: ({ value }) => value.method == PAYMENT_METHOD.invoice,
   },
 })
