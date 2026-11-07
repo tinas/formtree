@@ -225,7 +225,7 @@ export interface NodeBase<Value, Output> {
   readonly setErrors: (errors: ReadonlyArray<ErrorInput>, options?: SetErrorsOptions) => void
   /** Removes external errors in this subtree. Schema and rule errors follow their values. */
   readonly clearErrors: (options?: ClearErrorsOptions) => void
-  readonly listErrors: (options?: ListErrorsOptions) => Array<ListedError>
+  readonly listErrors: (options?: ListErrorsOptions) => ReadonlyArray<ListedError>
   /** Focuses the element with this node's id, through the form's `focusElement`. */
   readonly focus: () => void
 }

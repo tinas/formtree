@@ -100,6 +100,36 @@ describe('useForm', () => {
     scope.stop()
   })
 
+  test('an error summary re-renders only when the listed errors change', async () => {
+    const render = vi.fn()
+    const forms: Array<ReturnType<typeof useForm<typeof profileGroup>>> = []
+    const Summary = defineComponent({
+      setup() {
+        const form = useForm(profileGroup, { deps: PROFILE_DEPS })
+        forms.push(form)
+        return () => {
+          render()
+          return h(
+            'ul',
+            form.listErrors({ deep: true }).map(error => h('li', error.code)),
+          )
+        }
+      },
+    })
+    const wrapper = mount(Summary)
+    const [form] = forms
+
+    form?.field('age').setValue(30)
+    await nextTick()
+    expect(render).toHaveBeenCalledTimes(1)
+
+    await form?.handleSubmit(() => {})()
+    await nextTick()
+
+    expect(render).toHaveBeenCalledTimes(2)
+    expect(wrapper.findAll('li')).toHaveLength(2)
+  })
+
   test('array items are reactive nodes that keep their identity', () => {
     const scope = effectScope()
     scope.run(() => {

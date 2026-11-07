@@ -25,7 +25,7 @@ import { observeRuntime } from '../form/form-events'
 import { subscribeToRuntime } from '../form/form-runtime'
 import { submitNode, validateNode } from '../form/submit'
 import { blurNode, editNodeArray, resetNodeValue, setNodeValue } from '../form/value-operations'
-import { shallowEqual } from '../paths/equality'
+import { shallowEqual, stableKey } from '../paths/equality'
 import { joinPath } from '../paths/path'
 import { ARRAY_EDIT } from '../state/array-transitions'
 import { itemSegment, toNodeId } from '../state/node-id'
@@ -39,7 +39,7 @@ import {
   pathOf,
   summaryIdOf,
 } from './node-identity'
-import { computeNodeAttributes, computeNodeState, errorMessageOf } from './node-state'
+import { computeNodeAttributes, computeNodeState, errorMessageOf, keepIfSame } from './node-state'
 
 /**
  * Runtime object behind every node view, for adapters.
@@ -69,7 +69,7 @@ export interface UniversalNode {
   readonly reset: (options?: ResetOptions<unknown>) => void
   readonly setErrors: (errors: ReadonlyArray<ErrorInput>, options?: SetErrorsOptions) => void
   readonly clearErrors: (options?: ClearErrorsOptions) => void
-  readonly listErrors: (options?: ListErrorsOptions) => Array<ListedError>
+  readonly listErrors: (options?: ListErrorsOptions) => ReadonlyArray<ListedError>
   readonly focus: () => void
   readonly field: (path: string) => UniversalNode
   readonly group: (path: string) => UniversalNode
@@ -132,12 +132,32 @@ function cachedItemNodes(runtime: FormRuntime, arrayId: string): () => ReadonlyA
   }
 }
 
+function cachedErrorLists(
+  runtime: FormRuntime,
+  nodeId: string,
+): (options?: ListErrorsOptions) => ReadonlyArray<ListedError> {
+  const readers = new Map<string, () => ReadonlyArray<ListedError>>()
+  return options => {
+    const key = stableKey(options ?? {})
+    const cached = readers.get(key)
+    if (cached != undefined) {
+      return cached()
+    }
+    const read = cachedByVersion<ReadonlyArray<ListedError>>(runtime, previous =>
+      keepIfSame(previous, listNodeErrors(runtime, nodeId, options)),
+    )
+    readers.set(key, read)
+    return read()
+  }
+}
+
 function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
   const readState = cachedByVersion<NodeState<unknown>>(runtime, previous =>
     computeNodeState(runtime, nodeId, previous),
   )
   const readAttributes = cachedByVersion(runtime, () => computeNodeAttributes(runtime, nodeId, readState()))
   const readItems = cachedItemNodes(runtime, nodeId)
+  const listErrors = cachedErrorLists(runtime, nodeId)
   return {
     get kind() {
       return nodeKindOf(runtime, nodeId)
@@ -187,7 +207,7 @@ function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
     reset: options => resetNodeValue(runtime, nodeId, options),
     setErrors: (errors, options) => setNodeErrors({ runtime, nodeId, errors, options }),
     clearErrors: options => clearNodeErrors(runtime, nodeId, options),
-    listErrors: options => listNodeErrors(runtime, nodeId, options),
+    listErrors,
     focus: () => focusElementById(domIdOf(runtime, nodeId), runtime.options.focusElement),
     field: path => nodeAt(runtime, nodeId, path),
     group: path => nodeAt(runtime, nodeId, path),

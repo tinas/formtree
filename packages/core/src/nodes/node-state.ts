@@ -99,7 +99,7 @@ function checksWithin(state: FormState, nodeId: string): Array<[string, CheckSta
   return [...state.checks].filter(([ownerId]) => isWithinPath(ownerId, nodeId))
 }
 
-function keepIfSame<Item extends object>(
+export function keepIfSame<Item extends object>(
   previous: ReadonlyArray<Item> | undefined,
   next: ReadonlyArray<Item>,
 ): ReadonlyArray<Item> {

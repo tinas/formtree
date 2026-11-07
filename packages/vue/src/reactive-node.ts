@@ -1,4 +1,4 @@
-import type { FormControls, UniversalNode } from '@formtree/core'
+import type { FormControls, ListedError, ListErrorsOptions, UniversalNode } from '@formtree/core'
 import type { ComputedRef, ShallowRef } from 'vue'
 
 import { computed, shallowRef } from 'vue'
@@ -64,6 +64,23 @@ function computedFromForm<Value>(bridge: FormBridge, read: () => Value): Compute
   })
 }
 
+function computedErrorLists(
+  bridge: FormBridge,
+  node: UniversalNode,
+): (options?: ListErrorsOptions) => ReadonlyArray<ListedError> {
+  const lists = new Map<string, ComputedRef<ReadonlyArray<ListedError>>>()
+  return options => {
+    const key = JSON.stringify(options ?? {})
+    const cached = lists.get(key)
+    if (cached != undefined) {
+      return cached.value
+    }
+    const list = computedFromForm(bridge, () => node.listErrors(options))
+    lists.set(key, list)
+    return list.value
+  }
+}
+
 function createReactiveNode(bridge: FormBridge, node: UniversalNode): UniversalNode {
   const id = computedFromForm(bridge, () => node.id)
   const path = computedFromForm(bridge, () => node.path)
@@ -75,6 +92,7 @@ function createReactiveNode(bridge: FormBridge, node: UniversalNode): UniversalN
   const descriptionId = computedFromForm(bridge, () => node.descriptionId)
   const summaryId = computedFromForm(bridge, () => node.summaryId)
   const items = computedFromForm(bridge, () => reactiveItems(bridge, node.items))
+  const listErrors = computedErrorLists(bridge, node)
   return {
     get kind() {
       return node.kind
@@ -124,10 +142,7 @@ function createReactiveNode(bridge: FormBridge, node: UniversalNode): UniversalN
     reset: node.reset,
     setErrors: node.setErrors,
     clearErrors: node.clearErrors,
-    listErrors: options => {
-      trackChanges(bridge)
-      return node.listErrors(options)
-    },
+    listErrors,
     focus: node.focus,
     field: path => reactiveNode(bridge, node.field(path)),
     group: path => reactiveNode(bridge, node.group(path)),

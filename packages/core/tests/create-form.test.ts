@@ -106,4 +106,15 @@ describe('createForm', () => {
     name.blur()
     expect(name.attributes).not.toBe(attributes)
   })
+
+  test('an error list keeps its reference while the listed errors stay the same', async () => {
+    const form = createPromotionForm()
+    const errors = form.listErrors({ deep: true })
+
+    form.field('spending.maxDiscount').setValue(5)
+    expect(form.listErrors({ deep: true })).toBe(errors)
+
+    await form.handleSubmit(() => {})()
+    expect(form.listErrors({ deep: true })).not.toBe(errors)
+  })
 })
