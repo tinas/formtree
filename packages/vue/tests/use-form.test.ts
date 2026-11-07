@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from 'vite-plus/test'
 import { computed, defineComponent, effectScope, h, nextTick, ref } from 'vue'
 import { z } from 'zod'
 
-import { defineField, useForm } from '../src'
+import { arrayOf, defineField, defineGroup, provideFormNode, useField, useForm } from '../src'
 import { PROFILE_DEPS, profileGroup } from './fixtures/profile'
 
 describe('useForm', () => {
@@ -35,6 +35,65 @@ describe('useForm', () => {
       expect(name.value).toBeUndefined()
       form.field('name').setValue('Ada')
       expect(name.value).toBe('Ada')
+
+      expect(evaluate).toHaveBeenCalledTimes(2)
+    })
+    scope.stop()
+  })
+
+  test('a field component re-renders only when its own field changes', async () => {
+    const render = vi.fn()
+    const NameField = defineComponent({
+      setup() {
+        const field = useField<string>('name')
+        return () => {
+          render()
+          return h('input', {
+            ...field.attrs,
+            value: field.model,
+            title: field.errorMessage,
+            'aria-errormessage': field.errorId,
+            'data-description-id': field.descriptionId,
+          })
+        }
+      },
+    })
+    const forms: Array<ReturnType<typeof useForm<typeof profileGroup>>> = []
+    const Page = defineComponent({
+      setup() {
+        forms.push(provideFormNode(useForm(profileGroup, { deps: PROFILE_DEPS, mode: 'onChange' })))
+        return () => h(NameField)
+      },
+    })
+    mount(Page)
+    const [form] = forms
+
+    form?.field('age').setValue(16)
+    await nextTick()
+    expect(render).toHaveBeenCalledTimes(1)
+
+    form?.field('name').setValue('')
+    await nextTick()
+
+    expect(render).toHaveBeenCalledTimes(2)
+  })
+
+  test('a computed over array items is not re-evaluated when another field changes', () => {
+    const postForm = defineGroup({
+      schema: z.object({ title: z.string() }),
+      children: { tags: arrayOf(z.string()) },
+    })
+    const scope = effectScope()
+    scope.run(() => {
+      const form = useForm(postForm)
+      const evaluate = vi.fn(() => form.array('tags').items.length)
+      const tagCount = computed(evaluate)
+
+      expect(tagCount.value).toBe(0)
+      form.field('title').setValue('Hello')
+      expect(tagCount.value).toBe(0)
+      form.array('tags').push('news')
+      expect(tagCount.value).toBe(1)
 
       expect(evaluate).toHaveBeenCalledTimes(2)
     })

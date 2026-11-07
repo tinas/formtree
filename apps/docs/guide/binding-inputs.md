@@ -542,7 +542,7 @@ role.setValue('owner')
 
 <div class="vue-only">
 
-Errors on screen follow a language switch by themselves, because the template runs `formatError`
+Errors on screen follow a language switch by themselves, because each field runs `formatError`
 again when vue-i18n's locale changes.
 
 </div>
