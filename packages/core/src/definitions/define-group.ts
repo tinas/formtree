@@ -110,7 +110,10 @@ export interface DefineGroupBaseOptions<Schema, Children, ActiveKeys extends Pro
   readonly validateAsync?: AsyncValidationOptions<GroupOutput<Schema, Children, ActiveKeys>, Deps>
   /** When errors become visible inside this group. Overrides the form's `mode`. */
   readonly mode?: ValidationMode
-  /** When visible errors update inside this group. Overrides the form's `reValidateMode`. */
+  /**
+   * When errors inside this group update after a node that contains them is submitted. Overrides the form's
+   * `reValidateMode`.
+   */
   readonly reValidateMode?: ReValidateMode
 }
 

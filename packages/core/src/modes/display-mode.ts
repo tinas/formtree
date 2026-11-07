@@ -20,7 +20,8 @@ export const VALIDATION_MODE = {
 export type ValidationMode = (typeof VALIDATION_MODE)[keyof typeof VALIDATION_MODE]
 
 /**
- * When a new error shows on a field whose errors have already been visible. A fixed error disappears at once.
+ * When a new error shows on a field after a node that contains it is submitted. Until then, {@link VALIDATION_MODE}
+ * decides. A fixed error disappears at once.
  *
  * @category Validation
  */

@@ -10,7 +10,7 @@ export const ASYNC_TRIGGER = {
   change: 'change',
   /** After the field loses focus. */
   blur: 'blur',
-  /** Only when a node that contains it is submitted. */
+  /** When a node that contains it is submitted or validated with `validate()`. */
   submit: 'submit',
 } as const
 
