@@ -1,5 +1,5 @@
 /**
- * Framework-free engine of formtree: definitions, forms, nodes and their types.
+ * Framework-agnostic engine of formtree.
  *
  * @module @formtree/core
  */

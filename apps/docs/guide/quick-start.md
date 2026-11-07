@@ -4,26 +4,26 @@
 
 ::: tip Prerequisites
 This guide assumes basic familiarity with TypeScript. Its examples write schemas with
-[Zod](https://zod.dev), and any [Standard Schema](https://standardschema.dev) library can take its
-place.
+[Zod](https://zod.dev), so install it to follow along; any
+[Standard Schema](https://standardschema.dev) library can take its place.
 :::
 
-Install formtree together with Zod:
+Install formtree:
 
 <div class="vue-only">
 
 ::: code-group
 
 ```sh [pnpm]
-pnpm add @formtree/vue zod
+pnpm add @formtree/vue
 ```
 
 ```sh [npm]
-npm install @formtree/vue zod
+npm install @formtree/vue
 ```
 
 ```sh [yarn]
-yarn add @formtree/vue zod
+yarn add @formtree/vue
 ```
 
 :::
@@ -39,15 +39,15 @@ yarn add @formtree/vue zod
 ::: code-group
 
 ```sh [pnpm]
-pnpm add @formtree/react zod
+pnpm add @formtree/react
 ```
 
 ```sh [npm]
-npm install @formtree/react zod
+npm install @formtree/react
 ```
 
 ```sh [yarn]
-yarn add @formtree/react zod
+yarn add @formtree/react
 ```
 
 :::
@@ -63,15 +63,15 @@ yarn add @formtree/react zod
 ::: code-group
 
 ```sh [pnpm]
-pnpm add @formtree/core zod
+pnpm add @formtree/core
 ```
 
 ```sh [npm]
-npm install @formtree/core zod
+npm install @formtree/core
 ```
 
 ```sh [yarn]
-yarn add @formtree/core zod
+yarn add @formtree/core
 ```
 
 :::

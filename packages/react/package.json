@@ -1,7 +1,7 @@
 {
   "name": "@formtree/react",
   "version": "0.1.0",
-  "description": "React adapter for @formtree/core: node state hooks, explicit node context, field bindings.",
+  "description": "The React adapter of formtree, a headless form tree in which every part of a form validates and submits on its own.",
   "keywords": [
     "form",
     "headless",

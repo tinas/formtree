@@ -1,12 +1,8 @@
 # formtree
 
-A headless form tree for any UI layer. A form is built from definitions like a route tree, its state lives in one place, and every node of the tree, a single field included, validates and submits on its own.
+A headless form tree in which every part of a form, from a wizard step to a single field, validates and submits on its own. The [Vue](packages/vue) and [React](packages/react) adapters build on the framework-agnostic [core](packages/core).
 
-| Package           | What it is                                                                               |
-| ----------------- | ---------------------------------------------------------------------------------------- |
-| `@formtree/core`  | Framework-free engine. Standard Schema validation, no runtime dependencies.              |
-| `@formtree/vue`   | Vue adapter: reactive nodes, `useFormNode(Definition)`, `useField(name)` for v-model.    |
-| `@formtree/react` | React adapter: node state hooks, `useFormNode(Definition)`, `useField(name)` for inputs. |
+Read the [documentation](https://form-tree.netlify.app/guide/).
 
 ## License
 
