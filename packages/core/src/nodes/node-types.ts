@@ -240,7 +240,7 @@ export interface FieldNode<Value, Output = Value> extends NodeBase<Value, Output
   readonly errorId: string
   /** Id for a description element. */
   readonly descriptionId: string
-  readonly getAttributes: () => FieldAttributes
+  readonly attributes: FieldAttributes
 }
 
 /**

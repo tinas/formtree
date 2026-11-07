@@ -25,6 +25,7 @@ import { observeRuntime } from '../form/form-events'
 import { subscribeToRuntime } from '../form/form-runtime'
 import { submitNode, validateNode } from '../form/submit'
 import { blurNode, editNodeArray, resetNodeValue, setNodeValue } from '../form/value-operations'
+import { shallowEqual } from '../paths/equality'
 import { joinPath } from '../paths/path'
 import { ARRAY_EDIT } from '../state/array-transitions'
 import { itemSegment, toNodeId } from '../state/node-id'
@@ -38,7 +39,7 @@ import {
   pathOf,
   summaryIdOf,
 } from './node-identity'
-import { errorMessageOf, readNodeState } from './node-state'
+import { computeNodeAttributes, computeNodeState, errorMessageOf } from './node-state'
 
 /**
  * Runtime object behind every node view, for adapters.
@@ -54,6 +55,7 @@ export interface UniversalNode {
   readonly index: number
   readonly state: NodeState<unknown>
   readonly errorMessage: string | undefined
+  readonly attributes: FieldAttributes
   readonly errorId: string
   readonly descriptionId: string
   readonly summaryId: string
@@ -69,7 +71,6 @@ export interface UniversalNode {
   readonly clearErrors: (options?: ClearErrorsOptions) => void
   readonly listErrors: (options?: ListErrorsOptions) => Array<ListedError>
   readonly focus: () => void
-  readonly getAttributes: () => FieldAttributes
   readonly field: (path: string) => UniversalNode
   readonly group: (path: string) => UniversalNode
   readonly array: (path: string) => UniversalNode
@@ -81,8 +82,18 @@ export interface UniversalNode {
   readonly replace: (values: ReadonlyArray<unknown>) => void
 }
 
+interface VersionedValue<Value> {
+  readonly version: number
+  readonly value: Value
+}
+
+interface ItemNodes {
+  readonly keys: ReadonlyArray<string> | undefined
+  readonly nodes: ReadonlyArray<UniversalNode>
+}
+
 export function nodeFor(runtime: FormRuntime, nodeId: string): UniversalNode {
-  const cached = runtime.nodes.get(nodeId) as UniversalNode | undefined
+  const cached = runtime.nodes.get(nodeId)
   if (cached != undefined) {
     return cached
   }
@@ -95,28 +106,38 @@ export function nodeAt(runtime: FormRuntime, baseId: string, path: string): Univ
   return nodeFor(runtime, toNodeId(runtime.state.arrayKeys, baseId, path) ?? joinPath(baseId, path))
 }
 
-export function itemNodesOf(runtime: FormRuntime, arrayId: string): ReadonlyArray<UniversalNode> {
-  const keys = runtime.state.arrayKeys.get(arrayId)
-  const cached = runtime.itemLists.get(arrayId)
-  if (cached != undefined && cached.keys == keys) {
-    return cached.nodes as ReadonlyArray<UniversalNode>
+function cachedByVersion<Value>(runtime: FormRuntime, compute: (previous: Value | undefined) => Value): () => Value {
+  let cached: VersionedValue<Value> | undefined
+  return () => {
+    if (cached?.version == runtime.version) {
+      return cached.value
+    }
+    const next = compute(cached?.value)
+    const value = cached != undefined && shallowEqual(cached.value, next) ? cached.value : next
+    cached = { version: runtime.version, value }
+    return value
   }
-  const nodes = (keys ?? []).map(key => nodeFor(runtime, joinPath(arrayId, itemSegment(key))))
-  runtime.itemLists.set(arrayId, { keys, nodes })
-  return nodes
 }
 
-export function attributesOf(runtime: FormRuntime, nodeId: string): FieldAttributes {
-  const hasErrors = readNodeState(runtime, nodeId).errors.length > 0
-  return {
-    id: domIdOf(runtime, nodeId),
-    name: pathOf(runtime, nodeId),
-    'aria-invalid': hasErrors ? 'true' : 'false',
-    'aria-describedby': hasErrors ? errorIdOf(runtime, nodeId) : null,
+function cachedItemNodes(runtime: FormRuntime, arrayId: string): () => ReadonlyArray<UniversalNode> {
+  let cached: ItemNodes | undefined
+  return () => {
+    const keys = runtime.state.arrayKeys.get(arrayId)
+    if (cached != undefined && cached.keys == keys) {
+      return cached.nodes
+    }
+    const nodes = (keys ?? []).map(key => nodeFor(runtime, joinPath(arrayId, itemSegment(key))))
+    cached = { keys, nodes }
+    return nodes
   }
 }
 
 function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
+  const readState = cachedByVersion<NodeState<unknown>>(runtime, previous =>
+    computeNodeState(runtime, nodeId, previous),
+  )
+  const readAttributes = cachedByVersion(runtime, () => computeNodeAttributes(runtime, nodeId, readState()))
+  const readItems = cachedItemNodes(runtime, nodeId)
   return {
     get kind() {
       return nodeKindOf(runtime, nodeId)
@@ -137,10 +158,13 @@ function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
       return itemIndexOf(runtime, nodeId)
     },
     get state() {
-      return readNodeState(runtime, nodeId)
+      return readState()
     },
     get errorMessage() {
-      return errorMessageOf(runtime, nodeId)
+      return errorMessageOf(runtime, readState())
+    },
+    get attributes() {
+      return readAttributes()
     },
     get errorId() {
       return errorIdOf(runtime, nodeId)
@@ -152,7 +176,7 @@ function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
       return summaryIdOf(runtime, nodeId)
     },
     get items() {
-      return itemNodesOf(runtime, nodeId)
+      return readItems()
     },
     subscribe: listener => subscribeToRuntime(runtime, listener),
     observe: observer => observeRuntime(runtime, observer),
@@ -165,7 +189,6 @@ function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
     clearErrors: options => clearNodeErrors(runtime, nodeId, options),
     listErrors: options => listNodeErrors(runtime, nodeId, options),
     focus: () => focusElementById(domIdOf(runtime, nodeId), runtime.options.focusElement),
-    getAttributes: () => attributesOf(runtime, nodeId),
     field: path => nodeAt(runtime, nodeId, path),
     group: path => nodeAt(runtime, nodeId, path),
     array: path => nodeAt(runtime, nodeId, path),

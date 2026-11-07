@@ -166,7 +166,7 @@ describe('async validation', () => {
     expect(username.state.errors).toEqual([])
     expect(username.state.failedChecks).toEqual([{ path: 'username', error: NETWORK_ERROR }])
     expect(username.state.valid).toBe(false)
-    expect(username.getAttributes()['aria-invalid']).toBe('false')
+    expect(username.attributes['aria-invalid']).toBe('false')
     expect(form.state.failedChecks).toEqual([{ path: 'username', error: NETWORK_ERROR }])
   })
 

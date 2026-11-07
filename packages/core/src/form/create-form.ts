@@ -66,8 +66,6 @@ function createFormRuntime(definition: Definition, options: RuntimeOptions): For
     listeners: new Set(),
     observers: new Set(),
     nodes: new Map(),
-    nodeStates: new Map(),
-    itemLists: new Map(),
     syncEntries: new Map(),
     checkEntries: new Map(),
     pendingSchemaRuns: new Map(),

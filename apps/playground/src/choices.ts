@@ -42,7 +42,7 @@ function renderChoices<Value extends string>(
   for (const checkbox of checkboxes) {
     checkbox.element.checked = selected.includes(checkbox.value)
   }
-  applyAttributes(binding.fieldset, binding.node.getAttributes())
+  applyAttributes(binding.fieldset, binding.node.attributes)
   binding.fieldset.removeAttribute('name')
   binding.message.id = binding.node.errorId
   binding.message.textContent = binding.node.errorMessage ?? ''

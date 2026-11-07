@@ -67,7 +67,7 @@ function resolveFieldNode(nearest: UniversalNode | undefined, source: FieldSourc
 }
 
 function createFieldView(node: FieldNode<unknown, unknown>, state: NodeState<unknown>): FieldView<unknown, unknown> {
-  const attributes = node.getAttributes()
+  const attributes = node.attributes
   return {
     node,
     state,

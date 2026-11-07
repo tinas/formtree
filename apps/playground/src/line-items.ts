@@ -81,8 +81,8 @@ function renderRow(view: RowView): void {
   const { state } = view.row
   const sku = view.row.field('sku')
   const quantity = view.row.field('quantity')
-  applyAttributes(view.product, sku.getAttributes())
-  applyAttributes(view.quantity, quantity.getAttributes())
+  applyAttributes(view.product, sku.attributes)
+  applyAttributes(view.quantity, quantity.attributes)
   view.productError.id = sku.errorId
   view.quantityError.id = quantity.errorId
   view.productError.textContent = sku.errorMessage ?? ''

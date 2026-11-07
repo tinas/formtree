@@ -139,7 +139,7 @@ export function bindInput(field: FieldNode<string | undefined, unknown>) {
   function showField() {
     input.value = field.state.value ?? ''
     error.textContent = field.errorMessage ?? ''
-    setAttributes(input, field.getAttributes())
+    setAttributes(input, field.attributes)
   }
 }
 
@@ -262,7 +262,7 @@ export function bindNumberInput(field: FieldNode<number | undefined, unknown>) {
       input.value = field.state.value == undefined ? '' : String(field.state.value)
     }
     error.textContent = field.errorMessage ?? ''
-    setAttributes(input, field.getAttributes())
+    setAttributes(input, field.attributes)
   }
 
   function readNumber() {
@@ -382,7 +382,7 @@ export function bindSelect<Value extends string>(
   function showField() {
     select.value = field.state.value ?? ''
     error.textContent = field.errorMessage ?? ''
-    setAttributes(select, field.getAttributes())
+    setAttributes(select, field.attributes)
   }
 }
 ```
@@ -480,7 +480,7 @@ export function bindCheckbox(field: FieldNode<true | undefined, unknown>) {
   function showField() {
     checkbox.checked = field.state.value ?? false
     error.textContent = field.errorMessage ?? ''
-    setAttributes(checkbox, field.getAttributes())
+    setAttributes(checkbox, field.attributes)
   }
 }
 ```
@@ -601,7 +601,7 @@ export function bindInput(field: FieldNode<string | undefined, unknown>) {
   function showField() {
     input.value = field.state.value ?? ''
     error.textContent = field.errorMessage ?? ''
-    setAttributes(input, field.getAttributes())
+    setAttributes(input, field.attributes)
   }
 }
 // ---cut-after---

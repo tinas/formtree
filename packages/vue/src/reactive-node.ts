@@ -85,6 +85,10 @@ function createReactiveNode(bridge: FormBridge, node: UniversalNode): UniversalN
       trackChanges(bridge)
       return node.errorMessage
     },
+    get attributes() {
+      trackChanges(bridge)
+      return node.attributes
+    },
     get errorId() {
       trackChanges(bridge)
       return node.errorId
@@ -114,10 +118,6 @@ function createReactiveNode(bridge: FormBridge, node: UniversalNode): UniversalN
       return node.listErrors(options)
     },
     focus: node.focus,
-    getAttributes: () => {
-      trackChanges(bridge)
-      return node.getAttributes()
-    },
     field: path => reactiveNode(bridge, node.field(path)),
     group: path => reactiveNode(bridge, node.group(path)),
     array: path => reactiveNode(bridge, node.array(path)),
