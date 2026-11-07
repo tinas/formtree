@@ -17,6 +17,8 @@ const SITE_URL = 'https://form-tree.netlify.app'
 
 const OG_IMAGE = `${SITE_URL}/og-image.png`
 
+const REPOSITORY = 'https://github.com/tinas/formtree'
+
 const PACKAGE_SOURCES = {
   '@formtree/core': packageSource('core'),
   '@formtree/vue': packageSource('vue'),
@@ -119,7 +121,12 @@ export default defineConfig({
       ],
     },
 
-    socialLinks: [{ icon: 'github', link: 'https://github.com/tinas/formtree' }],
+    editLink: {
+      pattern: `${REPOSITORY}/edit/main/apps/docs/:path`,
+      text: 'Edit this page on GitHub',
+    },
+
+    socialLinks: [{ icon: 'github', link: REPOSITORY }],
 
     search: { provider: 'local' },
 
@@ -132,6 +139,12 @@ export default defineConfig({
   },
 
   buildEnd: siteConfig => writeMarkdownPages(siteConfig, SITE_URL),
+
+  transformPageData(pageData) {
+    if (pageData.relativePath.startsWith('api/')) {
+      pageData.frontmatter.editLink = false
+    }
+  },
 
   head: [
     ['script', {}, FRAMEWORK_HEAD_SCRIPT],
