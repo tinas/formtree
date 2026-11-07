@@ -1,0 +1,16 @@
+name: Docs or question
+description: Something in the docs is missing, unclear or wrong, or you have a question.
+labels: [documentation]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: Link to the page, if there is one.
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Your question, or what is missing, unclear or wrong in the docs.
+    validations:
+      required: true

@@ -2,6 +2,8 @@
 
 Headless form tree. `packages/core` is the framework-free engine, `packages/vue` and `packages/react` the adapters. `apps/playground` drives the core with plain DOM code; `apps/vue-playground` and `apps/react-playground` build the same wizard with Vue SFCs and React components. The docs guide is the spec: `apps/docs/guide/design-rules.md` holds the ten design rules and what formtree leaves out on purpose, `apps/docs/guide/how-it-works.md` the model. The decisions below record why the code has its shape; add new ones here.
 
+The contributor workflow lives in @CONTRIBUTING.md. This file keeps only what the code, config and git history do not show: the architecture at a glance, the conventions review holds code and docs to, decisions with their reasons and guarding tests, and gotchas. A path, name or value that the code already shows stays out.
+
 ## Architecture (packages/core/src)
 
 | Folder         | Role                                                                                                                                              |
@@ -51,8 +53,6 @@ State is immutable; every mutation goes through a pure transition and then `comm
 | `formtree-app.ts`    | `FORMTREE_APP` injection key (defaults + devtools registry); `useForm` reads it and registers its form, labelled with the creating component's name                    |
 | `devtools/`          | `connectDevtools(app)`: a read-only inspector (node tree, node state) and a timeline layer; returns the registry forms register with                                   |
 
-Components never receive nodes through props: business components call `useFormNode(Definition)`, generic inputs take a `name`, rows take an `index`.
-
 - Names match the React adapter: `useForm` creates a form, `useFormNode` reads a node from context, `useField` binds an input. Only providing differs, because React provides through a component: `provideFormNode` here, `<FormNodeProvider>` there. `FormNode` avoids confusion with VNodes and DOM nodes.
 - The `deps` watch in `use-form.ts` is the package's only `watch`; it writes to an external system (the core store), never to Vue state.
 - Scope end drops the subscription and calls `form.dispose()`, which cancels pending async work; the form stays usable.
@@ -60,7 +60,12 @@ Components never receive nodes through props: business components call `useFormN
 - `useField` also accepts a node, so a business component can bind v-model to a typed node from `useFormNode`.
 - The package re-exports core, so an app depends on one package.
 - `formatError` is the app's function, given once to `createFormtree`; the adapter calls it and knows no i18n library. Generic inputs show `field.errorMessage`.
-- Devtools are Vue only (React DevTools has no plugin API) and read-only: an edit from the devtools would be a write path outside the error producers of rule 4. Devtools are on by default through `createFormtree` and off with `devtools: false`. The code runs behind `process.env.NODE_ENV != 'production'` (declared locally in `create-formtree.ts`, so no Node types leak into the `.d.ts`); bundlers replace it, and with `sideEffects: false` here and in `@vue/devtools-api` / `@vue/devtools-kit` the whole devtools code drops out of production builds (checked on the vue-playground bundle). The main entry imports `@vue/devtools-api`, so it is a required peer, as in Pinia 4 (`peerDependenciesMeta` `optional: false`): an optional peer would break resolution when it is missing, and a dependency would fix the version for the app. `useForm` reads the registry with `hasInjectionContext()` first, so a form in a bare `effectScope` (tests) neither registers nor warns. Plugin types are derived from `setupDevtoolsPlugin` (`devtools/devtools-api.ts`), since `@vue/devtools-kit`, which declares them, is not a direct dependency. The inspector lists declared children in definition order, then schema keys that have a value or an error, sorted; a schema cannot be asked for its keys. The Vue Devtools v8 sidebar shows only the descriptor's `logo` (otherwise a generic icon), and accepts an `http(s)` or `/` URL or one of its bundled `custom-ic-baseline-*` names, not a data URI; until the docs site has a public URL, `logo` names the bundled `dynamic_form` icon.
+- Devtools are Vue only (React DevTools has no plugin API) and read-only: an edit from the devtools would be a write path outside the error producers of rule 4. They are on by default through `createFormtree` and off with `devtools: false`.
+- Production builds drop the devtools. The code runs behind `process.env.NODE_ENV != 'production'`, declared locally in `create-formtree.ts` so no Node types leak into the `.d.ts`, and `sideEffects: false` here and in `@vue/devtools-api` / `@vue/devtools-kit` lets bundlers remove it.
+- `@vue/devtools-api` is a required peer, as in Pinia 4, because the main entry imports it: an optional peer would break resolution when it is missing, and a dependency would fix the version for the app. Plugin types are derived from `setupDevtoolsPlugin`, since `@vue/devtools-kit`, which declares them, is not a direct dependency.
+- `useForm` reads the registry with `hasInjectionContext()` first, so a form in a bare `effectScope` (tests) neither registers nor warns.
+- The inspector lists declared children in definition order, then schema keys that have a value or an error, sorted; a schema cannot be asked for its keys.
+- The Vue Devtools v8 sidebar shows only the descriptor's `logo` and accepts an `http(s)` or `/` URL or a bundled `custom-ic-baseline-*` name, not a data URI, so `logo` names the bundled `dynamic_form` icon.
 - No console warnings for misuse (such as an `initialValue` that changes after `useForm`); pitfalls go in the docs, and runtime visibility comes from the devtools.
 
 ## React adapter (packages/react/src)
@@ -81,42 +86,72 @@ Components never receive nodes through props: business components call `useFormN
 - `value` and `setValue` instead of ready-made input props: only the component knows how its element represents the value (numbers, empty strings, objects from a select).
 - Same names as the Vue adapter except the providers (`<FormNodeProvider>`, `<FormtreeProvider>` where Vue has `provideFormNode`, `createFormtree`). `errorMessage` is computed on render, so a language switch shows only in components that re-render; the docs have the generic input call `useTranslation()`.
 
+## Code conventions
+
+- No comments. Names and structure carry the meaning.
+- The one exception is short JSDoc on the public API, which is what each package exports from its entry.
+  - Every export has a `@category`, which groups the API reference.
+  - A summary goes only where the name and type do not say it. Behaviour that surprises, such as throwing, skipping or keeping values, goes there.
+  - An option with a default has a `@defaultValue`. There is no `@param`, `@returns` or `@example`, because examples live in the guide.
+  - Plumbing that only the adapters use is `@internal`.
+- Functions take an object parameter once their arguments stop being obvious.
+- Loose equality (`==`, `!=`) unless identity matters (`Object.is`).
+- Behaviour that differs per kind lives in an exhaustive table, not in `kind == 'x'` branches.
+- String domain values are `as const` objects with a derived type.
+- Definitions are values, not components. They are camelCase with a kind suffix, such as `emailField`, `deliveryGroup` or `lineItemsArray`. PascalCase stays for types, interfaces and components.
+- Components never receive nodes through props. A business component reads its node with `useFormNode(Definition)`, a generic input takes a `name` and a row takes an `index`.
+- React components live in kebab-case `.tsx` files with named exports.
+- A constant used by one file stays in that file. Only a package's entry re-exports.
+- Relative imports have no extension.
+- Type-only modules are `.ts`, never `.d.ts`, since `skipLibCheck` would hide their errors.
+
 ## Docs (apps/docs)
 
-VitePress 2 (alpha) site in English, styled after usewagen.dev: `guide/` (core concepts), `vue/` and `react/` (adapters), `examples/` (live Vue demos, each followed by every file it uses in a code group; React pages use plain `tsx` blocks). Examples are generic (checkout, account roles, segment builder, price cell), and so are the three playgrounds (one checkout wizard); never use search-ads-ui domain terms in docs, playgrounds or tests. Core tests use a store promotion (`packages/core/tests/fixtures/promotion.ts`): reward branches, a gift with a nested branch, spending slots, recursive eligibility rules.
+VitePress 2 (alpha) site in English, styled after usewagen.dev: `guide/` (core concepts), `vue/` and `react/` (adapters), `examples/` (live Vue demos, each followed by every file it uses in a code group; React pages use plain `tsx` blocks). Never use search-ads-ui domain terms in docs, playgrounds or tests.
 
 | Path                        | Role                                                                                                                                                                                                                                                                                              |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `examples/forms/*.ts`       | definitions, one file per part (`contact`, `delivery`, `payment`, `line-items`, `promo-code`, composed in `checkout`), and a fake API; used by the demos and, through twoslash `extraFiles`, by guide snippets                                                                                    |
+| `examples/forms/*.ts`       | definitions, one file per part (`contact`, `delivery`, `payment`, `line-items`, `promo-code`, composed in `checkout`), and a fake API; used by the demos and, through twoslash `extraFiles`, by guide snippets (`./forms/<name>`); a new file goes into `EXAMPLE_FORMS` in `.vitepress/config.ts` |
 | `examples/demos/*.vue`      | live demos, embedded in `examples/*.md` inside `<DemoFrame>`                                                                                                                                                                                                                                      |
 | `examples/components/*.vue` | generic `text-field` / `number-field` / `select-field` built on `useField(name)`                                                                                                                                                                                                                  |
 | `.vitepress/config.ts`      | sidebar, twoslash (`ts twoslash` blocks are type-checked at build time), aliases to package sources                                                                                                                                                                                               |
 | `typedoc.json`              | API reference: TypeDoc + typedoc-plugin-markdown + typedoc-vitepress-theme write `api/` (gitignored) before `dev` and `build`; one page per symbol, linked to its source on GitHub at the built commit (`sourceLinkTemplate`); the sidebar is read from `api/typedoc-sidebar.json` at config load |
 
-A `ts twoslash` block that does not compile fails the docs build; hide setup lines above `// ---cut---` and import shared definitions from `./forms/<name>`. Use `//    ^?` queries only where the displayed type reads well. Hover popups are rendered into the page chunk, and Zod's long types make a block of schema methods cost about 120 kB; a block whose hovers add nothing (a Zod `refine` or `superRefine` example) starts with `// @noStaticSemanticInfo`, which keeps the type check and drops the hovers, so no page chunk passes Vite's 500 kB warning. Vue templates use `@submit.prevent`.
-
 The site is deployed on Netlify at https://form-tree.netlify.app. `og:image` is that site's absolute URL, since most link previews ignore a relative one. `public/og-image.png` is rendered from `.vitepress/og-image.html` at 1200×630 with headless Chrome (`--window-size=1200,630 --force-device-scale-factor=1 --allow-file-access-from-files --screenshot`).
 
-Docs are plain and leave no open question. They explain concepts, behaviour and reasons, and show them in `ts twoslash` code, which fails the build when the API changes. They never copy what the API reference lists (members, options, defaults) into prose or tables; a sentence links to the reference page instead (`/api/@formtree/core/interfaces/FieldNode`), and a dead link fails the build. No intro that recaps the sidebar and no "Next" section: the sidebar and the pager do that. `guide/index.md` introduces the library through the problems it solves; it describes other libraries generically, without naming them. No page compares formtree to another library or borrows one as a reference point ("like TanStack Table", "the same limit `z.lazy` has"); a library is named only where an example uses it (Zod, vue-i18n, react-i18next).
+`guide/how-it-works.md` and `guide/groups.md` state that a schema key is not a child, and the `children` JSDoc repeats it. The option keeps its name: it pairs with `childDeps`, and nesting definitions as `children` matches route trees.
 
-Prose has few colons. A sentence that leads into code or a list ends with a period, and an "X: Y" clause becomes two sentences, a "because" or "so" clause, or a comma. Every sentence earns its place: no restating what the code just showed, no asides.
+Writing:
 
-An example page shows the demo, a few sentences on what to try, then a `::: code-group` with every local file the demo imports (`<<< ./demos/…`, `./forms/…`, `./components/…`), entry component first, so a reader never meets an import they cannot open. Keep `examples/forms` split by part so those tabs hold only what the example uses; a new form file goes into `EXAMPLE_FORMS` in `.vitepress/config.ts`.
+- Docs are plain and leave no open question. They explain concepts, behaviour and reasons, and show them in code.
+- Every sentence earns its place. A page does not restate what the code just showed, has no asides, no intro that recaps the sidebar and no "Next" section.
+- Prose has few colons. A sentence that leads into code or a list ends with a period, and an "X: Y" clause becomes two sentences, a "because" or "so" clause, or a comma.
+- The guide never copies what the API reference lists, such as members, options or defaults. It links to the reference instead.
+- No page compares formtree to another library or borrows one as a reference point. A library is named only where an example uses it.
+- A child is always an entry of a group's `children`, a node with a definition of its own. A key of a schema is a node too, but prose calls it a key or a lens node, never a child.
 
-A child is always an entry of a group's `children`, a node with a definition of its own. A key of a schema is a node too, but prose calls it a key (or a lens node), never a child; `guide/how-it-works.md` and `guide/groups.md` state the distinction, and the `children` JSDoc repeats it. The option keeps its name: it pairs with `childDeps`, and nesting definitions as `children` matches route trees.
+Code blocks:
 
-Names in examples read as plain English: a node variable is named after its key (`const delivery = form.group('delivery')`), a key never repeats an API member (`lineItems`, so the code reads `lineItems.items`, never `items.items`), a function says what it does (`savePrice`, not `commit`), and no name shadows another in the same file. Every identifier a snippet uses is declared or imported, and a snippet shows a use, not a bare expression statement.
+- Code blocks are type-checked with twoslash. Setup lines go above `// ---cut---`, and shared definitions are imported rather than repeated.
+- Type queries (`//    ^?`) go only where the displayed type reads well.
+- Hovers add to the page size, so a block whose hovers add nothing starts with `// @noStaticSemanticInfo`. It keeps the type check and drops the hovers.
+- Vue templates use `@submit.prevent`.
+
+Examples:
+
+- Examples, playgrounds and tests use everyday domains, such as a checkout or account roles.
+- An example page shows the demo, a few sentences on what to try, then every local file the demo imports, entry component first, so a reader never meets an import they cannot open.
+- Example forms are split by part, so each example shows only the files it uses.
+- Names read as plain English. A node variable is named after its key (`const delivery = form.group('delivery')`), a key never repeats an API member (`lineItems`, so the code reads `lineItems.items`, never `items.items`), a function says what it does (`savePrice`, not `commit`), and no name shadows another in the same file.
+- Every identifier a snippet uses is declared or imported, and a snippet shows a use, not a bare expression statement.
 
 ## Releases
 
-Changesets 3 (`.changeset/config.json`): `@formtree/*` is a `fixed` group, so every package gets the same version; private `apps/*` are never versioned; `access: public`; `format: false` because the formatter is `vp fmt` (its config lives in `vite.config.ts`, which Changesets cannot detect), so `pnpm version-packages` runs `changeset version && vp fmt`. The changelog is `@changesets/changelog-github`: each entry links its PR or commit and thanks the author. It reads GitHub, so a local `pnpm version-packages` needs `GITHUB_TOKEN=$(gh auth token)`. Releases are stable from 0.1.0 and publish under `latest`, so a plain `npm i @formtree/core` gets the newest version. The alphas (0.1.0-alpha.0, 0.1.0-alpha.1) were folded into a single "Initial release" entry, and the empty `0.0.0-stage` placeholders from the first staged publish are deprecated. For another prerelease, `pnpm changeset pre enter <tag>` puts the repo in pre mode (`.changeset/pre.json`; released prerelease changesets move to `.changeset/pre/`), and `pnpm changeset pre exit` leaves it; the stable changelog is built from `.changeset/pre/`, so trim those files to what matters for the stable version first. A change to a published package's API or behaviour comes with a changeset (`pnpm changeset`); docs, playgrounds and tests do not need one. `pnpm release` runs `vp run ready`, then `changeset publish`; it is the manual path, CI is the usual one.
-
-| Workflow               | Role                                                                                                                                                                                                                                                     |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ci.yml`               | `vp run ready` on every pull request and push to `main`                                                                                                                                                                                                  |
-| `release.yml`          | on a push to `main`, Changesets' split actions pick a mode: with pending changesets `version` opens or updates the "Version Packages" PR; once it is merged, `pack` runs `vp run ready` and packs, `publish` publishes, tags and creates GitHub releases |
-| `changeset-status.yml` | comments on a PR whether it has a changeset; never blocks                                                                                                                                                                                                |
-
+- Maintainers write the changesets, on a contributor's PR too, for any change to a published package's API or behaviour; docs, playgrounds and tests need none. `@formtree/*` is a `fixed` group, so every package shares one version.
+- The Changesets config has `format: false` because the formatter is `vp fmt`, configured in `vite.config.ts` where Changesets cannot find it; `pnpm version-packages` runs `changeset version && vp fmt`.
+- The changelog reads GitHub, so a local `pnpm version-packages` needs `GITHUB_TOKEN=$(gh auth token)`.
+- A prerelease starts with `pnpm changeset pre enter <tag>` and ends with `pnpm changeset pre exit`. The stable changelog is built from `.changeset/pre/`, so trim those files to what matters for the stable version first.
+- The CI job is named `ci` because the `main` ruleset requires a check with that name; a rename blocks every merge without bypass.
 - npm auth is trusted publishing (OIDC), no token: each `@formtree/*` package trusts `tinas/formtree` and `release.yml`. Only the `publish` job has `id-token: write`.
 - pnpm adds provenance on its own for a public repo, and provenance fails unless the package's `repository` (with `directory`) matches the repo; every package declares it.
 - npm lets a package trust a workflow only once it exists: a new package is published once by hand (`pnpm release`), then `npm trust github <name> --file release.yml --repo tinas/formtree --allow-publish`, or the same on the package's Trusted Publisher settings with no environment and "Allow npm publish" ticked. Without that permission npm allows only staged publishes, and `publish` fails with `E403 OIDC permission denied for this action`.
@@ -128,47 +163,15 @@ Changesets 3 (`.changeset/config.json`): `@formtree/*` is a `fixed` group, so ev
 
 - Packages use TypeScript 7 (tsgo). `apps/vue-playground` and `apps/docs` pin TypeScript ~5.9: vue-tsc and TypeDoc need the TypeScript JS API, which TS 7 does not have.
 - `vp check` does not type-check `.vue` files; builds that contain SFCs run `vue-tsc --noEmit` first.
-- Type-only modules are `.ts`, never `.d.ts`: `skipLibCheck` skips every `.d.ts` and would hide their errors.
 - Apps resolve package sources through tsconfig `paths` and Vite `resolve.tsconfigPaths`, so dev needs no build, and type checks and runtime see the same file.
 - `packages/vue` and `packages/react` pack with `tsconfig.build.json` (no `paths`), so their `.d.ts` imports `@formtree/core` instead of inlining it; `vp run -r build` packs core first.
 - React files are `.tsx` with `jsx: react-jsx`; `vp check` type-checks them, so the React playground builds with plain `vp build`. Tests use `@testing-library/react` in happy-dom and call `cleanup` in `afterEach`. `apps/docs/tsconfig.typedoc.json` sets `jsx` for TypeDoc.
-- Type tests live in `*.test-d.ts` (Vitest typecheck). Confirm a new type test fails without the change it covers.
 
 ## Open work
 
 - Hover types are hard to read: nested drafts and outputs show as `Simplify<DraftObject<…> & {} & {…}>`, group nodes as `GroupNode<GroupDefinitionOf<…>>`. Until that is fixed, docs use `//    ^?` only where the type reads well.
 - Playgrounds and docs demos have only been checked with scripted headless Chrome flows; the React playground only for a clean first render, since the repo has no browser driver.
 - Point the devtools `logo` at the docs site's logo (https://form-tree.netlify.app/logo.svg) instead of the bundled `dynamic_form` icon.
-
-## Code conventions
-
-Same conventions as search-ads-ui `src-new`:
-
-- No comments; names and structure carry the meaning. The one exception is JSDoc on the public API (what a package `src/index.ts` exports), kept short:
-  - `@category` on every export (Definitions, Form, Nodes, Validation, Submitting, Errors, Types; adapters: Form, Node Context, Node State (React), Field Bindings); it drives the API sidebar.
-  - A one or two sentence summary only where the name and type do not say it; behaviour that surprises (throws, skips, keeps values) goes there.
-  - `@defaultValue` on options that have one; no `@param`, `@returns` or `@example` (examples live in the guide).
-  - `@internal` on adapter plumbing (`UniversalNode`, `LensShape`, phantom `~options` / `~types`); TypeDoc hides it, `.d.ts` keeps it.
-  - `@module` on each `index.ts`. TypeDoc treats validation warnings as errors, so a broken `{@link}` or an unexported type in a public signature fails the docs build.
-- `function` declarations, never arrow-function constants; object parameters once arguments stop being obvious.
-- `interface` for object shapes, `Array<T>` syntax, no `any`.
-- Loose equality (`==`, `!=`) unless identity matters (`Object.is`).
-- Per-kind behaviour lives in exhaustive tables (`DefinitionHandlers`, `ARRAY_EDITORS`, `MODE_POLICIES`), not `kind == 'x'` branches.
-- String domain values are `as const` objects with a derived type (`ASYNC_TRIGGER`, `CLEAR_ON`, `SUBMIT_OUTCOME`).
-- Definitions are values, not components: camelCase with a kind suffix (`emailField` from `defineField*`, `deliveryGroup` from `defineGroup*`, `Array` for a stored `arrayOf`). PascalCase stays for types, interfaces and components. React components live in kebab-case `.tsx` files with named exports.
-- Constants used by one file stay in that file; only `src/index.ts` re-exports.
-- Extensionless relative imports (bundler resolution).
-
-## Commands
-
-```sh
-pnpm exec vp run ready        # check + tests (runtime and types) + pack + playground and docs builds
-pnpm exec vp test             # inside packages/core
-pnpm exec vp run playground#dev
-pnpm exec vp run vue-playground#dev
-pnpm exec vp run react-playground#dev
-pnpm exec vp run docs#dev
-```
 
 <!--VITE PLUS START-->
 
