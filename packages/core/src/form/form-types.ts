@@ -13,7 +13,12 @@ import type { DeepPartial } from '../types'
 export interface FormDefaults {
   /** When errors become visible. Definitions can override it. @defaultValue `'onTouched'` */
   readonly mode?: ValidationMode
-  /** When errors that have been visible update. Definitions can override it. @defaultValue `'onChange'` */
+  /**
+   * When errors update after a node that contains them is submitted. Until then, `mode` decides. Definitions can
+   * override it.
+   *
+   * @defaultValue `'onChange'`
+   */
   readonly reValidateMode?: ReValidateMode
   /** Where focus goes after a failed submit. @defaultValue `true` */
   readonly shouldFocusError?: FocusErrorOption

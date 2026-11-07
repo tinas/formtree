@@ -62,6 +62,7 @@ export interface NodeState<Value> {
   readonly valid: boolean
   /** True when a value in the subtree differs from its initial value. */
   readonly dirty: boolean
+  /** True when a node in the subtree has lost focus or an array in it has been edited. */
   readonly touched: boolean
   /** True while an asynchronous check in the subtree is pending. */
   readonly validating: boolean

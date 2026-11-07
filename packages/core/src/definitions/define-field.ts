@@ -30,7 +30,10 @@ export interface DefineFieldOptions<Schema extends StandardSchemaV1, Deps> {
   readonly validateAsync?: AsyncValidationOptions<InferSchemaOutput<Schema>, Deps>
   /** When errors become visible for this field. Overrides the form's `mode`. */
   readonly mode?: ValidationMode
-  /** When visible errors update for this field. Overrides the form's `reValidateMode`. */
+  /**
+   * When this field's errors update after a node that contains it is submitted. Overrides the form's
+   * `reValidateMode`.
+   */
   readonly reValidateMode?: ReValidateMode
 }
 
