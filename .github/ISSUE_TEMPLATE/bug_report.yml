@@ -1,0 +1,32 @@
+name: Bug report
+description: Something behaves differently than you expect.
+labels: [bug]
+body:
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happens
+      description: If you'd like to send a fix, mention it here.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: The smallest code that shows the problem, or a link to a TypeScript Playground or StackBlitz.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions
+      description: formtree, TypeScript, the schema library, and Vue or React if you use an adapter.
+      placeholder: formtree 0.1.0, TypeScript 5.9, Zod 4.1, Vue 3.5
+    validations:
+      required: true

@@ -13,6 +13,7 @@ concurrency:
 
 jobs:
   ready:
+    name: ci
     runs-on: ubuntu-latest
     permissions:
       contents: read
