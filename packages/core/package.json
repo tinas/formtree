@@ -1,7 +1,7 @@
 {
   "name": "@formtree/core",
   "version": "0.1.0",
-  "description": "Headless form tree: definitions, a single draft state and nodes that validate and submit on their own.",
+  "description": "The framework-agnostic engine of formtree, a headless form tree in which every part of a form validates and submits on its own.",
   "keywords": [
     "form",
     "headless",

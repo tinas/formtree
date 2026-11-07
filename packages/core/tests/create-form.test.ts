@@ -82,4 +82,15 @@ describe('createForm', () => {
 
     expect(name.state).toBe(before)
   })
+
+  test('node state with visible errors keeps its reference while another node changes', () => {
+    const form = createPromotionForm({ mode: 'all' })
+    const name = form.field('setup.name')
+    const before = name.state
+    expect(before.errors).not.toEqual([])
+
+    form.field('spending.maxDiscount').setValue(5)
+
+    expect(name.state).toBe(before)
+  })
 })

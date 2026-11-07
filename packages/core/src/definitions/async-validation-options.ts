@@ -32,7 +32,7 @@ export interface AsyncValidationContext<Deps> {
 
 /**
  * A check against something outside the form, such as a server. It runs only while the schema passes, receives the
- * output, is cached per value and is awaited by a submit.
+ * output, caches its answers per value and is awaited by a submit.
  *
  * @category Validation
  */
@@ -41,7 +41,7 @@ export interface AsyncValidationOptions<Output, Deps> {
   readonly on?: AsyncTrigger
   /** How long to wait after the trigger, in milliseconds. @defaultValue `300` */
   readonly debounceMs?: number
-  /** Returns an error, a list of errors or `undefined`. A thrown error becomes a `formtree.async_failed` error. */
+  /** Returns an error, a list of errors or `undefined`. If it throws, the check fails. */
   run(output: Output, context: AsyncValidationContext<Deps>): ValidateResult | Promise<ValidateResult>
 }
 

@@ -29,7 +29,15 @@ export function DeliveryStep({ onComplete }: StepProps) {
 
   return (
     <FormNodeProvider node={delivery}>
-      <form id={delivery.id} className="step" noValidate onSubmit={onSubmit}>
+      <form
+        id={delivery.id}
+        className="step"
+        noValidate
+        onSubmit={event => {
+          event.preventDefault()
+          void onSubmit()
+        }}
+      >
         <h2>Delivery</h2>
         <SelectField name="method" label="Method" options={DELIVERY_OPTIONS} />
         {isShipping && (

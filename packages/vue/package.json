@@ -1,7 +1,7 @@
 {
   "name": "@formtree/vue",
   "version": "0.1.0",
-  "description": "Vue adapter for @formtree/core: reactive nodes, explicit node context, field bindings for v-model.",
+  "description": "The Vue adapter of formtree, a headless form tree in which every part of a form validates and submits on its own.",
   "keywords": [
     "form",
     "headless",

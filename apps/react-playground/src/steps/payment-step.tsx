@@ -21,7 +21,15 @@ export function PaymentStep({ onComplete }: StepProps) {
 
   return (
     <FormNodeProvider node={payment}>
-      <form id={payment.id} className="step" noValidate onSubmit={onSubmit}>
+      <form
+        id={payment.id}
+        className="step"
+        noValidate
+        onSubmit={event => {
+          event.preventDefault()
+          void onSubmit()
+        }}
+      >
         <h2>Payment</h2>
         <SelectField name="method" label="Method" options={PAYMENT_OPTIONS} />
         {isCard && (

@@ -4,26 +4,26 @@
 
 ::: tip Prerequisites
 This guide assumes basic familiarity with TypeScript. Its examples write schemas with
-[Zod](https://zod.dev), and any [Standard Schema](https://standardschema.dev) library can take its
-place.
+[Zod](https://zod.dev), so install it to follow along; any
+[Standard Schema](https://standardschema.dev) library can take its place.
 :::
 
-Install formtree together with Zod:
+Install formtree:
 
 <div class="vue-only">
 
 ::: code-group
 
 ```sh [pnpm]
-pnpm add @formtree/vue zod
+pnpm add @formtree/vue
 ```
 
 ```sh [npm]
-npm install @formtree/vue zod
+npm install @formtree/vue
 ```
 
 ```sh [yarn]
-yarn add @formtree/vue zod
+yarn add @formtree/vue
 ```
 
 :::
@@ -39,15 +39,15 @@ yarn add @formtree/vue zod
 ::: code-group
 
 ```sh [pnpm]
-pnpm add @formtree/react zod
+pnpm add @formtree/react
 ```
 
 ```sh [npm]
-npm install @formtree/react zod
+npm install @formtree/react
 ```
 
 ```sh [yarn]
-yarn add @formtree/react zod
+yarn add @formtree/react
 ```
 
 :::
@@ -63,15 +63,15 @@ yarn add @formtree/react zod
 ::: code-group
 
 ```sh [pnpm]
-pnpm add @formtree/core zod
+pnpm add @formtree/core
 ```
 
 ```sh [npm]
-npm install @formtree/core zod
+npm install @formtree/core
 ```
 
 ```sh [yarn]
-yarn add @formtree/core zod
+yarn add @formtree/core
 ```
 
 :::
@@ -334,7 +334,7 @@ const send = form.handleSubmit(async contact => {
 
 Bind the email and the message the same way, and pass your submit function to `handleSubmit`:
 
-```tsx{2,11-13,16}
+```tsx{2,11-13,16-22}
 import { useField, useForm } from '@formtree/react'
 import { sendMessage } from './api'
 import { contactForm } from './forms/contact'
@@ -350,7 +350,13 @@ export function ContactForm() {
   })
 
   return (
-    <form noValidate onSubmit={send}>
+    <form
+      noValidate
+      onSubmit={event => {
+        event.preventDefault()
+        void send()
+      }}
+    >
       <label htmlFor={name.id}>Name</label>
       <input {...name.attrs} value={name.value ?? ''} onChange={event => name.setValue(event.target.value)} />
       <p id={name.errorId}>{name.errorMessage}</p>
@@ -382,7 +388,7 @@ Move the binding into a function so every input can use it, and pass your submit
 
 ::: code-group
 
-```ts{2,11-16} [contact-form.ts]
+```ts{2,11-13,15-18} [contact-form.ts]
 import { createForm } from '@formtree/core'
 import { sendMessage } from './api'
 import { contactForm } from './forms/contact'
@@ -393,12 +399,14 @@ bindInput('name')
 bindInput('email')
 bindInput('message')
 
-document.querySelector('form')!.addEventListener(
-  'submit',
-  form.handleSubmit(async contact => {
-    await sendMessage(contact)
-  }),
-)
+const send = form.handleSubmit(async contact => {
+  await sendMessage(contact)
+})
+
+document.querySelector('form')!.addEventListener('submit', event => {
+  event.preventDefault()
+  void send()
+})
 
 function bindInput(key: 'name' | 'email' | 'message') {
   const field = form.field(key)
@@ -442,7 +450,8 @@ screen reader needs to read each error with its input.
 function receives the validated values.
 
 The `novalidate` attribute on the form turns off the browser's own validation, so only your
-messages show.
+messages show. `handleSubmit` leaves the submit event alone, so the form prevents the page reload
+itself, with `.prevent` in Vue and `event.preventDefault()` in React and plain JavaScript.
 
 <div class="vue-only">
 

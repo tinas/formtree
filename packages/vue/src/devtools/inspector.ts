@@ -65,6 +65,11 @@ const STATE_TAGS: ReadonlyArray<StateTag> = [
     labelOf: node => (node.state.validating ? 'checking' : undefined),
   },
   {
+    backgroundColor: 0xdc2626,
+    tooltip: 'An asynchronous check in this subtree threw.',
+    labelOf: node => (node.state.failedChecks.length > 0 ? 'check failed' : undefined),
+  },
+  {
     backgroundColor: 0x2563eb,
     tooltip: 'A submit of this node is running.',
     labelOf: node => (node.state.submitting ? 'submitting' : undefined),

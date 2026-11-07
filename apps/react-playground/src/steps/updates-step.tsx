@@ -17,7 +17,15 @@ export function UpdatesStep({ onComplete }: StepProps) {
   const onSubmit = notifyBy.node.handleSubmit(() => onComplete())
 
   return (
-    <form id={`${notifyBy.id}:step`} className="step" noValidate onSubmit={onSubmit}>
+    <form
+      id={`${notifyBy.id}:step`}
+      className="step"
+      noValidate
+      onSubmit={event => {
+        event.preventDefault()
+        void onSubmit()
+      }}
+    >
       <h2>Updates</h2>
       <fieldset id={notifyBy.id} tabIndex={-1} aria-describedby={notifyBy.attrs['aria-describedby']}>
         <legend>Send order updates by</legend>

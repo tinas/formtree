@@ -15,7 +15,15 @@ export function CartStep({ onComplete }: StepProps) {
 
   return (
     <FormNodeProvider node={cart}>
-      <form id={cart.id} className="step" noValidate onSubmit={onSubmit}>
+      <form
+        id={cart.id}
+        className="step"
+        noValidate
+        onSubmit={event => {
+          event.preventDefault()
+          void onSubmit()
+        }}
+      >
         <h2>Cart</h2>
         <div className="line-items">
           <p className="hint">Each row saves on its own. Saved rows stay clean until they change.</p>

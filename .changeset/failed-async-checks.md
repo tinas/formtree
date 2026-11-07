@@ -1,0 +1,9 @@
+---
+'@formtree/core': minor
+'@formtree/vue': minor
+'@formtree/react': minor
+---
+
+A failed async check is no longer an error. When `run` throws, the node lists the check in `state.failedChecks`, `valid` is `false` and the input is not marked invalid. A failure is not cached: the check runs again on its next trigger and on every `validate()` and submit. A submit whose check fails again resolves to `'unchecked'`. `ASYNC_FAILED_CODE` is removed. The Vue devtools show failed checks.
+
+`validate()` and `handleSubmit` take `ignoreCache: true` to validate again without reusing cached results.

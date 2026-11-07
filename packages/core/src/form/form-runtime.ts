@@ -3,7 +3,7 @@ import type { FormatErrorOption } from '../errors/form-error'
 import type { DisplayModes } from '../modes/display-mode'
 import type { FocusElementOption, FocusErrorOption, NodeState } from '../nodes/node-types'
 import type { FormState } from '../state/form-state'
-import type { AsyncEntry } from '../validation/async-validation'
+import type { CheckEntry } from '../validation/async-validation'
 import type { SyncEntry } from '../validation/sync-validation'
 import type { FormEventObserver } from './form-events'
 
@@ -38,7 +38,7 @@ export interface FormRuntime {
   readonly nodeStates: Map<string, CachedNodeState>
   readonly itemLists: Map<string, CachedItems>
   readonly syncEntries: Map<string, SyncEntry>
-  readonly asyncEntries: Map<string, AsyncEntry>
+  readonly checkEntries: Map<string, CheckEntry>
   readonly pendingSchemaRuns: Map<string, Promise<void>>
 }
 

@@ -4,11 +4,11 @@ import type { FormRuntime } from './form-runtime'
 
 import { visibilityContextOf } from '../nodes/node-state'
 import { applyArrayEdit } from '../state/array-transitions'
-import { withoutPathsWithin } from '../state/collections'
+import { withoutChecksWithin } from '../state/check-transitions'
 import { isAttached } from '../state/node-id'
 import { resetNode } from '../state/reset-transitions'
 import { markTouched, writeValue } from '../state/value-transitions'
-import { forgetAsyncEntriesWithin, scheduleBlurValidation } from '../validation/async-validation'
+import { forgetChecksWithin, scheduleBlurChecks } from '../validation/async-validation'
 import { commitWithValidation } from '../validation/validation-pass'
 import { refreshSnapshotsWithin, SNAPSHOT_TRIGGER } from '../validation/visibility'
 import { emitNodeEvent, FORM_EVENT } from './form-events'
@@ -29,12 +29,12 @@ export function blurNode(runtime: FormRuntime, nodeId: string): void {
     { ...visibilityContextOf(runtime), state: touched },
     { nodeId, trigger: SNAPSHOT_TRIGGER.blur },
   )
-  commitState(runtime, scheduleBlurValidation(runtime, refreshed, nodeId))
+  commitState(runtime, scheduleBlurChecks(runtime, refreshed, nodeId))
   emitNodeEvent(runtime, FORM_EVENT.blur, nodeId)
 }
 
 export function resetNodeValue(runtime: FormRuntime, nodeId: string, options: ResetOptions<unknown> = {}): void {
-  forgetAsyncEntriesWithin(runtime, nodeId)
+  forgetChecksWithin(runtime, nodeId)
   const state = resetNode({
     state: runtime.state,
     definition: runtime.definition,
@@ -46,7 +46,7 @@ export function resetNodeValue(runtime: FormRuntime, nodeId: string, options: Re
       keepErrors: options.keepErrors,
     },
   })
-  commitWithValidation(runtime, { ...state, validating: withoutPathsWithin(state.validating, nodeId) })
+  commitWithValidation(runtime, withoutChecksWithin(state, nodeId))
   forgetDetachedNodes(runtime)
   emitNodeEvent(runtime, FORM_EVENT.reset, nodeId)
 }

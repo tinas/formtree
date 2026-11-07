@@ -2,6 +2,7 @@ import type { DraftOf, OutputOf } from '../definitions/definition'
 import type { DEFINITION_KIND } from '../definitions/definition-kind'
 import type { ClearOn } from '../errors/stored-error'
 import type { ErrorInput, ErrorSource, FormError, ValidateResult } from '../errors/form-error'
+import type { ValidateOptions } from '../validation/validation-pass'
 import type { NodeKind } from './node-kind'
 import type { IsArrayShape, IsGroupShape, ItemShapeOf, PathInput, ShapeAtPath } from './path-types'
 
@@ -13,8 +14,10 @@ import type { IsArrayShape, IsGroupShape, ItemShapeOf, PathInput, ShapeAtPath } 
 export const SUBMIT_OUTCOME = {
   /** The subtree was valid and the handler returned no errors. */
   success: 'success',
-  /** The subtree was invalid; the handler did not run. */
+  /** The subtree has errors; the handler did not run. */
   invalid: 'invalid',
+  /** A check in the subtree failed; the handler did not run. */
+  unchecked: 'unchecked',
   /** The handler returned errors. */
   rejected: 'rejected',
   /** The node was already submitting, or it is in an inactive branch; the handler did not run. */
@@ -32,8 +35,8 @@ export type SubmitOutcome = (typeof SUBMIT_OUTCOME)[keyof typeof SUBMIT_OUTCOME]
 export const FOCUS_SUMMARY = 'summary'
 
 /**
- * Where focus goes after a failed submit: the first invalid element in document order (`true`), the error summary
- * (`'summary'`) or nowhere (`false`).
+ * Where focus goes after a failed submit: the first element with an error or a check that threw, in document
+ * order (`true`), the error summary (`'summary'`) or nowhere (`false`).
  *
  * @category Submitting
  */
@@ -47,6 +50,18 @@ export type FocusErrorOption = boolean | typeof FOCUS_SUMMARY
 export type FocusElementOption = (element: HTMLElement) => void
 
 /**
+ * A check whose `run` threw.
+ *
+ * @category Validation
+ */
+export interface FailedCheck {
+  /** Dotted path from the root of the form. */
+  readonly path: string
+  /** What `run` threw. */
+  readonly error: unknown
+}
+
+/**
  * A snapshot of a node. It keeps its reference until something about the node changes.
  *
  * @category Nodes
@@ -58,7 +73,7 @@ export interface NodeState<Value> {
   readonly initialValue: Value | undefined
   /** The errors visible now. Which errors are visible depends on the display mode. */
   readonly errors: ReadonlyArray<FormError>
-  /** True when nothing in the subtree has an error, visible or not. */
+  /** True when the subtree has no error, visible or not, and no check that threw. */
   readonly valid: boolean
   /** True when a value in the subtree differs from its initial value. */
   readonly dirty: boolean
@@ -66,6 +81,8 @@ export interface NodeState<Value> {
   readonly touched: boolean
   /** True while an asynchronous check in the subtree is pending. */
   readonly validating: boolean
+  /** Checks in the subtree whose `run` threw. */
+  readonly failedChecks: ReadonlyArray<FailedCheck>
   /** True while a submit of this node runs. */
   readonly submitting: boolean
   readonly submitCount: number
@@ -80,12 +97,11 @@ export interface NodeState<Value> {
  */
 export type ValidationResult<Output> =
   | { readonly valid: true; readonly value: Output }
-  | { readonly valid: false; readonly errors: ReadonlyArray<FormError> }
-
-/** @category Submitting */
-export interface SubmitEventLike {
-  readonly preventDefault: () => void
-}
+  | {
+      readonly valid: false
+      readonly errors: ReadonlyArray<FormError>
+      readonly failedChecks: ReadonlyArray<FailedCheck>
+    }
 
 /**
  * Receives the output of the submitted node. Errors it returns are stored as server errors, relative to that node.
@@ -99,8 +115,8 @@ export type SubmitHandler<Output> = (output: Output) => ValidateResult | void | 
  *
  * @category Submitting
  */
-export interface SubmitOptions {
-  /** Called with the errors when the subtree is invalid. */
+export interface SubmitOptions extends ValidateOptions {
+  /** Called with the errors when the subtree has errors. */
   readonly onInvalid?: (errors: ReadonlyArray<FormError>) => void
   /** Overrides the form's option for this submit. */
   readonly shouldFocusError?: FocusErrorOption
@@ -193,16 +209,16 @@ export interface NodeBase<Value, Output> {
   readonly setValue: (value: Value) => void
   /** Marks the node as touched and starts checks that run on blur. */
   readonly blur: () => void
-  /** Validates the subtree, waits for pending checks and returns the result without making errors visible. */
-  readonly validate: () => Promise<ValidationResult<Output>>
+  /**
+   * Validates the subtree, waits for pending checks, retries failed ones and returns the result without making errors
+   * visible.
+   */
+  readonly validate: (options?: ValidateOptions) => Promise<ValidationResult<Output>>
   /**
    * Returns a submit function for this node. It skips while a submit runs, validates the subtree and either shows
-   * and focuses its errors or calls `onValid` with the output. An event passed to it is `preventDefault`ed.
+   * and focuses its errors and the checks that threw, or calls `onValid` with the output.
    */
-  readonly handleSubmit: (
-    onValid: SubmitHandler<Output>,
-    options?: SubmitOptions,
-  ) => (event?: SubmitEventLike) => Promise<SubmitOutcome>
+  readonly handleSubmit: (onValid: SubmitHandler<Output>, options?: SubmitOptions) => () => Promise<SubmitOutcome>
   /** Returns the subtree to its initial value, or makes `options.value` its new initial value. */
   readonly reset: (options?: ResetOptions<Value>) => void
   /** Sets external errors with paths relative to this node. They are visible at once. */

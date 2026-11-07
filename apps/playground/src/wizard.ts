@@ -1,11 +1,11 @@
-import type { SubmitEventLike, SubmitOutcome } from '@formtree/core'
+import type { SubmitOutcome } from '@formtree/core'
 
 import { SUBMIT_OUTCOME } from '@formtree/core'
 
 export interface WizardStep {
   readonly title: string
   readonly element: HTMLFormElement
-  readonly submit: (event?: SubmitEventLike) => Promise<SubmitOutcome>
+  readonly submit: () => Promise<SubmitOutcome>
 }
 
 export interface WizardElements {
@@ -28,7 +28,8 @@ export function bindWizard(binding: WizardBinding): () => void {
   const position: WizardPosition = { index: 0 }
   binding.steps.forEach((step, index) => {
     step.element.addEventListener('submit', event => {
-      void continueFrom({ binding, position, index, event })
+      event.preventDefault()
+      void continueFrom({ binding, position, index })
     })
   })
   binding.elements.back.addEventListener('click', () => {
@@ -42,11 +43,10 @@ interface StepSubmission {
   readonly binding: WizardBinding
   readonly position: WizardPosition
   readonly index: number
-  readonly event: SubmitEvent
 }
 
-async function continueFrom({ binding, position, index, event }: StepSubmission): Promise<void> {
-  const outcome = await binding.steps[index].submit(event)
+async function continueFrom({ binding, position, index }: StepSubmission): Promise<void> {
+  const outcome = await binding.steps[index].submit()
   if (outcome != SUBMIT_OUTCOME.success) {
     return
   }

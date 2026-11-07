@@ -17,6 +17,7 @@ export const FORM_EVENT = {
   errors: 'errors',
   checkStart: 'checkStart',
   checkEnd: 'checkEnd',
+  checkFail: 'checkFail',
   checkAbort: 'checkAbort',
   submitStart: 'submitStart',
   submitEnd: 'submitEnd',
@@ -30,6 +31,9 @@ export interface FormEventDetails {
   readonly [FORM_EVENT.checkEnd]: {
     readonly errors: ReadonlyArray<ErrorInput>
     readonly cached: boolean
+  }
+  readonly [FORM_EVENT.checkFail]: {
+    readonly error: unknown
   }
   readonly [FORM_EVENT.submitEnd]: {
     readonly outcome: SubmitOutcome
@@ -64,6 +68,17 @@ export interface CheckEnd {
 export function emitCheckEnd(runtime: FormRuntime, { nodeId, errors, cached }: CheckEnd): void {
   if (runtime.observers.size > 0) {
     emitEvent(runtime, { type: FORM_EVENT.checkEnd, path: pathOf(runtime, nodeId), errors, cached })
+  }
+}
+
+export interface CheckFail {
+  readonly nodeId: string
+  readonly error: unknown
+}
+
+export function emitCheckFail(runtime: FormRuntime, { nodeId, error }: CheckFail): void {
+  if (runtime.observers.size > 0) {
+    emitEvent(runtime, { type: FORM_EVENT.checkFail, path: pathOf(runtime, nodeId), error })
   }
 }
 

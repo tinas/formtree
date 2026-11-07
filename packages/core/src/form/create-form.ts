@@ -10,7 +10,7 @@ import { DEFAULT_DISPLAY_MODES } from '../modes/display-mode'
 import { nodeFor } from '../nodes/node'
 import { shallowEqual } from '../paths/equality'
 import { createFormState } from '../state/form-state'
-import { disposeAsyncEntries } from '../validation/async-validation'
+import { disposeChecks } from '../validation/async-validation'
 import { commitWithValidation, runValidationPass } from '../validation/validation-pass'
 import { focusNatively } from './focus'
 import { emitNodeEvent, FORM_EVENT } from './form-events'
@@ -69,7 +69,7 @@ function createFormRuntime(definition: Definition, options: RuntimeOptions): For
     nodeStates: new Map(),
     itemLists: new Map(),
     syncEntries: new Map(),
-    asyncEntries: new Map(),
+    checkEntries: new Map(),
     pendingSchemaRuns: new Map(),
   }
   runtime.state = runValidationPass(runtime, runtime.state)
@@ -81,7 +81,7 @@ function createFormControls(runtime: FormRuntime): FormControls<unknown> {
     subscribe: listener => subscribeToRuntime(runtime, listener),
     setDeps: deps => replaceDeps(runtime, deps),
     batch: update => runBatch(runtime, update),
-    dispose: () => disposeAsyncEntries(runtime),
+    dispose: () => disposeChecks(runtime),
     formatError: error => runtime.options.formatError(error),
   }
 }

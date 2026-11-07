@@ -1,14 +1,15 @@
 import type { FormError } from '../errors/form-error'
 import type { StoredError } from '../errors/stored-error'
 import type { FormRuntime } from '../form/form-runtime'
-import type { FormState } from '../state/form-state'
+import type { CheckState, FormState } from '../state/form-state'
 import type { VisibilityContext } from '../validation/visibility'
-import type { NodeState } from './node-types'
+import type { FailedCheck, NodeState } from './node-types'
 
-import { deepEqual } from '../paths/equality'
+import { deepEqual, shallowEqual } from '../paths/equality'
 import { isWithinPath, splitPath } from '../paths/path'
 import { getIn } from '../paths/value-tree'
 import { hasPathWithin } from '../state/collections'
+import { CHECK_STATUS } from '../state/form-state'
 import { toPath } from '../state/node-id'
 import { valueAt } from '../validation/output'
 import { activeErrors, isActiveNode, visibleErrorsAt } from '../validation/visibility'
@@ -23,8 +24,8 @@ export function readNodeState(runtime: FormRuntime, nodeId: string): NodeState<u
   if (cached?.version == runtime.version) {
     return cached.state
   }
-  const computed = computeNodeState(runtime, nodeId)
-  const state = cached != undefined && isSameNodeState(cached.state, computed) ? cached.state : computed
+  const computed = computeNodeState(runtime, nodeId, cached?.state)
+  const state = cached != undefined && shallowEqual(cached.state, computed) ? cached.state : computed
   runtime.nodeStates.set(nodeId, { version: runtime.version, state })
   return state
 }
@@ -46,55 +47,61 @@ export function toFormError(state: FormState, error: StoredError): FormError {
   }
 }
 
+export function failedChecksWithin(state: FormState, nodeId: string): Array<FailedCheck> {
+  return checksWithin(state, nodeId).flatMap(([ownerId, check]) =>
+    check.status == CHECK_STATUS.failed ? [{ path: toPath(state.arrayKeys, ownerId) ?? '', error: check.error }] : [],
+  )
+}
+
+export function failedCheckIdsWithin(state: FormState, nodeId: string): Array<string> {
+  return checksWithin(state, nodeId)
+    .filter(([, check]) => check.status == CHECK_STATUS.failed)
+    .map(([ownerId]) => ownerId)
+}
+
 export function initialValueAt(state: FormState, nodeId: string): unknown {
   const baselinePath = toPath(state.initialArrayKeys, nodeId)
   return baselinePath == undefined ? undefined : getIn(state.initialValue, splitPath(baselinePath))
 }
 
-function computeNodeState(runtime: FormRuntime, nodeId: string): NodeState<unknown> {
+function computeNodeState(
+  runtime: FormRuntime,
+  nodeId: string,
+  previous: NodeState<unknown> | undefined,
+): NodeState<unknown> {
   const state = runtime.state
   const value = valueAt(state, nodeId)
   const initialValue = initialValueAt(state, nodeId)
+  const errors = visibleErrorsAt(visibilityContextOf(runtime), nodeId).map(error => toFormError(state, error))
+  const failedChecks = keepIfSame(previous?.failedChecks, failedChecksWithin(state, nodeId))
   return {
     value,
     initialValue,
-    errors: visibleErrorsAt(visibilityContextOf(runtime), nodeId).map(error => toFormError(state, error)),
-    valid: !activeErrors(state).some(error => isWithinPath(error.targetId, nodeId)),
+    errors: keepIfSame(previous?.errors, errors),
+    valid: failedChecks.length == 0 && !activeErrors(state).some(error => isWithinPath(error.targetId, nodeId)),
     dirty: !deepEqual(value, initialValue),
     touched: hasPathWithin(state.touched, nodeId),
-    validating: hasPathWithin(state.validating, nodeId) || hasPathWithin(state.pendingSchemas, nodeId),
+    validating:
+      checksWithin(state, nodeId).some(([, check]) => check.status == CHECK_STATUS.pending) ||
+      hasPathWithin(state.pendingSchemas, nodeId),
+    failedChecks,
     submitting: state.submitting.has(nodeId),
     submitCount: state.submitCounts.get(nodeId) ?? 0,
     active: isActiveNode(state, nodeId),
   }
 }
 
-function isSameNodeState(previous: NodeState<unknown>, next: NodeState<unknown>): boolean {
-  return (
-    Object.is(previous.value, next.value) &&
-    Object.is(previous.initialValue, next.initialValue) &&
-    areSameErrors(previous.errors, next.errors) &&
-    previous.valid == next.valid &&
-    previous.dirty == next.dirty &&
-    previous.touched == next.touched &&
-    previous.validating == next.validating &&
-    previous.submitting == next.submitting &&
-    previous.submitCount == next.submitCount &&
-    previous.active == next.active
-  )
+function checksWithin(state: FormState, nodeId: string): Array<[string, CheckState]> {
+  return [...state.checks].filter(([ownerId]) => isWithinPath(ownerId, nodeId))
 }
 
-function areSameErrors(previous: ReadonlyArray<FormError>, next: ReadonlyArray<FormError>): boolean {
-  return (
-    previous.length == next.length &&
-    previous.every((error, index) => {
-      const other = next[index]
-      return (
-        error.path == other.path &&
-        error.code == other.code &&
-        error.source == other.source &&
-        Object.is(error.params, other.params)
-      )
-    })
-  )
+function keepIfSame<Item extends object>(
+  previous: ReadonlyArray<Item> | undefined,
+  next: ReadonlyArray<Item>,
+): ReadonlyArray<Item> {
+  return previous != undefined && areSameRecords(previous, next) ? previous : next
+}
+
+function areSameRecords(previous: ReadonlyArray<object>, next: ReadonlyArray<object>): boolean {
+  return previous.length == next.length && previous.every((record, index) => shallowEqual(record, next[index]))
 }

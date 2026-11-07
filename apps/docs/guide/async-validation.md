@@ -238,11 +238,15 @@ const signUp = form.handleSubmit(async account => {
 })
 ```
 
+::: tip Asking Again
+A check keeps its answer for a value. To ask the server again anyway, validate
+[from scratch](/guide/validation#validating-from-scratch).
+:::
+
 ## Handling Failed Requests
 
-A check whose `run` throws becomes an error with the code
-[`ASYNC_FAILED_CODE`](/api/@formtree/core/variables/ASYNC_FAILED_CODE), so a value the server could
-not check never passes:
+When the request fails, throw from `run`. The check then fails, so a value the server could not
+check never passes:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -264,6 +268,108 @@ const usernameField = defineField({
 })
 ```
 
+A failed check runs again on its next trigger and on every submit or `validate()`. A submit whose
+check fails again resolves to `'unchecked'` and focuses its field.
+
 ::: warning Error Statuses
 `fetch` rejects only when the network fails, so `run` throws for an error status itself.
 :::
+
+## Trying a Failed Check Again
+
+To show a failed check with a button that tries again, read `state.failedChecks` and call
+`validate()` on the field's node:
+
+<div class="vue-only">
+
+```vue{12-15}
+<script setup lang="ts">
+import { useField, useForm } from '@formtree/vue'
+import { signUpForm } from './forms/sign-up'
+
+const form = useForm(signUpForm)
+const username = useField(form.field('username'))
+</script>
+
+<template>
+  <label :for="username.id">Username</label>
+  <input v-model="username.model" v-bind="username.attrs" />
+  <p v-if="username.state.failedChecks.length > 0">
+    We couldn't check the username.
+    <button type="button" @click="username.node.validate()">Try again</button>
+  </p>
+  <p :id="username.errorId">{{ username.errorMessage }}</p>
+</template>
+```
+
+</div>
+
+<div class="react-only">
+
+```tsx{12-19}
+import { useField, useForm } from '@formtree/react'
+import { signUpForm } from './forms/sign-up'
+
+export function SignUpForm() {
+  const form = useForm(signUpForm)
+  const username = useField(form.field('username'))
+
+  return (
+    <>
+      <label htmlFor={username.id}>Username</label>
+      <input {...username.attrs} value={username.value ?? ''} onChange={event => username.setValue(event.target.value)} />
+      {username.state.failedChecks.length > 0 && (
+        <p>
+          We couldn't check the username.
+          <button type="button" onClick={() => void username.node.validate()}>
+            Try again
+          </button>
+        </p>
+      )}
+      <p id={username.errorId}>{username.errorMessage}</p>
+    </>
+  )
+}
+```
+
+</div>
+
+<div class="javascript-only">
+
+```ts twoslash
+// @noStaticSemanticInfo
+// @filename: api.ts
+export declare function isUsernameAvailable(username: string, signal: AbortSignal): Promise<boolean>
+// @filename: sign-up.ts
+import { createForm, defineField, defineGroup } from '@formtree/core'
+import { z } from 'zod'
+import { isUsernameAvailable } from './api'
+
+const usernameField = defineField({
+  schema: z.string({ error: 'Choose a username' }).trim().min(3, { error: 'Use at least 3 characters' }),
+  validateAsync: {
+    run: async (username, { signal }) =>
+      (await isUsernameAvailable(username, signal)) ? undefined : { code: 'This username is taken' },
+  },
+})
+const signUpForm = defineGroup({
+  schema: z.object({ email: z.email({ error: 'Enter a valid email address' }) }),
+  children: { username: usernameField },
+})
+const form = createForm(signUpForm)
+// ---cut---
+const username = form.field('username')
+const failure = document.querySelector<HTMLParagraphElement>('#username-failure')!
+const tryAgain = document.querySelector<HTMLButtonElement>('#username-try-again')!
+
+tryAgain.addEventListener('click', () => {
+  void username.validate()
+})
+form.subscribe(() => {
+  failure.hidden = username.state.failedChecks.length == 0
+})
+```
+
+</div>
+
+While the check runs again, the list is empty and `state.validating` is `true`.
