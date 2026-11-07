@@ -86,8 +86,8 @@ type DisjointKeysRequirement<Schema, Children> = [Extract<keyof OwnInput<Schema>
     }
 
 /**
- * Options of {@link defineGroup} and {@link defineGroupWithDeps}. Write `schema` and `children` first: the callbacks
- * after them are typed from them.
+ * Options of {@link defineGroup} and {@link defineGroupWithDeps}. When `schema` is a function of the dependencies,
+ * write it before the callbacks, or they see none of its keys.
  *
  * @category Definitions
  */
