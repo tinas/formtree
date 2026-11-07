@@ -5,6 +5,15 @@ import type { ArrayKeys } from './node-id'
 import { assignArrayKeys } from './array-keys'
 import { materializeStructure } from './structure'
 
+export const CHECK_STATUS = {
+  pending: 'pending',
+  failed: 'failed',
+} as const
+
+export type CheckState =
+  | { readonly status: typeof CHECK_STATUS.pending }
+  | { readonly status: typeof CHECK_STATUS.failed; readonly error: unknown }
+
 export interface FormState {
   readonly value: unknown
   readonly arrayKeys: ArrayKeys
@@ -16,7 +25,7 @@ export interface FormState {
   readonly changed: ReadonlySet<string>
   readonly errors: ReadonlyArray<StoredError>
   readonly snapshots: ReadonlyMap<string, ReadonlyArray<string>>
-  readonly validating: ReadonlySet<string>
+  readonly checks: ReadonlyMap<string, CheckState>
   readonly pendingSchemas: ReadonlySet<string>
   readonly submitting: ReadonlySet<string>
   readonly submitCounts: ReadonlyMap<string, number>
@@ -43,7 +52,7 @@ export function createFormState({ definition, initialValue, deps }: FormStateInp
     changed: new Set(),
     errors: [],
     snapshots: new Map(),
-    validating: new Set(),
+    checks: new Map(),
     pendingSchemas: new Set(),
     submitting: new Set(),
     submitCounts: new Map(),

@@ -125,6 +125,25 @@ describe('form events', () => {
     ])
   })
 
+  test('a check that throws reports checkFail with what it threw', async () => {
+    const failure = new Error('offline')
+    const form = createForm(
+      defineField({
+        schema: z.string(),
+        validateAsync: { on: 'change', debounceMs: 0, run: () => Promise.reject(failure) },
+      }),
+    )
+    const events = recordEvents(form)
+
+    form.setValue('A')
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(events.filter(event => event.type.startsWith('check'))).toEqual([
+      { type: 'checkStart', path: '' },
+      { type: 'checkFail', path: '', error: failure },
+    ])
+  })
+
   test('a change aborts a running check', async () => {
     const form = createForm(pendingCodeField)
     const events = recordEvents(form)

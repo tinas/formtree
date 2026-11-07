@@ -32,7 +32,6 @@ export type {
   OutputOf,
 } from './definitions/definition'
 export { ERROR_SOURCE } from './errors/form-error'
-export { ASYNC_FAILED_CODE } from './validation/async-validation'
 export type {
   ErrorInput,
   ErrorParams,
@@ -65,6 +64,7 @@ export type {
   ArrayItem,
   ArrayNode,
   ClearErrorsOptions,
+  FailedCheck,
   FieldAttributes,
   FieldNode,
   FocusElementOption,
@@ -83,4 +83,5 @@ export type {
   ValidationResult,
 } from './nodes/node-types'
 export type { StandardSchemaV1 } from './standard-schema/standard-schema'
+export type { ValidateOptions } from './validation/validation-pass'
 export type { DeepPartial } from './types'

@@ -1,5 +1,5 @@
 import type { RuntimeAsyncValidation } from '../definitions/async-validation-options'
-import type { ErrorInput } from '../errors/form-error'
+import type { ErrorInput, ValidateResult } from '../errors/form-error'
 import type { FormRuntime } from '../form/form-runtime'
 import type { FormState } from '../state/form-state'
 import type { Scope } from './scopes'
@@ -7,25 +7,18 @@ import type { Scope } from './scopes'
 import { ASYNC_TRIGGER } from '../definitions/async-validation-options'
 import { definitionAt } from '../definitions/definition-at'
 import { sharedOptionsOf } from '../definitions/runtime-options'
-import { ERROR_SOURCE, isSyncErrorSource, toErrorInputs } from '../errors/form-error'
-import { CLEAR_ON } from '../errors/stored-error'
-import { emitCheckEnd, emitNodeEvent, FORM_EVENT } from '../form/form-events'
+import { isSyncErrorSource, toErrorInputs } from '../errors/form-error'
+import { emitCheckEnd, emitCheckFail, emitNodeEvent, FORM_EVENT } from '../form/form-events'
 import { commitState } from '../form/form-runtime'
 import { stableKey } from '../paths/equality'
 import { isWithinPath } from '../paths/path'
-import { hasPathWithin, withAdded, withDeleted } from '../state/collections'
-import { replaceOwnedErrors, toStoredErrors } from '../state/error-transitions'
+import { withCheckErrors, withFailedCheck, withoutPendingChecks, withPendingCheck } from '../state/check-transitions'
+import { hasPathWithin } from '../state/collections'
+import { CHECK_STATUS } from '../state/form-state'
 import { buildOutput } from './output'
 import { activeErrors } from './visibility'
 
-/**
- * The code of the error that replaces an asynchronous check that threw.
- *
- * @category Validation
- */
-export const ASYNC_FAILED_CODE = 'formtree.async_failed'
-
-const ASYNC_STATUS = {
+const RUN_STATUS = {
   idle: 'idle',
   stale: 'stale',
   scheduled: 'scheduled',
@@ -33,48 +26,66 @@ const ASYNC_STATUS = {
   blocked: 'blocked',
 } as const
 
-type AsyncStatus = (typeof ASYNC_STATUS)[keyof typeof ASYNC_STATUS]
+type RunStatus = (typeof RUN_STATUS)[keyof typeof RUN_STATUS]
 
-export interface AsyncEntry {
-  status: AsyncStatus
+export interface CheckEntry {
+  status: RunStatus
   output: unknown
   outputKey: string | undefined
   deps: unknown
-  token: number
   timer: ReturnType<typeof setTimeout> | undefined
   controller: AbortController | undefined
   running: Promise<void> | undefined
-  readonly cache: Map<string, ReadonlyArray<ErrorInput>>
+  readonly answers: Map<string, ReadonlyArray<ErrorInput>>
 }
 
-export function reconcileAsyncScopes(runtime: FormRuntime, state: FormState, scopes: ReadonlyArray<Scope>): FormState {
-  let next = pruneAsyncEntries(runtime, state, scopes)
+export function reconcileChecks(runtime: FormRuntime, state: FormState, scopes: ReadonlyArray<Scope>): FormState {
+  let next = pruneChecks(runtime, state, scopes)
   for (const scope of scopes) {
     const options = sharedOptionsOf(scope.definition).validateAsync
     if (options != undefined) {
-      next = reconcileAsyncScope({ runtime, state: next, scope, options })
+      next = reconcileCheck({ runtime, state: next, scope, options })
     }
   }
   return next
 }
 
-export function scheduleBlurValidation(runtime: FormRuntime, state: FormState, nodeId: string): FormState {
+export function scheduleBlurChecks(runtime: FormRuntime, state: FormState, nodeId: string): FormState {
   let next = state
-  for (const [ownerId, entry] of runtime.asyncEntries) {
-    const options = asyncOptionsAt(runtime, ownerId)
-    if (entry.status == ASYNC_STATUS.stale && options?.on == ASYNC_TRIGGER.blur && isWithinPath(nodeId, ownerId)) {
+  for (const [ownerId, entry] of runtime.checkEntries) {
+    const options = checkOptionsAt(runtime, ownerId)
+    if (options?.on == ASYNC_TRIGGER.blur && isWithinPath(nodeId, ownerId) && awaitsTrigger(next, ownerId, entry)) {
       scheduleRun({ runtime, ownerId, entry, debounceMs: options.debounceMs })
-      next = { ...next, validating: withAdded(next.validating, ownerId) }
+      next = withPendingCheck(next, ownerId)
     }
   }
   return next
 }
 
-export function startAsyncWithin(runtime: FormRuntime, nodeId: string): Array<Promise<void>> {
-  return [...runtime.asyncEntries]
+export function markFailedChecksStaleWithin(runtime: FormRuntime, nodeId: string): void {
+  for (const [ownerId, entry] of runtime.checkEntries) {
+    if (isFailedCheck(runtime.state, ownerId) && isWithinPath(ownerId, nodeId)) {
+      entry.status = RUN_STATUS.stale
+    }
+  }
+}
+
+export function markChecksStaleWithin(runtime: FormRuntime, nodeId: string): void {
+  for (const [ownerId, entry] of runtime.checkEntries) {
+    if (entry.status == RUN_STATUS.idle && isWithinPath(ownerId, nodeId)) {
+      if (entry.outputKey != undefined) {
+        entry.answers.delete(entry.outputKey)
+      }
+      entry.status = RUN_STATUS.stale
+    }
+  }
+}
+
+export function startChecksWithin(runtime: FormRuntime, nodeId: string): Array<Promise<void>> {
+  return [...runtime.checkEntries]
     .filter(([ownerId]) => isWithinPath(ownerId, nodeId))
     .map(([ownerId, entry]) => {
-      if (entry.status == ASYNC_STATUS.stale || entry.status == ASYNC_STATUS.scheduled) {
+      if (entry.status == RUN_STATUS.stale || entry.status == RUN_STATUS.scheduled) {
         return startRun(runtime, ownerId, entry)
       }
       return entry.running
@@ -82,87 +93,83 @@ export function startAsyncWithin(runtime: FormRuntime, nodeId: string): Array<Pr
     .filter(running => running != undefined)
 }
 
-export function disposeAsyncEntries(runtime: FormRuntime): void {
-  for (const entry of runtime.asyncEntries.values()) {
-    if (entry.status == ASYNC_STATUS.scheduled || entry.status == ASYNC_STATUS.running) {
-      entry.status = ASYNC_STATUS.stale
+export function disposeChecks(runtime: FormRuntime): void {
+  for (const entry of runtime.checkEntries.values()) {
+    if (entry.status == RUN_STATUS.scheduled || entry.status == RUN_STATUS.running) {
+      entry.status = RUN_STATUS.stale
     }
     cancelEntry(entry)
   }
-  commitState(runtime, { ...runtime.state, validating: new Set() })
+  commitState(runtime, withoutPendingChecks(runtime.state))
 }
 
-export function forgetAsyncEntriesWithin(runtime: FormRuntime, nodeId: string): void {
-  for (const [ownerId, entry] of runtime.asyncEntries) {
+export function forgetChecksWithin(runtime: FormRuntime, nodeId: string): void {
+  for (const [ownerId, entry] of runtime.checkEntries) {
     if (isWithinPath(ownerId, nodeId)) {
       cancelEntry(entry)
-      runtime.asyncEntries.delete(ownerId)
+      runtime.checkEntries.delete(ownerId)
     }
   }
 }
 
-interface AsyncScopeReconciliation {
+interface CheckReconciliation {
   readonly runtime: FormRuntime
   readonly state: FormState
   readonly scope: Scope
   readonly options: RuntimeAsyncValidation
 }
 
-function reconcileAsyncScope({ runtime, state, scope, options }: AsyncScopeReconciliation): FormState {
-  const existing = runtime.asyncEntries.get(scope.nodeId)
+function reconcileCheck({ runtime, state, scope, options }: CheckReconciliation): FormState {
+  const ownerId = scope.nodeId
+  const existing = runtime.checkEntries.get(ownerId)
   const entry = existing ?? createEntry()
-  runtime.asyncEntries.set(scope.nodeId, entry)
-  if (!isSyncSettledAndValid(state, scope.nodeId)) {
-    if (entry.status == ASYNC_STATUS.blocked) {
+  runtime.checkEntries.set(ownerId, entry)
+  if (!isSyncSettledAndValid(state, ownerId)) {
+    if (entry.status == RUN_STATUS.blocked) {
       return state
     }
-    abortCheck(runtime, scope.nodeId, entry)
-    entry.status = ASYNC_STATUS.blocked
+    abortCheck(runtime, ownerId, entry)
+    entry.status = RUN_STATUS.blocked
     entry.outputKey = undefined
-    return withAsyncErrors({ state, ownerId: scope.nodeId, inputs: [], isValidating: false })
+    return withCheckErrors(state, { ownerId, inputs: [] })
   }
-  const output = buildOutput({
-    definition: runtime.definition,
-    entries: runtime.syncEntries,
-    state,
-    nodeId: scope.nodeId,
-  })
+  const output = buildOutput({ definition: runtime.definition, entries: runtime.syncEntries, state, nodeId: ownerId })
   const outputKey = stableKey(output)
   if (outputKey == entry.outputKey && Object.is(scope.deps, entry.deps)) {
     return state
   }
-  abortCheck(runtime, scope.nodeId, entry)
+  abortCheck(runtime, ownerId, entry)
   if (!Object.is(scope.deps, entry.deps)) {
-    entry.cache.clear()
+    entry.answers.clear()
   }
   entry.output = output
   entry.outputKey = outputKey
   entry.deps = scope.deps
-  const cached = entry.cache.get(outputKey)
-  if (cached != undefined) {
-    entry.status = ASYNC_STATUS.idle
-    emitCheckEnd(runtime, { nodeId: scope.nodeId, errors: cached, cached: true })
-    return withAsyncErrors({ state, ownerId: scope.nodeId, inputs: cached, isValidating: false })
+  const answer = entry.answers.get(outputKey)
+  if (answer != undefined) {
+    entry.status = RUN_STATUS.idle
+    emitCheckEnd(runtime, { nodeId: ownerId, errors: answer, cached: true })
+    return withCheckErrors(state, { ownerId, inputs: answer })
   }
+  const cleared = withCheckErrors(state, { ownerId, inputs: [] })
   if (existing == undefined || options.on != ASYNC_TRIGGER.change) {
-    entry.status = ASYNC_STATUS.stale
-    return withAsyncErrors({ state, ownerId: scope.nodeId, inputs: [], isValidating: false })
+    entry.status = RUN_STATUS.stale
+    return cleared
   }
-  scheduleRun({ runtime, ownerId: scope.nodeId, entry, debounceMs: options.debounceMs })
-  return withAsyncErrors({ state, ownerId: scope.nodeId, inputs: [], isValidating: true })
+  scheduleRun({ runtime, ownerId, entry, debounceMs: options.debounceMs })
+  return withPendingCheck(cleared, ownerId)
 }
 
-function createEntry(): AsyncEntry {
+function createEntry(): CheckEntry {
   return {
-    status: ASYNC_STATUS.stale,
+    status: RUN_STATUS.stale,
     output: undefined,
     outputKey: undefined,
     deps: undefined,
-    token: 0,
     timer: undefined,
     controller: undefined,
     running: undefined,
-    cache: new Map(),
+    answers: new Map(),
   }
 }
 
@@ -173,14 +180,22 @@ function isSyncSettledAndValid(state: FormState, nodeId: string): boolean {
   return !hasSyncErrors && !hasPathWithin(state.pendingSchemas, nodeId)
 }
 
-function pruneAsyncEntries(runtime: FormRuntime, state: FormState, scopes: ReadonlyArray<Scope>): FormState {
+function isFailedCheck(state: FormState, ownerId: string): boolean {
+  return state.checks.get(ownerId)?.status == CHECK_STATUS.failed
+}
+
+function awaitsTrigger(state: FormState, ownerId: string, entry: CheckEntry): boolean {
+  return entry.status == RUN_STATUS.stale || isFailedCheck(state, ownerId)
+}
+
+function pruneChecks(runtime: FormRuntime, state: FormState, scopes: ReadonlyArray<Scope>): FormState {
   const activeIds = new Set(scopes.map(scope => scope.nodeId))
   let next = state
-  for (const [ownerId, entry] of runtime.asyncEntries) {
+  for (const [ownerId, entry] of runtime.checkEntries) {
     if (!activeIds.has(ownerId)) {
       cancelEntry(entry)
-      runtime.asyncEntries.delete(ownerId)
-      next = withAsyncErrors({ state: next, ownerId, inputs: [], isValidating: false })
+      runtime.checkEntries.delete(ownerId)
+      next = withCheckErrors(next, { ownerId, inputs: [] })
     }
   }
   return next
@@ -189,117 +204,103 @@ function pruneAsyncEntries(runtime: FormRuntime, state: FormState, scopes: Reado
 interface ScheduledRun {
   readonly runtime: FormRuntime
   readonly ownerId: string
-  readonly entry: AsyncEntry
+  readonly entry: CheckEntry
   readonly debounceMs: number
 }
 
 function scheduleRun({ runtime, ownerId, entry, debounceMs }: ScheduledRun): void {
   clearTimeout(entry.timer)
-  entry.status = ASYNC_STATUS.scheduled
+  entry.status = RUN_STATUS.scheduled
   entry.timer = setTimeout(() => {
     void startRun(runtime, ownerId, entry)
   }, debounceMs)
 }
 
-function startRun(runtime: FormRuntime, ownerId: string, entry: AsyncEntry): Promise<void> {
-  const options = asyncOptionsAt(runtime, ownerId)
+function startRun(runtime: FormRuntime, ownerId: string, entry: CheckEntry): Promise<void> {
+  const options = checkOptionsAt(runtime, ownerId)
   cancelEntry(entry)
   if (options == undefined) {
     return Promise.resolve()
   }
   const controller = new AbortController()
-  const token = entry.token
   entry.controller = controller
-  entry.status = ASYNC_STATUS.running
-  commitState(runtime, { ...runtime.state, validating: withAdded(runtime.state.validating, ownerId) })
+  entry.status = RUN_STATUS.running
+  commitState(runtime, withPendingCheck(runtime.state, ownerId))
   emitNodeEvent(runtime, FORM_EVENT.checkStart, ownerId)
-  entry.running = executeRun({ options, output: entry.output, deps: entry.deps, signal: controller.signal }).then(
-    inputs => {
-      settleRun({ runtime, ownerId, entry, token, inputs })
+  const run: CheckRun = { runtime, ownerId, entry, signal: controller.signal }
+  entry.running = callRun({ options, entry, signal: controller.signal }).then(
+    result => {
+      answerCheck(run, toErrorInputs(result))
+    },
+    (error: unknown) => {
+      failCheck(run, error)
     },
   )
   return entry.running
 }
 
-interface RunExecution {
+interface RunCall {
   readonly options: RuntimeAsyncValidation
-  readonly output: unknown
-  readonly deps: unknown
+  readonly entry: CheckEntry
   readonly signal: AbortSignal
 }
 
-async function executeRun({ options, output, deps, signal }: RunExecution): Promise<ReadonlyArray<ErrorInput>> {
-  try {
-    return toErrorInputs(await options.run(output, { signal, deps }))
-  } catch (error) {
-    return [{ code: ASYNC_FAILED_CODE, params: { error } }]
-  }
+async function callRun({ options, entry, signal }: RunCall): Promise<ValidateResult> {
+  return options.run(entry.output, { signal, deps: entry.deps })
 }
 
-interface RunSettlement {
+interface CheckRun {
   readonly runtime: FormRuntime
   readonly ownerId: string
-  readonly entry: AsyncEntry
-  readonly token: number
-  readonly inputs: ReadonlyArray<ErrorInput>
+  readonly entry: CheckEntry
+  readonly signal: AbortSignal
 }
 
-function settleRun({ runtime, ownerId, entry, token, inputs }: RunSettlement): void {
-  if (runtime.asyncEntries.get(ownerId) != entry || entry.token != token) {
+function answerCheck(run: CheckRun, inputs: ReadonlyArray<ErrorInput>): void {
+  if (run.signal.aborted) {
     return
   }
+  const { runtime, ownerId, entry } = run
   if (entry.outputKey != undefined) {
-    entry.cache.set(entry.outputKey, inputs)
+    entry.answers.set(entry.outputKey, inputs)
   }
-  entry.status = ASYNC_STATUS.idle
-  entry.controller = undefined
-  entry.running = undefined
-  commitState(runtime, withAsyncErrors({ state: runtime.state, ownerId, inputs, isValidating: false }))
+  finishRun(entry)
+  commitState(runtime, withCheckErrors(runtime.state, { ownerId, inputs }))
   emitCheckEnd(runtime, { nodeId: ownerId, errors: inputs, cached: false })
 }
 
-function abortCheck(runtime: FormRuntime, ownerId: string, entry: AsyncEntry): void {
-  if (entry.status == ASYNC_STATUS.running) {
+function failCheck(run: CheckRun, error: unknown): void {
+  if (run.signal.aborted) {
+    return
+  }
+  const { runtime, ownerId, entry } = run
+  finishRun(entry)
+  commitState(runtime, withFailedCheck(runtime.state, { ownerId, error }))
+  emitCheckFail(runtime, { nodeId: ownerId, error })
+}
+
+function finishRun(entry: CheckEntry): void {
+  entry.status = RUN_STATUS.idle
+  entry.controller = undefined
+  entry.running = undefined
+}
+
+function abortCheck(runtime: FormRuntime, ownerId: string, entry: CheckEntry): void {
+  if (entry.status == RUN_STATUS.running) {
     emitNodeEvent(runtime, FORM_EVENT.checkAbort, ownerId)
   }
   cancelEntry(entry)
 }
 
-function cancelEntry(entry: AsyncEntry): void {
+function cancelEntry(entry: CheckEntry): void {
   clearTimeout(entry.timer)
   entry.controller?.abort()
   entry.timer = undefined
   entry.controller = undefined
   entry.running = undefined
-  entry.token += 1
 }
 
-interface AsyncErrorsUpdate {
-  readonly state: FormState
-  readonly ownerId: string
-  readonly inputs: ReadonlyArray<ErrorInput>
-  readonly isValidating: boolean
-}
-
-function withAsyncErrors({ state, ownerId, inputs, isValidating }: AsyncErrorsUpdate): FormState {
-  return {
-    ...state,
-    errors: replaceOwnedErrors(state.errors, {
-      ownerId,
-      source: ERROR_SOURCE.async,
-      errors: toStoredErrors({
-        inputs,
-        ownerId,
-        source: ERROR_SOURCE.async,
-        clearOn: CLEAR_ON.never,
-        arrayKeys: state.arrayKeys,
-      }),
-    }),
-    validating: isValidating ? withAdded(state.validating, ownerId) : withDeleted(state.validating, ownerId),
-  }
-}
-
-function asyncOptionsAt(runtime: FormRuntime, ownerId: string): RuntimeAsyncValidation | undefined {
+function checkOptionsAt(runtime: FormRuntime, ownerId: string): RuntimeAsyncValidation | undefined {
   const definition = definitionAt(runtime.definition, ownerId)
   return definition == undefined ? undefined : sharedOptionsOf(definition).validateAsync
 }

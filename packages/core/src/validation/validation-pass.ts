@@ -6,9 +6,24 @@ import type { PendingSchemaRun } from './sync-validation'
 import { isInternalErrorSource } from '../errors/form-error'
 import { commitState } from '../form/form-runtime'
 import { isWithinPath } from '../paths/path'
-import { reconcileAsyncScopes } from './async-validation'
+import {
+  markChecksStaleWithin,
+  markFailedChecksStaleWithin,
+  reconcileChecks,
+  startChecksWithin,
+} from './async-validation'
 import { collectScopes } from './scopes'
-import { applySyncValidation, settleSchemaRun } from './sync-validation'
+import { applySyncValidation, markSyncEntriesStaleFor, settleSchemaRun } from './sync-validation'
+
+/**
+ * Options of `validate`.
+ *
+ * @category Nodes
+ */
+export interface ValidateOptions {
+  /** Validates again without reusing cached results. @defaultValue `false` */
+  readonly ignoreCache?: boolean
+}
 
 export function runValidationPass(runtime: FormRuntime, state: FormState): FormState {
   const collection = collectScopes({ definition: runtime.definition, state, previousDeps: runtime.scopeDeps })
@@ -19,14 +34,36 @@ export function runValidationPass(runtime: FormRuntime, state: FormState): FormS
     scopes: collection.scopes,
   })
   watchPendingSchemas(runtime, synced.pending)
-  return reconcileAsyncScopes(runtime, pruneRemovedScopes(runtime, synced.state, collection.scopes), collection.scopes)
+  return reconcileChecks(runtime, pruneRemovedScopes(runtime, synced.state, collection.scopes), collection.scopes)
 }
 
 export function commitWithValidation(runtime: FormRuntime, state: FormState): void {
   commitState(runtime, runValidationPass(runtime, state))
 }
 
-export function pendingSchemaRunsWithin(runtime: FormRuntime, nodeId: string): Array<Promise<void>> {
+export async function settleValidationWithin(
+  runtime: FormRuntime,
+  nodeId: string,
+  { ignoreCache = false }: ValidateOptions = {},
+): Promise<void> {
+  if (ignoreCache) {
+    markSyncEntriesStaleFor(runtime.syncEntries, nodeId)
+    markChecksStaleWithin(runtime, nodeId)
+  }
+  markFailedChecksStaleWithin(runtime, nodeId)
+  commitWithValidation(runtime, runtime.state)
+  let pending = startPendingWithin(runtime, nodeId)
+  while (pending.length > 0) {
+    await Promise.all(pending)
+    pending = startPendingWithin(runtime, nodeId)
+  }
+}
+
+function startPendingWithin(runtime: FormRuntime, nodeId: string): Array<Promise<void>> {
+  return [...startChecksWithin(runtime, nodeId), ...pendingSchemaRunsWithin(runtime, nodeId)]
+}
+
+function pendingSchemaRunsWithin(runtime: FormRuntime, nodeId: string): Array<Promise<void>> {
   return [...runtime.pendingSchemaRuns].filter(([ownerId]) => isWithinPath(ownerId, nodeId)).map(([, run]) => run)
 }
 

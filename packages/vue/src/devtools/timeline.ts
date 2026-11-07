@@ -16,6 +16,7 @@ type EventHeadings = {
 const SUBMIT_LOG_TYPES: Record<SubmitOutcome, LogType> = {
   success: 'default',
   invalid: 'warning',
+  unchecked: 'warning',
   rejected: 'error',
   skipped: 'default',
 }
@@ -31,6 +32,7 @@ const EVENT_HEADINGS: EventHeadings = {
     title: event.cached ? 'Check reused' : 'Check finished',
     logType: event.errors.length > 0 ? 'warning' : 'default',
   }),
+  checkFail: () => ({ title: 'Check failed', logType: 'error' }),
   checkAbort: () => ({ title: 'Check cancelled', logType: 'default' }),
   submitStart: () => ({ title: 'Submit', logType: 'default' }),
   submitEnd: event => ({ title: `Submit ${event.outcome}`, logType: SUBMIT_LOG_TYPES[event.outcome] }),
