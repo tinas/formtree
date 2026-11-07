@@ -98,8 +98,8 @@ shows how a component finds its node.
 
 ## Ordering Options
 
-Write `schema` and `children` before the options that read them, because TypeScript types a
-definition's callbacks in the order they are written:
+When a definition's `schema` reads dependencies, write it before the callbacks, because TypeScript
+types functions in the order they are written:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -125,8 +125,8 @@ export const addressGroup = defineGroupWithDeps<{ countries: ReadonlyArray<strin
 })
 ```
 
-A schema that reads dependencies is a function too, and a callback written above it would see no
-keys.
+A callback written above the schema function would see none of its keys. A schema that is not a
+function and `children` can go anywhere, since TypeScript reads plain values before any function.
 
 ## Reading Hover Types
 

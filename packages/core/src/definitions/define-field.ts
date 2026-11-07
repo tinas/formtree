@@ -19,7 +19,8 @@ export interface SchemaContext<Deps> {
 export type SchemaOption<Schema, Deps> = Schema | ((context: SchemaContext<Deps>) => Schema)
 
 /**
- * Options of {@link defineField} and {@link defineFieldWithDeps}.
+ * Options of {@link defineField} and {@link defineFieldWithDeps}. When `schema` is a function of the dependencies,
+ * write it before `validateAsync`, or `run` receives `unknown`.
  *
  * @category Definitions
  */
