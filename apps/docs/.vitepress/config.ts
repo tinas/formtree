@@ -29,7 +29,7 @@ const EXAMPLE_FORMS = [
   'account',
   'segment',
   'product',
-  'sign-up',
+  'contact-form',
 ]
 
 const API_SIDEBAR_FILE = new URL('../api/typedoc-sidebar.json', import.meta.url)
@@ -122,12 +122,13 @@ export default defineConfig({
         {
           text: 'Examples',
           items: [
-            { text: 'Checkout Branches', link: '/examples/' },
-            { text: 'Role-based Rules', link: '/examples/role-based-rules' },
-            { text: 'Segment Builder', link: '/examples/segment-builder' },
-            { text: 'Line Items', link: '/examples/line-items' },
-            { text: 'Promo Code', link: '/examples/promo-code' },
+            { text: 'Contact Form', link: '/examples/' },
             { text: 'Inline Edit', link: '/examples/inline-edit' },
+            { text: 'Promo Code', link: '/examples/promo-code' },
+            { text: 'Role-based Rules', link: '/examples/role-based-rules' },
+            { text: 'Line Items', link: '/examples/line-items' },
+            { text: 'Checkout Branches', link: '/examples/checkout-branches' },
+            { text: 'Segment Builder', link: '/examples/segment-builder' },
           ],
         },
       ],

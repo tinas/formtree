@@ -1,22 +1,16 @@
 # Role-based Rules
 
-An admin needs a longer password than a member. The password field knows only about a minimum
-length, and the account group turns the chosen role into that length with `childDeps`.
+A password whose minimum length depends on the chosen role.
 
 <script setup>
 import RoleBasedRules from './demos/role-based-rules.vue'
 </script>
 
-<DemoFrame title="childDeps from the parent's value">
+<DemoFrame title="A rule that follows another answer">
   <RoleBasedRules />
 </DemoFrame>
 
-Type a 10-character password as a member, then switch the role to admin. The password schema is
-rebuilt with the new minimum, and the field becomes invalid at once, without a watcher and
-without touching the password.
-
-"Repeat password" is checked by a `validate` rule on the group, because it compares two of the
-group's values.
+Type a ten-character password as a member, then switch to admin. The password is too short at once.
 
 ::: code-group
 

@@ -178,7 +178,8 @@
 }
 
 .demo-preview input,
-.demo-preview select {
+.demo-preview select,
+.demo-preview textarea {
   width: 100%;
   padding: 5px 10px;
   border: 1px solid var(--vp-c-divider);
@@ -189,7 +190,8 @@
 }
 
 .demo-preview input:focus,
-.demo-preview select:focus {
+.demo-preview select:focus,
+.demo-preview textarea:focus {
   outline: none;
   border-color: var(--vp-c-brand-1);
 }

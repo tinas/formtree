@@ -33,6 +33,12 @@ export interface SavedLineItem {
   readonly quantity: number
 }
 
+export interface ContactMessage {
+  readonly name: string
+  readonly email: string
+  readonly message: string
+}
+
 let lastLineItemId = 100
 
 export async function checkPromoCode(check: PromoCodeCheck, signal?: AbortSignal): Promise<boolean> {
@@ -56,14 +62,9 @@ export async function updatePrice(price: number): Promise<number> {
   return price
 }
 
-export interface NewAccount {
-  readonly name: string
-  readonly email: string
-}
-
-export async function createAccount(account: NewAccount): Promise<NewAccount> {
+export async function sendMessage(contact: ContactMessage): Promise<ContactMessage> {
   await delay()
-  return account
+  return contact
 }
 
 function delay(signal?: AbortSignal): Promise<void> {

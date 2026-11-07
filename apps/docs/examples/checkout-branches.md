@@ -1,29 +1,17 @@
 # Checkout Branches
 
-A delivery step and a payment step whose shape follows the customer's choices. The address
-appears only for shipping, the state only for the United States, and card or invoice details
-only for the chosen payment method.
+A checkout whose delivery and payment details follow the customer's choices.
 
 <script setup>
 import CheckoutBranches from './demos/checkout-branches.vue'
 </script>
 
-<DemoFrame title="activeWhen, schema default">
+<DemoFrame title="Parts that follow the customer's answers">
   <CheckoutBranches />
 </DemoFrame>
 
-Pick card, type a cardholder name, switch to invoice and submit. The draft still holds the
-cardholder name, and the output has only the invoice details. Switch back to card and the name
-is there again.
-
-Submit an invoice and leave "Due in days" empty. The draft has no `dueInDays`, and the output has
-30, the default of the schema, which the input shows as its placeholder. Type 14 and the output
-follows. Clear the field and the default is back, because the number input writes `undefined`
-when it is empty. [Starting values and schema defaults](/guide/fields#starting-values-and-schema-defaults)
-explains how this differs from `initialValue`.
-
-Choose France as the country to see a rule built from [dependencies](/guide/dependencies). The
-countries the store ships to are passed in from outside, and France is not among them.
+Type a cardholder name, switch to invoice, and submit. The draft keeps the name, and the output
+leaves it out.
 
 ::: code-group
 

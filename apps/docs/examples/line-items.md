@@ -1,24 +1,16 @@
 # Line Items
 
-A cart edited row by row. Each row validates and saves on its own, knows whether it has unsaved
-changes, and keeps its state when it moves.
+A cart where each row validates and saves on its own.
 
 <script setup>
 import LineItems from './demos/line-items.vue'
 </script>
 
-<DemoFrame title="arrayOf, row submit, cross-row rule">
+<DemoFrame title="Rows that save on their own">
   <LineItems />
 </DemoFrame>
 
-Change a quantity and the row shows "Unsaved changes". Saving it calls `reset({ value })` with the
-saved item, which makes only that row clean.
-
-Pick the same product in two rows to see the rule on the array. It compares the rows with each
-other and puts the error on the duplicate.
-
-Clear a quantity, blur the field and move the row up. The error and the touched state move with
-the row, because items are identified by key, not by position.
+Change a quantity and save the row, or pick the same product twice to see the rule across rows.
 
 ::: code-group
 
