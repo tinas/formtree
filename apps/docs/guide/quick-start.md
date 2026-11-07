@@ -252,25 +252,26 @@ string. The error appears once the user leaves the input, so nobody sees it whil
 
 <div class="javascript-only">
 
-Every value in the form has a node. Add an input for the name and a place for its error:
+Every value in the form has a node, and each node has ids that start with the form's `id`. Add an
+input for the name and a place for its error with the ids of its node:
 
 ```html
-<label for="name">Name</label>
-<input id="name" />
-<p id="name-error"></p>
+<label for="contact:name">Name</label>
+<input id="contact:name" />
+<p id="contact:name:error"></p>
 ```
 
 Then pass what the user does to the node for the name, and write its error to the page:
 
-```ts{5,7-8,10-11,13-15}
+```ts{4-5,7-8,10-11,13-15}
 import { createForm } from '@formtree/core'
 import { contactForm } from './forms/contact'
 
-const form = createForm(contactForm)
+const form = createForm(contactForm, { id: 'contact' })
 const name = form.field('name')
 
-const input = document.querySelector<HTMLInputElement>('#name')!
-const error = document.querySelector<HTMLParagraphElement>('#name-error')!
+const input = document.getElementById(name.id) as HTMLInputElement
+const error = document.getElementById(name.errorId)!
 
 input.addEventListener('input', () => name.setValue(input.value))
 input.addEventListener('blur', () => name.blur())
@@ -386,7 +387,7 @@ import { createForm } from '@formtree/core'
 import { sendMessage } from './api'
 import { contactForm } from './forms/contact'
 
-const form = createForm(contactForm)
+const form = createForm(contactForm, { id: 'contact' })
 
 bindInput('name')
 bindInput('email')
@@ -401,8 +402,8 @@ document.querySelector('form')!.addEventListener(
 
 function bindInput(key: 'name' | 'email' | 'message') {
   const field = form.field(key)
-  const input = document.querySelector<HTMLInputElement | HTMLTextAreaElement>(`#${key}`)!
-  const error = document.querySelector<HTMLParagraphElement>(`#${key}-error`)!
+  const input = document.getElementById(field.id) as HTMLInputElement | HTMLTextAreaElement
+  const error = document.getElementById(field.errorId)!
 
   input.addEventListener('input', () => field.setValue(input.value))
   input.addEventListener('blur', () => field.blur())
@@ -414,23 +415,26 @@ function bindInput(key: 'name' | 'email' | 'message') {
 
 ```html [index.html]
 <form novalidate>
-  <label for="name">Name</label>
-  <input id="name" />
-  <p id="name-error"></p>
+  <label for="contact:name">Name</label>
+  <input id="contact:name" />
+  <p id="contact:name:error"></p>
 
-  <label for="email">Email</label>
-  <input id="email" />
-  <p id="email-error"></p>
+  <label for="contact:email">Email</label>
+  <input id="contact:email" />
+  <p id="contact:email:error"></p>
 
-  <label for="message">Message</label>
-  <textarea id="message"></textarea>
-  <p id="message-error"></p>
+  <label for="contact:message">Message</label>
+  <textarea id="contact:message"></textarea>
+  <p id="contact:message:error"></p>
 
   <button type="submit">Send</button>
 </form>
 ```
 
 :::
+
+[Connecting Errors to Inputs](/guide/showing-errors#connecting-errors-to-inputs) adds the attributes a
+screen reader needs to read each error with its input.
 
 </div>
 
