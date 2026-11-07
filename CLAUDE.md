@@ -1,8 +1,23 @@
 # formtree
 
-Headless form tree. `packages/core` is the framework-free engine, `packages/vue` and `packages/react` the adapters. `apps/playground` drives the core with plain DOM code; `apps/vue-playground` and `apps/react-playground` build the same wizard with Vue SFCs and React components. The docs guide is the spec: `apps/docs/guide/design-rules.md` holds the ten design rules and what formtree leaves out on purpose, `apps/docs/guide/how-it-works.md` the model. The decisions below record why the code has its shape; add new ones here.
+Headless form tree. `packages/core` is the framework-agnostic engine, `packages/vue` and `packages/react` the adapters. `apps/playground` drives the core with plain DOM code; `apps/vue-playground` and `apps/react-playground` build the same wizard with Vue SFCs and React components. The design rules below are the spec, and the docs guide teaches each one where its behaviour is used. The decisions below record why the code has its shape; add new ones here.
 
 The contributor workflow lives in @CONTRIBUTING.md. This file keeps only what the code, config and git history do not show: the architecture at a glance, the conventions review holds code and docs to, decisions with their reasons and guarding tests, and gotchas. A path, name or value that the code already shows stays out.
+
+## Design rules
+
+1. State does not depend on rendering. Mounting or unmounting a component never changes a value, an error or a registration.
+2. Types come from schemas, not values. A form holds `DraftOf<definition>` and a handler receives `OutputOf<definition>`; an initial value fits the draft and need not be complete.
+3. A node is found by identity, by its path or, in an adapter, by its definition. There is no "nearest form" lookup.
+4. Every error has one producer (schema, `validate`, `validateAsync` or the server), and each changes only its own errors.
+5. Validation runs on every change; `mode` only decides visibility.
+6. An inactive branch is not validated and is not in the output, but its value is kept.
+7. Empty is `undefined`, structure always exists. Declared groups are `{}` and declared arrays `[]` from the start, and the library invents no other value, so `push({})` adds an empty row.
+8. An array item is identified by its key, not its index.
+9. A submit runs a fixed pipeline; a node already submitting or in an inactive branch returns `'skipped'`.
+10. Dependencies flow down, explicitly: parent to child, never between siblings or upwards.
+
+Left out on purpose: components, renderless fields and directives (elements belong to the app); `canSubmit` (an invalid form keeps its button enabled, edit forms gate on `dirty`); unregistering on unmount (rule 1); `null` for empty and drafts filled from schema defaults (rule 7); adapters per schema library (Standard Schema only); wildcard paths for async rules (a check belongs to its definition); dependencies between siblings (rule 10); built-in messages (`formatError` turns codes into text); persistence and unsaved-changes prompts (`subscribe` and `dirty` are enough); a `watch` API (`subscribe`, `node.state` and the framework's own watch).
 
 ## Architecture (packages/core/src)
 
@@ -27,7 +42,7 @@ State is immutable; every mutation goes through a pure transition and then `comm
 - A validation pass is a scope walk, then sync runs memoised by value and deps reference, then async reconciliation. Deps are pinned by shallow equality, so a `childDeps` that returns a new object with the same content does not rebuild the schema.
 - `validate` (group, array) runs on the draft in the same step as the schema, whether or not the schema passes; neither reads the other's result. A rule that waited would repeat a schema refinement's flaw (Zod skips it while any key is `undefined` or of the wrong type, so in a form it waits for every key to be filled in), and an output exists only once the whole subtree is valid. The cost: rules check for `undefined` and see untransformed values. Guarded by "a group validate rule runs on the draft while the schema fails" in `validation.test.ts`.
 - `validateAsync` runs last, on the output, and is held while a schema or rule error targets its node or a node below it, whichever node produced it (`isSyncSettledAndValid` filters by `targetId`, not `ownerId`). A request costs a round trip and asks about the value that would be saved; a sync rule costs nothing, so it never waits. Guarded by "a check waits while a parent rule puts an error on its node" in `async-validation.test.ts`.
-- A schema default never fills the draft; it reaches only the output, through the schema run that validates the value, so the handler and `validateAsync` receive it and a group `validate` sees `undefined`. Standard Schema cannot be asked for its defaults, and a filled draft would make "left empty" look like "chosen" and move the baseline `dirty` and `reset` measure from. A value the user should see goes into `initialValue`. `guide/fields.md` ("Starting values and schema defaults") explains it. Guarded by "a schema default fills the output, never the draft" in `submit.test.ts`.
+- A schema default never fills the draft; it reaches only the output, through the schema run that validates the value, so the handler and `validateAsync` receive it and a group `validate` sees `undefined`. Standard Schema cannot be asked for its defaults, and a filled draft would make "left empty" look like "chosen" and move the baseline `dirty` and `reset` measure from. A value the user should see goes into `initialValue`. `guide/initial-values.md` explains it. Guarded by "a schema default fills the output, never the draft" in `submit.test.ts`.
 - One runtime object per node id (`UniversalNode`); field, group and array nodes are views in types only, so `form.field('x') === form.group('x')` and adapters can key on nodes. An undeclared node reports `kind: 'lens'`, since that object cannot know which accessor returned it.
 - Node interface methods are function-typed properties: destructuring is safe (no unbound-method) and nodes stay invariant.
 - A write to a missing index or a removed row is ignored: no throw, state unchanged.
@@ -79,7 +94,7 @@ State is immutable; every mutation goes through a pure transition and then `comm
 | `formtree-provider.tsx` | `<FormtreeProvider>`: `FormDefaults` for every `useForm` below it, read once when a form is created                                                                                                                            |
 
 - Nodes are the core's own objects: `useSyncExternalStore` needs only the memoised snapshots, so nothing is wrapped.
-- A component re-renders only for the nodes it subscribed to: `useForm` the root, `useFormNode` its node, `useField` its field, `useNodeState` any node. Reading another node's `state` without a hook gives the last render's snapshot; `apps/docs/react/index.md` says so, and the playground reads every branch's `active` through `useNodeState`.
+- A component re-renders only for the nodes it subscribed to: `useForm` the root, `useFormNode` its node, `useField` its field, `useNodeState` any node. Reading another node's `state` without a hook gives the last render's snapshot; `apps/docs/guide/components.md` says so, and the playground reads every branch's `active` through `useNodeState`.
 - `useField(name)` reads the context through `useNearestNode`, without subscribing to the provided node, so an input does not re-render when a sibling changes.
 - `FormNodeProvider` memoises its context value by node and parent and renders `NODE_CONTEXT.Provider`, which keeps React 18.3 working (peer `^18.3.0 || ^19.0.0`).
 - Under `StrictMode` effects run twice, so `dispose` runs before the form is used; `dispose` only cancels async work and the form keeps working (tested).
@@ -98,7 +113,7 @@ State is immutable; every mutation goes through a pure transition and then `comm
 - Loose equality (`==`, `!=`) unless identity matters (`Object.is`).
 - Behaviour that differs per kind lives in an exhaustive table, not in `kind == 'x'` branches.
 - String domain values are `as const` objects with a derived type.
-- Definitions are values, not components. They are camelCase with a kind suffix, such as `emailField`, `deliveryGroup` or `lineItemsArray`. PascalCase stays for types, interfaces and components.
+- Definitions are values, not components. They are camelCase with a kind suffix, such as `emailField`, `deliveryGroup` or `lineItemsArray`. A definition used as the root of a form ends with `Form` instead (`signUpForm`), so `useForm(signUpForm)` reads as a sentence; the suffix names what the definition is used as. PascalCase stays for types, interfaces and components.
 - Components never receive nodes through props. A business component reads its node with `useFormNode(Definition)`, a generic input takes a `name` and a row takes an `index`.
 - React components live in kebab-case `.tsx` files with named exports.
 - A constant used by one file stays in that file. Only a package's entry re-exports.
@@ -107,35 +122,61 @@ State is immutable; every mutation goes through a pure transition and then `comm
 
 ## Docs (apps/docs)
 
-VitePress 2 (alpha) site in English, styled after usewagen.dev: `guide/` (core concepts), `vue/` and `react/` (adapters), `examples/` (live Vue demos, each followed by every file it uses in a code group; React pages use plain `tsx` blocks). Never use search-ads-ui domain terms in docs, playgrounds or tests.
+VitePress 2 (alpha) site in English, written after the Vue docs. `guide/` holds four sidebar sections: Getting Started (Introduction, Quick Start), Essentials (the 80% of forms, read in order), Building the UI (where formtree meets components, one view per framework) and Going Further. `examples/` holds live Vue demos from simplest to most complex, each followed by every file it uses in a code group. Never use search-ads-ui domain terms in docs, playgrounds or tests.
 
-| Path                        | Role                                                                                                                                                                                                                                                                                              |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `examples/forms/*.ts`       | definitions, one file per part (`contact`, `delivery`, `payment`, `line-items`, `promo-code`, composed in `checkout`), and a fake API; used by the demos and, through twoslash `extraFiles`, by guide snippets (`./forms/<name>`); a new file goes into `EXAMPLE_FORMS` in `.vitepress/config.ts` |
-| `examples/demos/*.vue`      | live demos, embedded in `examples/*.md` inside `<DemoFrame>`                                                                                                                                                                                                                                      |
-| `examples/components/*.vue` | generic `text-field` / `number-field` / `select-field` built on `useField(name)`                                                                                                                                                                                                                  |
-| `.vitepress/config.ts`      | sidebar, twoslash (`ts twoslash` blocks are type-checked at build time), aliases to package sources                                                                                                                                                                                               |
-| `typedoc.json`              | API reference: TypeDoc + typedoc-plugin-markdown + typedoc-vitepress-theme write `api/` (gitignored) before `dev` and `build`; one page per symbol, linked to its source on GitHub at the built commit (`sourceLinkTemplate`); the sidebar is read from `api/typedoc-sidebar.json` at config load |
+| Path                                                                | Role                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `examples/forms/*.ts`                                               | definitions, one file per part (`contact`, `delivery`, `payment`, `line-items`, `promo-code`, composed in `checkout`), and a fake API; used by the demos and, through twoslash `extraFiles`, by guide snippets (`./forms/<name>`); a new file goes into `EXAMPLE_FORMS` in `.vitepress/config.ts`               |
+| `examples/demos/*.vue`                                              | live demos, embedded in `examples/*.md` inside `<DemoFrame>`                                                                                                                                                                                                                                                    |
+| `examples/components/*.vue`                                         | generic `text-field` / `number-field` / `select-field` built on `useField(name)`                                                                                                                                                                                                                                |
+| `.vitepress/config.ts`                                              | sidebar, twoslash (`ts twoslash` blocks are type-checked at build time), aliases to package sources                                                                                                                                                                                                             |
+| `.vitepress/theme/framework*.ts`, `components/framework-select.vue` | the framework select: `?framework=` sets `<html data-framework>` before paint, generated CSS hides the other `*-only` blocks, the choice stays in the URL across routes and `/api/` redirects to the chosen package; a new framework is one entry in each map in `framework.ts`                                 |
+| `.vitepress/page-markdown.ts`, `components/copy-page.vue`           | Markdown for agents: at build, each page becomes clean Markdown per framework (`<page>.md` for Vue, `.react.md`, `.javascript.md`) plus `llms.txt` and `llms-full.txt`; in dev a middleware serves the same files. The Copy page button copies the selected framework's file and links it to ChatGPT and Claude |
+| `typedoc.json`                                                      | API reference: TypeDoc + typedoc-plugin-markdown + typedoc-vitepress-theme write `api/` (gitignored) before `dev` and `build`; one page per symbol, linked to its source on GitHub at the built commit (`sourceLinkTemplate`); the sidebar is read from `api/typedoc-sidebar.json` at config load               |
 
 The site is deployed on Netlify at https://form-tree.netlify.app. `og:image` is that site's absolute URL, since most link previews ignore a relative one. `public/og-image.png` is rendered from `.vitepress/og-image.html` at 1200×630 with headless Chrome (`--window-size=1200,630 --force-device-scale-factor=1 --allow-file-access-from-files --screenshot`).
 
-`guide/how-it-works.md` and `guide/groups.md` state that a schema key is not a child, and the `children` JSDoc repeats it. The option keeps its name: it pairs with `childDeps`, and nesting definitions as `children` matches route trees.
+`guide/groups.md` states that a schema key is not a child, and the `children` JSDoc repeats it. The option keeps its name: it pairs with `childDeps`, and nesting definitions as `children` matches route trees.
 
 Writing:
 
+- The guide follows the [Vue docs writing guide](https://github.com/vuejs/docs/blob/main/.github/contributing/writing-guide.md). The rules below are how it applies here.
 - Docs are plain and leave no open question. They explain concepts, behaviour and reasons, and show them in code.
-- Every sentence earns its place. A page does not restate what the code just showed, has no asides, no intro that recaps the sidebar and no "Next" section.
-- Prose has few colons. A sentence that leads into code or a list ends with a period, and an "X: Y" clause becomes two sentences, a "because" or "so" clause, or a comma.
+- A guide section opens with one sentence that names the task and the tool and leads into the code ("Define it with `defineField`, and add it to a group's `children`:"), then says in a sentence or two what the code does. That is the whole section unless the reader needs more to use the feature. Headings are short task names in Title Case ("Defining a Field", "Saving One Row"), never a bare API name. `guide/fields.md` is the model.
+- A problem comes first only where the task alone does not show why a feature exists, and then as one sentence, as in Vue's "It can be cumbersome to wire up value bindings by hand. `v-model` simplifies this to:". No scenario stories ("A shop edits a product's price on the product page…"), no edge cases or caveats beyond the section's point, nothing the API reference already says.
+- The Introduction is where problems are told at length. There a problem is a situation the reader has lived through, told in plain, general words as one case and what goes wrong in it, ending on the one consequence the reader feels; formtree's features reworded as needs ("a form has to decide when…") are not a problem.
+- A section introduces one new concept, in its prose and in its code. A tutorial step brings one API: a sentence on what it is for leads into a small block, then a sentence or two say what it does for the user. A run of sentences each led by an identifier ("`useForm` creates…, `form.field` returns…, `model` goes to…") is line-by-line commentary, so split the step instead.
+- A point gets one familiar case, named plainly. A vague mention ("a card on an edit page") leaves the reader guessing, and a second case that repeats the point ("A settings page with a Save button in each section works the same way") is detail.
+- The Introduction has no code. It says what formtree is, the problem it solves and the idea behind it, each problem section in prose. Code starts in Quick Start, where the Prerequisites tip that opens Installation states the knowledge the guide assumes.
+- Every sentence earns its place. A page does not restate what the code just showed, has no intro that recaps the sidebar and no "Next" section.
+- Prose explains with the idea, not an inventory. It does not list a form's parts, fields or messages ("contact details, a delivery address, and a payment"), since the code shows them, and behaviour beyond the section's point (kept values, focus, trimming) waits for the page that teaches it. One familiar example is enough.
+- Prose never lists what can grow or change, such as the supported frameworks, compatible libraries, version ranges or what an object carries. It names the kind ("framework-agnostic", "any Standard Schema library", "the other attributes the input needs") and leaves the rest to the code and the API reference, so a new adapter or attribute needs no prose edit.
+- The running text carries only what the section needs: the task, the code, what it does. A side fact a reader may want but does not need to follow the section, such as a shortcut, an alternative or a related detail ("A dotted path from the root, `form.field('address.city')`, returns the same node."), goes in a `::: tip` with a short title. Warnings go in `::: warning`. Callouts stay few and never sit two in a row.
+- Prose has few colons. A sentence ends with a colon only when it leads directly into a code block or a list ("Here is a small example:"). An "X: Y" clause inside a sentence becomes two sentences, a "because" or "so" clause, or a comma.
+- Lists in prose use the Oxford comma ("the inputs, the layout, and the wording").
 - The guide never copies what the API reference lists, such as members, options or defaults. It links to the reference instead.
 - No page compares formtree to another library or borrows one as a reference point. A library is named only where an example uses it.
 - A child is always an entry of a group's `children`, a node with a definition of its own. A key of a schema is a node too, but prose calls it a key or a lens node, never a child.
 
+Framework views:
+
+- Content that differs per framework sits in `<div class="vue-only">`, `<div class="react-only">` or `<div class="javascript-only">`, with a blank line after the opening tag and before the closing one, or the Markdown inside does not render.
+- Vue comes first. It is the default view, and frameworks always appear in the order Vue, React, JavaScript: in the framework select, in prose, in tables and in the source order of the blocks.
+- `page-markdown.ts` turns every Markdown extension, container and component the pages use into plain Markdown: twoslash cuts and directives, `<<<` includes, `::: code-group`, callouts, framework blocks, `<script setup>` and components such as `<DemoFrame>`. A page that uses a new one needs a case there, or it leaks into what agents copy.
+- A heading inside a framework block gets an id that starts with the block's class (`## Inspecting a Form {#vue-only-inspecting-a-form}`), so the page outline hides it in the other views.
+- Every example a reader would copy exists in all three views. Where Vue and React use components, the JavaScript view uses functions that take a node.
+- A concept snippet that reads the same in every framework sits outside the blocks and imports from `@formtree/core` above `// ---cut---`, so the reader sees no import.
+- A full-file example shows its imports. Vue and React import from their adapter package, because adapter users install only the adapter; JavaScript imports from `@formtree/core`.
+- The JavaScript view binds inputs with a `bindInput(key)` helper (Quick Start, Submit the Form): `input` calls `setValue`, `blur` calls `blur()`, and `form.subscribe` writes `errorMessage`.
+
 Code blocks:
 
-- Code blocks are type-checked with twoslash. Setup lines go above `// ---cut---`, and shared definitions are imported rather than repeated.
+- A `handleSubmit` handler returns `void` or server errors, because its return value is read as server errors. Write `async contact => { await sendMessage(contact) }`, never `contact => sendMessage(contact)` when the call returns a value.
+- Code blocks are type-checked with twoslash. Setup lines go above `// ---cut---`, and shared definitions are imported rather than repeated. Twoslash resolves only `@formtree/core` and `@formtree/vue`, so React blocks are plain `ts`/`tsx` and Vue SFC blocks plain `vue`; check those by hand against a twoslash-checked twin. A local module in a twoslash block is declared with a hidden `// @filename: api.ts`.
 - Type queries (`//    ^?`) go only where the displayed type reads well.
 - Hovers add to the page size, so a block whose hovers add nothing starts with `// @noStaticSemanticInfo`. It keeps the type check and drops the hovers.
 - Vue templates use `@submit.prevent`.
+- A block that repeats an earlier step's code highlights its new lines with fence meta such as `vue{2,6,10-12}`, so the reader sees what the step added.
 
 Examples:
 
