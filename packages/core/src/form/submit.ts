@@ -1,11 +1,5 @@
 import type { ValidateResult } from '../errors/form-error'
-import type {
-  SubmitEventLike,
-  SubmitHandler,
-  SubmitOptions,
-  SubmitOutcome,
-  ValidationResult,
-} from '../nodes/node-types'
+import type { SubmitHandler, SubmitOptions, SubmitOutcome, ValidationResult } from '../nodes/node-types'
 import type { ValidateOptions } from '../validation/validation-pass'
 import type { FormRuntime } from './form-runtime'
 
@@ -29,13 +23,6 @@ export interface NodeSubmission {
   readonly nodeId: string
   readonly onValid: SubmitHandler<unknown>
   readonly options?: SubmitOptions
-}
-
-export function createSubmitHandler(submission: NodeSubmission): (event?: SubmitEventLike) => Promise<SubmitOutcome> {
-  return event => {
-    event?.preventDefault()
-    return submitNode(submission)
-  }
 }
 
 export async function validateNode(

@@ -11,7 +11,15 @@ export function ContactStep({ onComplete }: StepProps) {
 
   return (
     <FormNodeProvider node={contact}>
-      <form id={contact.id} className="step" noValidate onSubmit={onSubmit}>
+      <form
+        id={contact.id}
+        className="step"
+        noValidate
+        onSubmit={event => {
+          event.preventDefault()
+          void onSubmit()
+        }}
+      >
         <h2>Contact</h2>
         <TextField name="fullName" label="Full name" />
         <TextField name="email" label="Email" />

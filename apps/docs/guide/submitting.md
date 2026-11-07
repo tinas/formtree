@@ -137,7 +137,14 @@ A button outside the `<form>` element submits it through the HTML `form` attribu
 ```tsx
 return (
   <>
-    <form id="delivery-step" noValidate onSubmit={continueToPayment}>
+    <form
+      id="delivery-step"
+      noValidate
+      onSubmit={event => {
+        event.preventDefault()
+        void continueToPayment()
+      }}
+    >
       …
     </form>
 

@@ -103,11 +103,6 @@ export type ValidationResult<Output> =
       readonly failedChecks: ReadonlyArray<FailedCheck>
     }
 
-/** @category Submitting */
-export interface SubmitEventLike {
-  readonly preventDefault: () => void
-}
-
 /**
  * Receives the output of the submitted node. Errors it returns are stored as server errors, relative to that node.
  *
@@ -221,13 +216,9 @@ export interface NodeBase<Value, Output> {
   readonly validate: (options?: ValidateOptions) => Promise<ValidationResult<Output>>
   /**
    * Returns a submit function for this node. It skips while a submit runs, validates the subtree and either shows
-   * and focuses its errors and the checks that threw, or calls `onValid` with the output. An event passed to it is
-   * `preventDefault`ed.
+   * and focuses its errors and the checks that threw, or calls `onValid` with the output.
    */
-  readonly handleSubmit: (
-    onValid: SubmitHandler<Output>,
-    options?: SubmitOptions,
-  ) => (event?: SubmitEventLike) => Promise<SubmitOutcome>
+  readonly handleSubmit: (onValid: SubmitHandler<Output>, options?: SubmitOptions) => () => Promise<SubmitOutcome>
   /** Returns the subtree to its initial value, or makes `options.value` its new initial value. */
   readonly reset: (options?: ResetOptions<Value>) => void
   /** Sets external errors with paths relative to this node. They are visible at once. */

@@ -76,7 +76,6 @@ export type {
   NodeState,
   ResetOptions,
   SetErrorsOptions,
-  SubmitEventLike,
   SubmitHandler,
   SubmitOptions,
   SubmitOutcome,

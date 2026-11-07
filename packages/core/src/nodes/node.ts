@@ -12,7 +12,6 @@ import type {
   NodeState,
   ResetOptions,
   SetErrorsOptions,
-  SubmitEventLike,
   SubmitHandler,
   SubmitOptions,
   SubmitOutcome,
@@ -24,7 +23,7 @@ import { clearNodeErrors, listNodeErrors, setNodeErrors } from '../form/error-op
 import { focusElementById } from '../form/focus'
 import { observeRuntime } from '../form/form-events'
 import { subscribeToRuntime } from '../form/form-runtime'
-import { createSubmitHandler, validateNode } from '../form/submit'
+import { submitNode, validateNode } from '../form/submit'
 import { blurNode, editNodeArray, resetNodeValue, setNodeValue } from '../form/value-operations'
 import { joinPath } from '../paths/path'
 import { ARRAY_EDIT } from '../state/array-transitions'
@@ -64,10 +63,7 @@ export interface UniversalNode {
   readonly setValue: (value: unknown) => void
   readonly blur: () => void
   readonly validate: (options?: ValidateOptions) => Promise<ValidationResult<unknown>>
-  readonly handleSubmit: (
-    onValid: SubmitHandler<unknown>,
-    options?: SubmitOptions,
-  ) => (event?: SubmitEventLike) => Promise<SubmitOutcome>
+  readonly handleSubmit: (onValid: SubmitHandler<unknown>, options?: SubmitOptions) => () => Promise<SubmitOutcome>
   readonly reset: (options?: ResetOptions<unknown>) => void
   readonly setErrors: (errors: ReadonlyArray<ErrorInput>, options?: SetErrorsOptions) => void
   readonly clearErrors: (options?: ClearErrorsOptions) => void
@@ -163,7 +159,7 @@ function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
     setValue: value => setNodeValue(runtime, nodeId, value),
     blur: () => blurNode(runtime, nodeId),
     validate: options => validateNode(runtime, nodeId, options),
-    handleSubmit: (onValid, options) => createSubmitHandler({ runtime, nodeId, onValid, options }),
+    handleSubmit: (onValid, options) => () => submitNode({ runtime, nodeId, onValid, options }),
     reset: options => resetNodeValue(runtime, nodeId, options),
     setErrors: (errors, options) => setNodeErrors({ runtime, nodeId, errors, options }),
     clearErrors: options => clearNodeErrors(runtime, nodeId, options),
