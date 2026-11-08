@@ -80,6 +80,7 @@ A decision goes into the `CLAUDE.md` of the package it shapes: what the code doe
 - `packages/vue` and `packages/react` pack with `tsconfig.build.json` (no `paths`), so their `.d.ts` imports `@formtree/core` instead of inlining it; `vp run -r build` packs core first.
 - React files are `.tsx` with `jsx: react-jsx`; `vp check` type-checks them, so the React playground builds with plain `vp build`. Tests use `@testing-library/react` in happy-dom and call `cleanup` in `afterEach`. `apps/docs/tsconfig.typedoc.json` sets `jsx` for TypeDoc.
 - VitePress builds every Markdown file in `apps/docs`, so `srcExclude` keeps `apps/docs/CLAUDE.md` off the site.
+- The published declarations use `NoInfer`, so apps need TypeScript 5.4 or later; TypeScript 5.2 fails on them. Every package states it with an optional `typescript` peer, its README and Quick Start's prerequisites, and a top-level `types` field lets `moduleResolution: node` find the declarations. Raising the floor changes all of them.
 - `benchmarks` holds Vitest 5 benchmarks (a `test` with the `bench` fixture) that import the package sources through tsconfig `paths`, and `vp run bench` runs them. Its `bench` task sets `cache: false`, because the root caches scripts and a replayed benchmark measures nothing.
 - Benchmarks run only on demand, because timings on shared CI runners vary too much to compare. A cost that must not grow is guarded by a test in `vp run ready` instead, either a count, such as how often a schema runs, or the ratio of two sizes measured in one run.
 

@@ -3,10 +3,14 @@
   "version": "0.1.0",
   "description": "The framework-agnostic engine of formtree, a headless form tree in which every part of a form validates and submits on its own.",
   "keywords": [
+    "arktype",
     "form",
     "headless",
     "standard-schema",
-    "validation"
+    "typescript",
+    "valibot",
+    "validation",
+    "zod"
   ],
   "homepage": "https://form-tree.netlify.app",
   "bugs": "https://github.com/tinas/formtree/issues",
@@ -22,6 +26,7 @@
   ],
   "type": "module",
   "sideEffects": false,
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
     "./package.json": "./package.json"
@@ -43,5 +48,13 @@
     "valibot": "catalog:",
     "vite-plus": "catalog:",
     "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.4"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
   }
 }

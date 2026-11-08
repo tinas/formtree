@@ -3,8 +3,8 @@
 ## Installation
 
 ::: tip Prerequisites
-This guide assumes basic familiarity with TypeScript. Its examples write schemas with
-[Zod](https://zod.dev), so install it to follow along; any
+This guide assumes basic familiarity with TypeScript, and formtree needs TypeScript 5.4 or later.
+Its examples write schemas with [Zod](https://zod.dev), so install it to follow along; any
 [Standard Schema](https://standardschema.dev) library can take its place.
 :::
 
