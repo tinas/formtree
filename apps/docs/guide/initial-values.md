@@ -195,7 +195,8 @@ const save = form.handleSubmit(async contact => {
 })
 ```
 
-The form is clean again.
+The form is clean again. Like `initialValue`, the value may leave parts out, and what it leaves out
+starts empty.
 
 ::: tip Data That Loads Later
 The same call fills a form whose data loads after it was created.

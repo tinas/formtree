@@ -2,6 +2,7 @@ import type { DraftOf, OutputOf } from '../definitions/definition'
 import type { DEFINITION_KIND } from '../definitions/definition-kind'
 import type { ClearOn } from '../errors/stored-error'
 import type { ErrorInput, ErrorSource, FormError, ValidateResult } from '../errors/form-error'
+import type { DeepPartial } from '../types'
 import type { ValidateOptions } from '../validation/validation-pass'
 import type { NodeKind } from './node-kind'
 import type { IsArrayShape, IsGroupShape, ItemShapeOf, PathInput, ShapeAtPath } from './path-types'
@@ -138,8 +139,11 @@ export interface SubmitOptions extends ValidateOptions {
  * @category Nodes
  */
 export interface ResetOptions<Value> {
-  /** A draft to use as the new initial value of the subtree, for example after a save. */
-  readonly value?: Value
+  /**
+   * A draft to use as the new initial value of the subtree, for example after a save. It may be partial; anything left
+   * out starts empty.
+   */
+  readonly value?: DeepPartial<Value>
   /**
    * Keep every value that differs from the initial value and reset only the rest. A changed list is kept whole, and a
    * kept value stays dirty only while it differs from the new initial value.

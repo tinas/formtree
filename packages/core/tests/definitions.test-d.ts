@@ -18,6 +18,21 @@ type Wrapping = 'PAPER' | 'BOX'
 
 declare const form: Form<typeof promotionGroup>
 
+interface SavedOrder {
+  readonly method: 'pickup'
+  readonly lineItems: ReadonlyArray<{ readonly product: string; readonly quantity: number }>
+}
+
+declare const savedOrder: SavedOrder
+
+const addressGroup = defineGroup({ schema: z.object({ street: z.string(), city: z.string() }) })
+const lineItemGroup = defineGroup({ schema: z.object({ product: z.string(), quantity: z.number() }) })
+const orderForm = defineGroup({
+  schema: z.object({ method: z.enum(['pickup', 'shipping']), note: z.string().optional() }),
+  children: { address: addressGroup, lineItems: arrayOf(lineItemGroup) },
+  activeWhen: { address: ({ value }) => value.method == 'shipping' },
+})
+
 describe('definition types', () => {
   test('a field drafts its schema input and outputs its schema output', () => {
     expectTypeOf<DraftOf<typeof maxDiscountField>>().toEqualTypeOf<number | undefined>()
@@ -151,5 +166,26 @@ describe('node navigation types', () => {
 
   test('a field definition can be a root', () => {
     expectTypeOf(createForm(maxDiscountField).state.value).toEqualTypeOf<number | undefined>()
+  })
+})
+
+describe('reset types', () => {
+  test('a reset takes a partial draft with readonly lists, like initialValue', () => {
+    const order = createForm(orderForm, { initialValue: savedOrder })
+    order.reset({ value: savedOrder })
+    order.group('address').reset({ value: { street: 'Main Street' } })
+  })
+
+  test("a reset takes the output of the node's own submit", () => {
+    const order = createForm(orderForm)
+    order.handleSubmit(async submittedOrder => {
+      order.reset({ value: submittedOrder })
+    })
+  })
+
+  test('a reset value keeps the types of the draft', () => {
+    const order = createForm(orderForm)
+    // @ts-expect-error not a delivery method
+    order.reset({ value: { method: 'courier' } })
   })
 })
