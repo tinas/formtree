@@ -52,7 +52,8 @@ State is immutable; every mutation goes through a pure transition and then `comm
 - A write to a missing index or a removed row is ignored: no throw, state unchanged.
 - An annotated recursive definition navigates its children as lens nodes, and its output is the annotated type; TypeScript cannot infer the child types of a self-referencing constant. At runtime those nodes are still defined and validated.
 - `FormError.code` is the message the schema reports, a readable text or a translation key; the schema library's own issue code lands in `params.code`. The name stays: the UI translates `code` at render time, and `params` carries the issue values for interpolation.
-- Every node carries an internal `subscribe` (the form's) and `version` (the form's commit count), so an adapter that holds only a node can follow it; React's `useNodeState` subscribes with the one and uses the other as its snapshot.
+- Every node carries an internal `subscribeToForm` (every change in the form) and `version` (the form's commit count), so an adapter that holds only a node can follow everything a reader may read: React's `useNodeState`, whose selectors may read across nodes, subscribes with the one and uses the other as its snapshot.
+- A node's `subscribe` runs only when its `state` or path changes, compared by reference with the reads it last saw, so a binding renders only its own node. The form's runs after every change, because a summary or a save reads across nodes, and the root object cannot carry both meanings. A group's `state` does not follow everything below it: a field's error that becomes visible without changing the group's value, `valid` or `touched` leaves the group's `subscribe` silent, so a part shows its fields through their own subscriptions. Guarded by "a node subscriber is notified only when that node changes, once per batch" in `create-form.test.ts` and "a field subscriber is notified when its row moves" in `arrays.test.ts`.
 - `setDeps` with dependencies equal key by key to the current ones does nothing. React passes a new `deps` object on every render, and a notification there would loop.
 - `handleSubmit` handlers receive only the output, no `{ node }` context; the caller already holds the node. Add it when a real need appears.
 - The function `handleSubmit` returns takes no event and never calls `preventDefault()`. The app prevents the form's default itself (`@submit.prevent`, `event.preventDefault()`), because a hidden `preventDefault` is behaviour the code binding the event does not show.
@@ -175,7 +176,7 @@ Framework views:
 - Every example a reader would copy exists in all three views. Where Vue and React use components, the JavaScript view uses functions that take a node.
 - A concept snippet that reads the same in every framework sits outside the blocks and imports from `@formtree/core` above `// ---cut---`, so the reader sees no import.
 - A full-file example shows its imports. Vue and React import from their adapter package, because adapter users install only the adapter; JavaScript imports from `@formtree/core`.
-- The JavaScript view binds inputs with a `bindInput(key)` helper (Quick Start, Submit the Form): `input` calls `setValue`, `blur` calls `blur()`, and `form.subscribe` writes `errorMessage`.
+- The JavaScript view binds inputs with a `bindInput(key)` helper (Quick Start, Submit the Form): `input` calls `setValue`, `blur` calls `blur()`, and `field.subscribe` writes `errorMessage`.
 
 Code blocks:
 

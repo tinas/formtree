@@ -50,6 +50,22 @@ describe('createForm', () => {
     expect(name.attributes['aria-describedby']).toBe('promotion:setup.name:error')
   })
 
+  test('a node subscriber is notified only when that node changes, once per batch', () => {
+    const form = createPromotionForm()
+    const name = form.field('setup.name')
+    const listener = vi.fn()
+    name.subscribe(listener)
+
+    form.field('spending.maxDiscount').setValue(5)
+    expect(listener).not.toHaveBeenCalled()
+
+    form.batch(() => {
+      name.setValue('Q')
+      name.setValue('Q4')
+    })
+    expect(listener).toHaveBeenCalledTimes(1)
+  })
+
   test('subscribers are notified once per batch', () => {
     const form = createPromotionForm()
     const listener = vi.fn()

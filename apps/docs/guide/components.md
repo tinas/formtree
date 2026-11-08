@@ -88,12 +88,11 @@ import { orderForm } from './forms/order'
 
 const form = createForm(orderForm)
 
-form.subscribe(bindContactSection(form.group('contact')))
+bindContactSection(form.group('contact'))
 
 function bindContactSection(contact: NodeOf<typeof contactGroup>) {
-  const showErrors = [bindInput(contact.field('fullName')), bindInput(contact.field('email'))]
-
-  return () => showErrors.forEach(showError => showError())
+  bindInput(contact.field('fullName'))
+  bindInput(contact.field('email'))
 }
 ```
 
@@ -324,7 +323,7 @@ would show the state from the last render.
 
 <div class="javascript-only">
 
-Update the row from `form.subscribe` to show what it is doing, such as a save in progress:
+Update the row from its own `subscribe` to show what it is doing, such as a save in progress:
 
 ```ts{3,5-14,17} twoslash [line-item-list.ts]
 // @noStaticSemanticInfo
@@ -362,7 +361,7 @@ function createRow(row: NodeOf<typeof lineItemGroup> & ArrayItem) {
       await saveLineItem(lineItem)
     }),
   )
-  const stopShowingStatus = form.subscribe(() => {
+  const stopShowingStatus = row.subscribe(() => {
     save.textContent = row.state.submitting ? 'Saving…' : 'Save'
     save.setAttribute('aria-busy', String(row.state.submitting))
   })

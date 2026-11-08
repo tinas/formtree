@@ -31,7 +31,8 @@ export function bindChoices<Value extends string>(binding: ChoicesBinding<Value>
     binding.fieldset.append(label)
     return { value: choice.value, element }
   })
-  return () => renderChoices(binding, checkboxes)
+  renderChoices(binding, checkboxes)
+  return binding.node.subscribe(() => renderChoices(binding, checkboxes))
 }
 
 function renderChoices<Value extends string>(

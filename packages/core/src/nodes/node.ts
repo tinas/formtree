@@ -62,6 +62,7 @@ export interface UniversalNode {
   readonly items: ReadonlyArray<UniversalNode>
   readonly version: number
   readonly subscribe: (listener: () => void) => () => void
+  readonly subscribeToForm: (listener: () => void) => () => void
   readonly observe: (observer: FormEventObserver) => () => void
   readonly setValue: (value: unknown) => void
   readonly blur: () => void
@@ -152,6 +153,18 @@ function cachedErrorLists(
   }
 }
 
+function subscribeToReads(runtime: FormRuntime, read: () => object, listener: () => void): () => void {
+  let seen = read()
+  return subscribeToRuntime(runtime, () => {
+    const current = read()
+    if (shallowEqual(seen, current)) {
+      return
+    }
+    seen = current
+    listener()
+  })
+}
+
 function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
   const readState = cachedByVersion<NodeState<unknown>>(runtime, previous =>
     computeNodeState(runtime, nodeId, previous),
@@ -202,7 +215,9 @@ function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
     get version() {
       return runtime.version
     },
-    subscribe: listener => subscribeToRuntime(runtime, listener),
+    subscribe: listener =>
+      subscribeToReads(runtime, () => ({ state: readState(), path: pathOf(runtime, nodeId) }), listener),
+    subscribeToForm: listener => subscribeToRuntime(runtime, listener),
     observe: observer => observeRuntime(runtime, observer),
     setValue: value => setNodeValue(runtime, nodeId, value),
     blur: () => blurNode(runtime, nodeId),

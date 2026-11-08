@@ -134,7 +134,7 @@ const form = createForm(signUpForm)
 const username = form.field('username')
 const checking = document.querySelector<HTMLParagraphElement>('#username-checking')!
 
-form.subscribe(() => {
+username.subscribe(() => {
   checking.hidden = !username.state.validating
 })
 ```
@@ -365,7 +365,7 @@ const tryAgain = document.querySelector<HTMLButtonElement>('#username-try-again'
 tryAgain.addEventListener('click', () => {
   void username.validate()
 })
-form.subscribe(() => {
+username.subscribe(() => {
   failure.hidden = username.state.failedChecks.length == 0
 })
 ```

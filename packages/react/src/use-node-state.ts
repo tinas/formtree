@@ -47,7 +47,7 @@ export function useNodeState(
     () => createSelectionReader(universal, () => select(node), committed),
     [universal, node, select, language],
   )
-  const selected = useSyncExternalStore(universal.subscribe, readSelection, readSelection)
+  const selected = useSyncExternalStore(universal.subscribeToForm, readSelection, readSelection)
   useEffect(() => {
     committed.current = { value: selected }
   }, [selected])

@@ -118,9 +118,9 @@ import { contactForm } from './forms/contact-form'
 
 const form = createForm(contactForm, { id: 'contact' })
 
-form.subscribe(bindInput(form.field('name')))
-form.subscribe(bindInput(form.field('email')))
-form.subscribe(bindInput(form.field('message')))
+bindInput(form.field('name'))
+bindInput(form.field('email'))
+bindInput(form.field('message'))
 ```
 
 ```ts twoslash [bind-input.ts]
@@ -134,7 +134,7 @@ export function bindInput(field: FieldNode<string | undefined, unknown>) {
   input.addEventListener('input', () => field.setValue(input.value))
   input.addEventListener('blur', () => field.blur())
   showField()
-  return showField
+  return field.subscribe(showField)
 
   function showField() {
     input.value = field.state.value ?? ''
@@ -170,7 +170,7 @@ export function setAttributes(element: HTMLElement, attributes: FieldAttributes)
 
 :::
 
-`bindInput` returns `showField` because the form decides when to call it, through `form.subscribe`.
+`bindInput` calls `showField` whenever the field changes and returns the function that stops it.
 `showField` writes the value, the error, and the input's attributes, so a reset shows on the page
 and a screen reader reads the error with the input.
 
@@ -255,7 +255,7 @@ export function bindNumberInput(field: FieldNode<number | undefined, unknown>) {
   input.addEventListener('input', () => field.setValue(readNumber()))
   input.addEventListener('blur', () => field.blur())
   showField()
-  return showField
+  return field.subscribe(showField)
 
   function showField() {
     if (readNumber() != field.state.value) {
@@ -377,7 +377,7 @@ export function bindSelect<Value extends string>(
   select.addEventListener('change', () => field.setValue(choices.find(choice => choice == select.value)))
   select.addEventListener('blur', () => field.blur())
   showField()
-  return showField
+  return field.subscribe(showField)
 
   function showField() {
     select.value = field.state.value ?? ''
@@ -400,7 +400,7 @@ export function bindSelect<Value extends string>(
 :::
 
 `choices` turns the selected text back into one of the field's values, as in
-`form.subscribe(bindSelect(form.field('role'), Object.values(ROLE)))`.
+`bindSelect(form.field('role'), Object.values(ROLE))`.
 
 </div>
 
@@ -475,7 +475,7 @@ export function bindCheckbox(field: FieldNode<true | undefined, unknown>) {
   checkbox.addEventListener('change', () => field.setValue(checkbox.checked ? true : undefined))
   checkbox.addEventListener('blur', () => field.blur())
   showField()
-  return showField
+  return field.subscribe(showField)
 
   function showField() {
     checkbox.checked = field.state.value ?? false
@@ -602,7 +602,7 @@ export function bindInput(field: FieldNode<string | undefined, unknown>) {
   input.addEventListener('blur', () => field.blur())
   showField()
   i18next.on('languageChanged', showField)
-  return showField
+  return field.subscribe(showField)
 
   function showField() {
     input.value = field.state.value ?? ''

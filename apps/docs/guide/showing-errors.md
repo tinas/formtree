@@ -148,7 +148,7 @@ function bindInput(key: 'name' | 'email' | 'message') {
 
   input.addEventListener('input', () => field.setValue(input.value))
   input.addEventListener('blur', () => field.blur())
-  form.subscribe(() => {
+  field.subscribe(() => {
     error.textContent = field.errorMessage ?? ''
     for (const [attribute, value] of Object.entries(field.attributes)) {
       if (value == null) {

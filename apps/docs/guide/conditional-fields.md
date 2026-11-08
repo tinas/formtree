@@ -133,7 +133,7 @@ const card = form.group('card')
 const cardFieldset = document.querySelector<HTMLFieldSetElement>('#card')!
 
 toggleCardFieldset()
-form.subscribe(toggleCardFieldset)
+card.subscribe(toggleCardFieldset)
 
 function toggleCardFieldset() {
   cardFieldset.hidden = !card.state.active

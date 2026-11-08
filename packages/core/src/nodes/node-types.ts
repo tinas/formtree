@@ -205,6 +205,11 @@ export interface NodeBase<Value, Output> {
    * not cached, so a message translated in `formatError` follows the current language where it is read.
    */
   readonly errorMessage: string | undefined
+  /**
+   * Calls the listener once after a change to this node's `state` or path, or once per `batch`. Returns a function
+   * that unsubscribes.
+   */
+  readonly subscribe: (listener: () => void) => () => void
   /** Writes a draft value. `undefined` empties a field. */
   readonly setValue: (value: Value) => void
   /** Marks the node as touched and starts checks that run on blur. */

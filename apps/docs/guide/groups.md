@@ -142,7 +142,7 @@ const form = createForm(checkoutForm)
 const address = form.group('address')
 const addressStep = document.querySelector<HTMLLIElement>('#address-step')!
 
-form.subscribe(() => {
+address.subscribe(() => {
   addressStep.classList.toggle('complete', address.state.valid)
 })
 ```

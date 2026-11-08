@@ -276,13 +276,13 @@ const error = document.getElementById(name.errorId)!
 input.addEventListener('input', () => name.setValue(input.value))
 input.addEventListener('blur', () => name.blur())
 
-form.subscribe(() => {
+name.subscribe(() => {
   error.textContent = name.errorMessage ?? ''
 })
 ```
 
 The node learns what the user types through `setValue` and when they leave the input through
-`blur`. `subscribe` runs after every change, so the error on the page stays current. The error
+`blur`. `subscribe` runs after every change to the field, so the error on the page stays current. The error
 appears once the user leaves the input, so nobody sees it while still typing.
 
 </div>
@@ -415,7 +415,7 @@ function bindInput(key: 'name' | 'email' | 'message') {
 
   input.addEventListener('input', () => field.setValue(input.value))
   input.addEventListener('blur', () => field.blur())
-  form.subscribe(() => {
+  field.subscribe(() => {
     error.textContent = field.errorMessage ?? ''
   })
 }
