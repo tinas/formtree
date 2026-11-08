@@ -63,7 +63,19 @@ describe('required', () => {
     expect(form.field('region.district').state.required).toBe(false)
   })
 
-  test('a key follows the answer its schema depends on', () => {
+  test('a key of a list in the schema is asked about an empty item at its place', () => {
+    const tagsForm = defineGroup({
+      schema: z.object({ tags: z.array(z.string()).min(1), notes: z.array(z.string().optional()).optional() }),
+    })
+    const form = createForm(tagsForm)
+
+    expect(form.field('tags').state.required).toBe(true)
+    expect(form.field('tags.2').state.required).toBe(true)
+    expect(form.field('notes').state.required).toBe(false)
+    expect(form.field('notes.0').state.required).toBe(false)
+  })
+
+  test('a key that another answer in its schema requires is not marked', () => {
     const contactForm = defineGroup({
       schema: z
         .object({
@@ -77,13 +89,11 @@ describe('required', () => {
         }),
     })
     const form = createForm(contactForm)
-    const phone = form.field('phone')
 
     expect(form.field('contactBy').state.required).toBe(true)
-    expect(phone.state.required).toBe(false)
     form.field('contactBy').setValue('phone')
-    expect(phone.state.required).toBe(true)
-    expect(form.field('email').state.required).toBe(false)
+    expect(form.field('phone').state.required).toBe(false)
+    expect(form.listErrors({ deep: true, includeHidden: true }).map(error => error.path)).toContain('phone')
   })
 
   test('a schema built from dependencies follows them', () => {
@@ -149,24 +159,17 @@ describe('required', () => {
     expect(inputs.filter(input => input == undefined)).toHaveLength(1)
   })
 
-  test("a key's schema is asked again only when the value it owns changes", () => {
+  test('one run of a schema with the form empty answers all of its keys, and a change asks nothing again', () => {
     const inputs: Array<unknown> = []
-    const profileForm = defineGroup({
-      children: {
-        contact: defineGroup({ schema: recordedContactSchema(inputs) }),
-        nickname: defineField({ schema: z.string().optional() }),
-      },
-    })
-    const form = createForm(profileForm)
-    const email = form.field('contact.email')
+    const form = createForm(defineGroup({ schema: recordedContactSchema(inputs) }))
+    const keys = ['email', 'phone', 'street', 'city', 'country']
+    const runsBeforeReading = inputs.length
 
-    expect(email.state.required).toBe(false)
-    const runsAfterFirstRead = inputs.length
-    form.field('nickname').setValue('Ada')
-    expect(email.state.required).toBe(false)
-    expect(inputs).toHaveLength(runsAfterFirstRead)
-    form.field('contact.phone').setValue('555')
-    expect(email.state.required).toBe(false)
-    expect(inputs).toHaveLength(runsAfterFirstRead + 2)
+    expect(keys.map(key => form.field(key).state.required)).toEqual([false, false, false, false, false])
+    expect(inputs).toHaveLength(runsBeforeReading + 1)
+    form.field('email').setValue('ada@example.com')
+    form.field('phone').setValue('555 0100')
+    expect(keys.map(key => form.field(key).state.required)).toEqual([false, false, false, false, false])
+    expect(inputs).toHaveLength(runsBeforeReading + 3)
   })
 })

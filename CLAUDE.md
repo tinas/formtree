@@ -32,7 +32,7 @@ The contributor workflow lives in @CONTRIBUTING.md. This file holds what applies
 - Narrowing the output by the answer that turns a part on. A getter's `boolean` does not tell the types which answer, and patterns, key helpers or predicates inferred in the getter's context each add a form or type machinery to maintain, so a part `activeWhen` turns on stays optional and the submit function checks it.
 - Parsing `FormData` to submit without JavaScript. formtree keeps the draft in its own state and never reads the inputs, and the server validates the JSON output with the same definition, as `guide/submitting.md` shows.
 - Warnings that do not block a submit. Every error keeps `valid` false and stops a submit (rule 4), so a warning is text the app derives from `state.value`, as `guide/showing-errors.md` says.
-- A `required` option on definitions. The schema is the one source of `state.required`, so the app marks a field that a group's `validate` rule requires.
+- A `required` option on definitions. The schema is the one source of `state.required`, so the app marks a field that a group's `validate` rule or another answer in the same schema requires.
 
 ## Recording a decision
 

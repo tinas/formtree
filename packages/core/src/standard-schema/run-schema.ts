@@ -42,6 +42,6 @@ function issueToErrorInput(issue: StandardSchemaIssue): ErrorInput {
   }
 }
 
-function issuePathToString(path: StandardSchemaIssue['path']): string {
+export function issuePathToString(path: StandardSchemaIssue['path']): string {
   return joinSegments(Array.from(path ?? [], segment => String(typeof segment == 'object' ? segment.key : segment)))
 }
