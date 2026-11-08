@@ -13,7 +13,6 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@codspeed/vitest-plugin": "catalog:",
     "@testing-library/react": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",

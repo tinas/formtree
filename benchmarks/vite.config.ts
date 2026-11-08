@@ -1,8 +1,6 @@
-import codspeedPlugin from '@codspeed/vitest-plugin'
 import { defineConfig } from 'vite-plus'
 
 export default defineConfig({
-  plugins: [codspeedPlugin()],
   resolve: {
     tsconfigPaths: true,
   },
