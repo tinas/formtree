@@ -62,7 +62,7 @@ A later submit of the whole form reuses the step's results for values that have 
 
 ## Errors from the Server
 
-Return the server's errors from your function, with paths relative to the submitted node:
+Write the server's errors with `setErrors` on the submitted node, with paths relative to it:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -79,7 +79,9 @@ const form = createForm(accountForm)
 // ---cut---
 const signUp = form.handleSubmit(async account => {
   const response = await createAccount(account)
-  return response.errors?.map(error => ({ path: error.field, code: error.message }))
+  if (response.errors) {
+    form.setErrors(response.errors.map(error => ({ path: error.field, code: error.message })))
+  }
 })
 ```
 
@@ -123,7 +125,7 @@ export async function handleCheckout(request: Request, cartId: string) {
 ```
 
 `validate` resolves to the output, or to the errors with paths from the root, which the submit
-function of the whole form returns as they are. It runs every `validateAsync` check at once, without
+function of the whole form passes to `setErrors` as they are. It runs every `validateAsync` check at once, without
 waiting for a blur or a debounce, so `run` calls on the server whatever it calls in the browser, and
 the form needs its `deps` there too. A part that is turned off stays out of the output. A check whose
 `run` throws leaves no error, only an entry in `failedChecks`, so that request fails as unavailable.

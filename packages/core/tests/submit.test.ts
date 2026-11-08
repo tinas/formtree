@@ -109,18 +109,29 @@ describe('submit', () => {
     expect(onValid).toHaveBeenCalledWith([3])
   })
 
-  test('errors returned by the handler are stored relative to the submitted node', async () => {
+  test('errors the handler sets in the submitted node reject the submit', async () => {
     const form = createPromotionForm()
     const spending = form.group('spending')
     spending.field('maxDiscount').setValue(10)
     spending.field('period').setValue('DAILY')
 
-    const outcome = await spending.handleSubmit(() => [{ path: 'maxDiscount', code: 'server.too_low' }])()
+    const outcome = await spending.handleSubmit(() => {
+      spending.setErrors([{ path: 'maxDiscount', code: 'server.too_low' }])
+    })()
 
     expect(outcome).toBe('rejected')
     expect(form.field('spending.maxDiscount').state.errors).toEqual([
       expect.objectContaining({ code: 'server.too_low', source: 'server' }),
     ])
+  })
+
+  test("the handler's return value is ignored, even one shaped like an error", async () => {
+    const cell = createForm(maxDiscountField, { initialValue: 5 })
+
+    const outcome = await cell.handleSubmit(async () => ({ code: 'saved' }))()
+
+    expect(outcome).toBe('success')
+    expect(cell.listErrors({ deep: true, includeHidden: true })).toEqual([])
   })
 
   test('a second submit while the first is running is skipped', async () => {
@@ -176,7 +187,10 @@ describe('submit', () => {
     const form = createForm(defineGroup({ children: { step: stepGroup } }), {
       initialValue: { step: { name: 'Ada' } },
     })
-    await form.group('step').handleSubmit(() => [{ path: 'name', code: 'server.taken' }])()
+    const step = form.group('step')
+    await step.handleSubmit(() => {
+      step.setErrors([{ path: 'name', code: 'server.taken' }])
+    })()
 
     await expect(form.handleSubmit(vi.fn())()).resolves.toBe('invalid')
     form.field('step.name').setValue('Grace')

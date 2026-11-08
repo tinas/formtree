@@ -49,7 +49,6 @@ The site is deployed on Netlify at https://form-tree.netlify.app. `og:image` is 
 
 ## Code blocks
 
-- A `handleSubmit` handler returns `void` or server errors, because its return value is read as server errors. Write `async contact => { await sendMessage(contact) }`, never `contact => sendMessage(contact)` when the call returns a value.
 - Code blocks are type-checked with twoslash. Setup lines go above `// ---cut---`, and shared definitions are imported rather than repeated. Twoslash resolves only `@formtree/core` and `@formtree/vue`, so React blocks are plain `ts`/`tsx` and Vue SFC blocks plain `vue`; check those by hand against a twoslash-checked twin. A local module in a twoslash block is declared with a hidden `// @filename: api.ts`.
 - Type queries (`//    ^?`) go only where the displayed type reads well.
 - Hovers add to the page size, so a block whose hovers add nothing starts with `// @noStaticSemanticInfo`. It keeps the type check and drops the hovers.

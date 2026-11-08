@@ -12,7 +12,7 @@ export const ERROR_SOURCE = {
   validate: 'validate',
   /** A `validateAsync` check. */
   async: 'async',
-  /** `setErrors`, or errors returned by a submit handler. */
+  /** `setErrors`, unless it names another source. */
   server: 'server',
 } as const
 

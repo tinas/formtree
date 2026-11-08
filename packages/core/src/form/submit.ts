@@ -1,14 +1,12 @@
-import type { FormError, ValidateResult } from '../errors/form-error'
+import type { FormError } from '../errors/form-error'
 import type { SubmitHandler, SubmitOptions, SubmitOutcome, ValidationResult } from '../nodes/node-types'
 import type { ValidateOptions } from '../validation/validation-pass'
 import type { FormRuntime } from './form-runtime'
 
-import { ERROR_SOURCE, toErrorInputs } from '../errors/form-error'
-import { CLEAR_ON } from '../errors/stored-error'
+import { isInternalErrorSource } from '../errors/form-error'
 import { domIdOf, summaryIdOf } from '../nodes/node-identity'
 import { failedCheckIdsWithin, failedChecksWithin, toFormError, visibilityContextOf } from '../nodes/node-state'
 import { FOCUS_SUMMARY, SUBMIT_OUTCOME } from '../nodes/node-types'
-import { setExternalErrors } from '../state/error-transitions'
 import { beginSubmit, endSubmit } from '../state/submit-transitions'
 import { buildOutput } from '../validation/output'
 import { settleValidationWithin } from '../validation/validation-pass'
@@ -66,17 +64,8 @@ export async function submitNode({ runtime, nodeId, onValid, options = {} }: Nod
     endFailedSubmit({ runtime, nodeId, options, outcome: SUBMIT_OUTCOME.unchecked })
     return SUBMIT_OUTCOME.unchecked
   }
-  const serverErrors = toErrorInputs(await callSubmitHandler(runtime, nodeId, onValid))
-  if (serverErrors.length > 0) {
-    commitState(
-      runtime,
-      setExternalErrors(runtime.state, {
-        nodeId,
-        inputs: serverErrors,
-        source: ERROR_SOURCE.server,
-        clearOn: CLEAR_ON.change,
-      }),
-    )
+  await callSubmitHandler(runtime, nodeId, onValid)
+  if (activeErrorsWithin(runtime, nodeId).some(error => !isInternalErrorSource(error.source))) {
     endFailedSubmit({ runtime, nodeId, options, outcome: SUBMIT_OUTCOME.rejected })
     return SUBMIT_OUTCOME.rejected
   }
@@ -85,13 +74,9 @@ export async function submitNode({ runtime, nodeId, onValid, options = {} }: Nod
   return SUBMIT_OUTCOME.success
 }
 
-async function callSubmitHandler(
-  runtime: FormRuntime,
-  nodeId: string,
-  onValid: SubmitHandler<unknown>,
-): Promise<ValidateResult | void> {
+async function callSubmitHandler(runtime: FormRuntime, nodeId: string, onValid: SubmitHandler<unknown>): Promise<void> {
   try {
-    return await onValid(outputOf(runtime, nodeId))
+    await onValid(outputOf(runtime, nodeId))
   } catch (error) {
     commitState(runtime, endSubmit(runtime.state, nodeId))
     throw error

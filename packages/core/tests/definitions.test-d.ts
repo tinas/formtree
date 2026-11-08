@@ -33,6 +33,8 @@ const orderForm = defineGroup({
   activeWhen: { address: ({ value }) => value.method == 'shipping' },
 })
 
+declare function saveOrder(order: OutputOf<typeof orderForm>): Promise<SavedOrder>
+
 describe('definition types', () => {
   test('a field drafts its schema input and outputs its schema output', () => {
     expectTypeOf<DraftOf<typeof maxDiscountField>>().toEqualTypeOf<number | undefined>()
@@ -166,6 +168,13 @@ describe('node navigation types', () => {
 
   test('a field definition can be a root', () => {
     expectTypeOf(createForm(maxDiscountField).state.value).toEqualTypeOf<number | undefined>()
+  })
+})
+
+describe('submit types', () => {
+  test('a function that returns the saved record is a submit handler as it is', () => {
+    const order = createForm(orderForm)
+    order.handleSubmit(saveOrder)
   })
 })
 
