@@ -12,7 +12,13 @@ import { emitCheckEnd, emitCheckFail, emitNodeEvent, FORM_EVENT } from '../form/
 import { commitState } from '../form/form-runtime'
 import { deepEqual } from '../paths/equality'
 import { isWithinPath } from '../paths/path'
-import { withCheckErrors, withFailedCheck, withoutPendingChecks, withPendingCheck } from '../state/check-transitions'
+import {
+  withCheckErrors,
+  withFailedCheck,
+  withoutPendingChecks,
+  withRunningCheck,
+  withWaitingCheck,
+} from '../state/check-transitions'
 import { hasPathWithin } from '../state/collections'
 import { CHECK_STATUS } from '../state/form-state'
 import { buildOutput } from './output'
@@ -54,7 +60,7 @@ export function scheduleBlurChecks(runtime: FormRuntime, state: FormState, nodeI
     const options = checkOptionsAt(runtime, ownerId)
     if (options?.on == ASYNC_TRIGGER.blur && isWithinPath(nodeId, ownerId) && awaitsTrigger(next, ownerId, entry)) {
       scheduleRun({ runtime, ownerId, entry, debounceMs: options.debounceMs })
-      next = withPendingCheck(next, ownerId)
+      next = withWaitingCheck(next, ownerId)
     }
   }
   return next
@@ -133,7 +139,7 @@ function reconcileCheck({ runtime, state, scope, options }: CheckReconciliation)
     return cleared
   }
   scheduleRun({ runtime, ownerId, entry, debounceMs: options.debounceMs })
-  return withPendingCheck(cleared, ownerId)
+  return withWaitingCheck(cleared, ownerId)
 }
 
 function createEntry(): CheckEntry {
@@ -199,7 +205,7 @@ function startRun(runtime: FormRuntime, ownerId: string, entry: CheckEntry): Pro
   const controller = new AbortController()
   entry.controller = controller
   entry.status = RUN_STATUS.running
-  commitState(runtime, withPendingCheck(runtime.state, ownerId))
+  commitState(runtime, withRunningCheck(runtime.state, ownerId))
   emitNodeEvent(runtime, FORM_EVENT.checkStart, ownerId)
   const run: CheckRun = { runtime, ownerId, entry, signal: controller.signal }
   entry.running = callRun({ options, entry, signal: controller.signal }).then(

@@ -1,7 +1,7 @@
 import type { FormError } from '../errors/form-error'
 import type { StoredError } from '../errors/stored-error'
 import type { FormRuntime } from '../form/form-runtime'
-import type { CheckState, FormState } from '../state/form-state'
+import type { CheckState, CheckStatus, FormState } from '../state/form-state'
 import type { VisibilityContext } from '../validation/visibility'
 import type { FailedCheck, FieldAttributes, NodeState } from './node-types'
 
@@ -16,6 +16,17 @@ import { valueAt } from '../validation/output'
 import { hasActiveErrorWithin, isActiveNode, visibleErrorsAt } from '../validation/visibility'
 import { domIdOf, errorIdOf, pathOf } from './node-identity'
 import { isRequiredNode } from './required-probe'
+
+interface CheckPhase {
+  readonly validating: boolean
+  readonly requesting: boolean
+}
+
+const CHECK_PHASES: Record<CheckStatus, CheckPhase> = {
+  [CHECK_STATUS.waiting]: { validating: true, requesting: false },
+  [CHECK_STATUS.running]: { validating: true, requesting: true },
+  [CHECK_STATUS.failed]: { validating: false, requesting: false },
+}
 
 export function errorMessageOf(runtime: FormRuntime, state: NodeState<unknown>): string | undefined {
   const [error] = state.errors
@@ -70,6 +81,8 @@ export function computeNodeState({ runtime, nodeId, previous }: NodeStateInput):
     toFormError(state, error),
   )
   const failedChecks = keepIfSame(previous?.failedChecks, failedChecksWithin(state, nodeId))
+  const phases = checksWithin(state, nodeId).map(([, check]) => CHECK_PHASES[check.status])
+  const schemaRunning = hasPathWithin(state.pendingSchemas, nodeId)
   return {
     value,
     initialValue,
@@ -78,9 +91,8 @@ export function computeNodeState({ runtime, nodeId, previous }: NodeStateInput):
     required: isRequiredNode(runtime, nodeId),
     dirty: !deepEqual(value, initialValue),
     touched: hasPathWithin(state.touched, nodeId),
-    validating:
-      checksWithin(state, nodeId).some(([, check]) => check.status == CHECK_STATUS.pending) ||
-      hasPathWithin(state.pendingSchemas, nodeId),
+    validating: schemaRunning || phases.some(phase => phase.validating),
+    requesting: schemaRunning || phases.some(phase => phase.requesting),
     failedChecks,
     submitting: state.submitting.has(nodeId),
     submitCount: state.submitCounts.get(nodeId) ?? 0,

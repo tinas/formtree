@@ -7,7 +7,8 @@ import { mapWith, mapWithout, mapWithoutPathsWithin } from './collections'
 import { replaceOwnedErrors, toStoredErrors } from './error-transitions'
 import { CHECK_STATUS } from './form-state'
 
-const PENDING_CHECK: CheckState = { status: CHECK_STATUS.pending }
+const WAITING_CHECK: CheckState = { status: CHECK_STATUS.waiting }
+const RUNNING_CHECK: CheckState = { status: CHECK_STATUS.running }
 
 export interface CheckErrorsUpdate {
   readonly ownerId: string
@@ -19,8 +20,12 @@ export interface CheckFailure {
   readonly error: unknown
 }
 
-export function withPendingCheck(state: FormState, ownerId: string): FormState {
-  return { ...state, checks: mapWith(state.checks, ownerId, PENDING_CHECK) }
+export function withWaitingCheck(state: FormState, ownerId: string): FormState {
+  return { ...state, checks: mapWith(state.checks, ownerId, WAITING_CHECK) }
+}
+
+export function withRunningCheck(state: FormState, ownerId: string): FormState {
+  return { ...state, checks: mapWith(state.checks, ownerId, RUNNING_CHECK) }
 }
 
 export function withCheckErrors(state: FormState, { ownerId, inputs }: CheckErrorsUpdate): FormState {
@@ -51,5 +56,5 @@ export function withoutChecksWithin(state: FormState, nodeId: string): FormState
 }
 
 export function withoutPendingChecks(state: FormState): FormState {
-  return { ...state, checks: new Map([...state.checks].filter(([, check]) => check.status != CHECK_STATUS.pending)) }
+  return { ...state, checks: new Map([...state.checks].filter(([, check]) => check.status == CHECK_STATUS.failed)) }
 }

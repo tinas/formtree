@@ -23,7 +23,7 @@ const apply = form.handleSubmit(value => {
         <button type="submit">Apply</button>
       </div>
       <p :id="code.errorId" class="demo-error">
-        {{ code.state.validating ? 'Checking…' : code.errorMessage }}
+        {{ code.state.requesting ? 'Checking…' : code.errorMessage }}
       </p>
     </div>
     <p class="demo-hint">Try welcome10 or freeship. Any other code is not valid.</p>

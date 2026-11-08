@@ -1,10 +1,11 @@
 import type { Form } from '../src'
 
 import { mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, test, vi } from 'vite-plus/test'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vite-plus/test'
 import { defineComponent, h } from 'vue'
+import { z } from 'zod'
 
-import { createFormtree, useForm } from '../src'
+import { createFormtree, defineField, defineGroup, useForm } from '../src'
 import { PROFILE_DEPS, profileGroup } from './fixtures/profile'
 
 interface InspectorNode {
@@ -71,6 +72,12 @@ function readTree(filter = ''): ReadonlyArray<InspectorNode> {
   return payload.rootNodes
 }
 
+function childTagsOf(label: string): Array<string> | undefined {
+  return readTree()[0]
+    ?.children?.find(node => node.label == label)
+    ?.tags?.map(tag => tag.label)
+}
+
 function outlineOf(nodes: ReadonlyArray<InspectorNode>): Array<TreeOutline> {
   return nodes.map(node => ({ label: node.label, children: outlineOf(node.children ?? []) }))
 }
@@ -105,6 +112,10 @@ describe('devtools', () => {
     devtools.addTimelineEvent = vi.fn()
   })
 
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   test('lists every form under the component that created it, with its node tree', () => {
     mountProfileForm()
 
@@ -135,6 +146,44 @@ describe('devtools', () => {
     const name = readTree()[0]?.children?.find(node => node.label == 'name')
 
     expect(name?.tags?.map(tag => tag.label)).toEqual(['lens', 'dirty'])
+  })
+
+  test('tags a check that waits after its trigger apart from one that is requesting', async () => {
+    vi.useFakeTimers()
+    const answers: Array<() => void> = []
+    const signUpGroup = defineGroup({
+      children: {
+        username: defineField({
+          schema: z.string(),
+          validateAsync: {
+            run: () =>
+              new Promise<undefined>(resolve => {
+                answers.push(() => resolve(undefined))
+              }),
+          },
+        }),
+      },
+    })
+    const forms: Array<Form<typeof signUpGroup>> = []
+    const SignUpForm = defineComponent({
+      name: 'SignUpForm',
+      setup() {
+        forms.push(useForm(signUpGroup))
+        return () => h('form')
+      },
+    })
+    mount(SignUpForm, { global: { plugins: [createFormtree()] } })
+
+    forms[0]?.field('username').setValue('alice')
+    expect(childTagsOf('username')).toContain('waiting')
+
+    await vi.advanceTimersByTimeAsync(300)
+    expect(childTagsOf('username')).toContain('requesting')
+    expect(childTagsOf('username')).not.toContain('waiting')
+
+    answers.forEach(answer => answer())
+    await vi.advanceTimersByTimeAsync(0)
+    expect(childTagsOf('username')).not.toContain('requesting')
   })
 
   test('lists no keys below a value that is not a plain object', () => {

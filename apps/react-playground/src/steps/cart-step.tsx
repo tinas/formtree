@@ -11,7 +11,7 @@ export function CartStep({ onComplete }: StepProps) {
   const lineItems = cart.array('lineItems')
   const rows = useNodeState(lineItems, node => node.items)
   const lineItemsError = useNodeState(lineItems, node => node.errorMessage)
-  const isCheckingCode = useNodeState(cart.field('promoCode'), node => node.state.validating)
+  const isCheckingCode = useNodeState(cart.field('promoCode'), node => node.state.requesting)
   const onSubmit = cart.handleSubmit(() => onComplete())
 
   return (
