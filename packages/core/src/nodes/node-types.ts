@@ -84,8 +84,10 @@ export interface NodeState<Value> {
   readonly dirty: boolean
   /** True when a node in the subtree has lost focus or an array in it has been edited. */
   readonly touched: boolean
-  /** True while an asynchronous check in the subtree is pending. */
+  /** True while a check in the subtree waits after its trigger or runs, or a schema in it answers asynchronously. */
   readonly validating: boolean
+  /** True while a check's `run` or a schema that answers asynchronously runs in the subtree. Part of `validating`. */
+  readonly requesting: boolean
   /** Checks in the subtree whose `run` threw. */
   readonly failedChecks: ReadonlyArray<FailedCheck>
   /** True while a submit of this node runs. */

@@ -60,9 +60,14 @@ const STATE_TAGS: ReadonlyArray<StateTag> = [
     labelOf: node => errorCountLabel(hiddenErrorCount(node), 'hidden'),
   },
   {
+    backgroundColor: 0xca8a04,
+    tooltip: 'An asynchronous check in this subtree waits after its trigger before it runs.',
+    labelOf: node => (node.state.validating && !node.state.requesting ? 'waiting' : undefined),
+  },
+  {
     backgroundColor: 0xd97706,
-    tooltip: 'An asynchronous check in this subtree is running.',
-    labelOf: node => (node.state.validating ? 'checking' : undefined),
+    tooltip: 'An asynchronous check or a schema that answers asynchronously is running in this subtree.',
+    labelOf: node => (node.state.requesting ? 'requesting' : undefined),
   },
   {
     backgroundColor: 0xdc2626,

@@ -3,7 +3,7 @@ import type { AsyncTrigger } from '../src'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vite-plus/test'
 import { z } from 'zod'
 
-import { arrayOf, createForm, defineField, defineGroup } from '../src'
+import { arrayOf, createForm, defineField, defineFieldWithDeps, defineGroup, defineGroupWithDeps } from '../src'
 import { nameChecks } from './fixtures/promotion'
 import { createPromotionForm } from './fixtures/create-promotion-form'
 
@@ -40,6 +40,53 @@ function createSignUpForm(on: AsyncTrigger) {
   return { server, form, username: form.field('username') }
 }
 
+function createHeldCheckForm() {
+  const answers: Array<() => void> = []
+  const usernameField = defineField({
+    schema: z.string(),
+    validateAsync: {
+      run: () =>
+        new Promise<undefined>(resolve => {
+          answers.push(() => resolve(undefined))
+        }),
+    },
+  })
+  const form = createForm(defineGroup({ children: { username: usernameField } }))
+  return {
+    form,
+    username: form.field('username'),
+    answerAll: () => answers.forEach(answer => answer()),
+  }
+}
+
+interface AccountDeps {
+  readonly savedUsername?: string
+}
+
+function createEditAccountForm() {
+  const requests: Array<string> = []
+  const usernameField = defineFieldWithDeps<AccountDeps>()({
+    schema: z.string(),
+    validateAsync: {
+      run: async (username, { deps }) => {
+        if (username == deps.savedUsername) {
+          return undefined
+        }
+        requests.push(username)
+        return undefined
+      },
+    },
+  })
+  const form = createForm(
+    defineGroupWithDeps<AccountDeps>()({
+      children: { username: usernameField },
+      childDeps: { username: ({ deps }) => ({ savedUsername: deps.savedUsername }) },
+    }),
+    { deps: {} },
+  )
+  return { form, username: form.field('username'), requests }
+}
+
 describe('async validation', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -61,6 +108,45 @@ describe('async validation', () => {
 
     expect(nameChecks).toEqual([expect.objectContaining({ name: 'Q4', storeId: 42 })])
     expect(name.state.validating).toBe(false)
+  })
+
+  test('a check is validating while it waits after its trigger, and requesting only while it runs', async () => {
+    const { form, username, answerAll } = createHeldCheckForm()
+
+    username.setValue('alice')
+    expect(username.state).toMatchObject({ validating: true, requesting: false })
+
+    await vi.advanceTimersByTimeAsync(300)
+    expect(username.state).toMatchObject({ validating: true, requesting: true })
+    expect(form.state.requesting).toBe(true)
+
+    answerAll()
+    await vi.advanceTimersByTimeAsync(0)
+    expect(username.state).toMatchObject({ validating: false, requesting: false })
+  })
+
+  test('validate runs a waiting check at once, so it is requesting without the pause', async () => {
+    const { username, answerAll } = createHeldCheckForm()
+    username.setValue('alice')
+
+    const validation = username.validate()
+
+    expect(username.state).toMatchObject({ validating: true, requesting: true })
+    answerAll()
+    await validation
+    expect(username.state).toMatchObject({ validating: false, requesting: false })
+  })
+
+  test('a check that new deps start again waits without requesting, and a run that returns early settles', async () => {
+    const { form, username, requests } = createEditAccountForm()
+
+    form.reset({ value: { username: 'ada' } })
+    form.setDeps({ savedUsername: 'ada' })
+    expect(username.state).toMatchObject({ validating: true, requesting: false })
+
+    await vi.advanceTimersByTimeAsync(300)
+    expect(username.state).toMatchObject({ validating: false, requesting: false })
+    expect(requests).toEqual([])
   })
 
   test('a check does not run while the schema fails', async () => {

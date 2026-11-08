@@ -62,7 +62,7 @@ trigger and the pause a check waits after it.
 
 ## Showing a Pending Check
 
-`state.validating` is `true` while a check waits or runs, so the input can show a hint:
+`state.requesting` is `true` while a check runs, so the input can show a hint:
 
 <div class="vue-only">
 
@@ -78,7 +78,7 @@ const username = useField(form.field('username'))
 <template>
   <label :for="username.id">Username</label>
   <input v-model="username.model" v-bind="username.attrs" />
-  <p v-if="username.state.validating">Checking the username…</p>
+  <p v-if="username.state.requesting">Checking the username…</p>
   <p :id="username.errorId">{{ username.errorMessage }}</p>
 </template>
 ```
@@ -99,7 +99,7 @@ export function SignUpForm() {
     <>
       <label htmlFor={username.id}>Username</label>
       <input {...username.attrs} value={username.value ?? ''} onChange={event => username.setValue(event.target.value)} />
-      {username.state.validating && <p>Checking the username…</p>}
+      {username.state.requesting && <p>Checking the username…</p>}
       <p id={username.errorId}>{username.errorMessage}</p>
     </>
   )
@@ -135,11 +135,16 @@ const username = form.field('username')
 const checking = document.querySelector<HTMLParagraphElement>('#username-checking')!
 
 username.subscribe(() => {
-  checking.hidden = !username.state.validating
+  checking.hidden = !username.state.requesting
 })
 ```
 
 </div>
+
+::: tip Waiting for the Answer
+`state.validating` is also `true` while a check waits after its trigger, so a mark that says a value is
+free waits until `validating` is `false`.
+:::
 
 ## Cancelling Stale Requests
 

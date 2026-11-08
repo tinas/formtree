@@ -188,6 +188,28 @@ describe('shapes', () => {
     expect(validate).toHaveBeenCalledTimes(1)
   })
 
+  test('a schema that answers asynchronously is requesting while it runs', async () => {
+    const answers: Array<() => void> = []
+    const codeSchema: StandardSchemaV1<string> = {
+      '~standard': {
+        version: 1,
+        vendor: 'test',
+        validate: value =>
+          new Promise(resolve => {
+            answers.push(() => resolve({ value: value as string }))
+          }),
+      },
+    }
+    const code = createForm(defineField({ schema: codeSchema }), { initialValue: 'SAVE10' })
+
+    code.setValue('SAVE20')
+    expect(code.state).toMatchObject({ validating: true, requesting: true })
+
+    answers.forEach(answer => answer())
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(code.state).toMatchObject({ validating: false, requesting: false })
+  })
+
   test('a schema run for a value that changed since is ignored', async () => {
     const runs: Array<(valid: boolean) => void> = []
     const codeSchema: StandardSchemaV1<string> = {

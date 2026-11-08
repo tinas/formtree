@@ -24,7 +24,7 @@ const onSubmit = cart.handleSubmit(() => emit('complete'))
     </div>
     <TextField name="promoCode" label="Promo code" />
     <p class="hint">
-      {{ cart.field('promoCode').state.validating ? 'Checking code…' : 'Try welcome10 or freeship.' }}
+      {{ cart.field('promoCode').state.requesting ? 'Checking code…' : 'Try welcome10 or freeship.' }}
     </p>
   </form>
 </template>

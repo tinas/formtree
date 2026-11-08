@@ -6,12 +6,16 @@ import { assignArrayKeys } from './array-keys'
 import { materializeStructure } from './structure'
 
 export const CHECK_STATUS = {
-  pending: 'pending',
+  waiting: 'waiting',
+  running: 'running',
   failed: 'failed',
 } as const
 
+export type CheckStatus = (typeof CHECK_STATUS)[keyof typeof CHECK_STATUS]
+
 export type CheckState =
-  | { readonly status: typeof CHECK_STATUS.pending }
+  | { readonly status: typeof CHECK_STATUS.waiting }
+  | { readonly status: typeof CHECK_STATUS.running }
   | { readonly status: typeof CHECK_STATUS.failed; readonly error: unknown }
 
 export interface FormState {

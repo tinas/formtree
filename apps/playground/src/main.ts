@@ -224,7 +224,7 @@ showWhen(elementById('us-state-field'), delivery.field('address.state'), state =
 showWhen(elementById('store-field'), delivery.field('store'), state => state.active)
 showWhen(elementById('card'), payment.group('card'), state => state.active)
 showWhen(elementById('invoice'), payment.group('invoice'), state => state.active)
-showWhen(elementById('promo-code-checking'), cart.field('promoCode'), state => state.validating)
+showWhen(elementById('promo-code-checking'), cart.field('promoCode'), state => state.requesting)
 renderInspector()
 form.subscribe(renderInspector)
 
