@@ -59,8 +59,10 @@ export type GroupOutput<Schema, Children, ActiveKeys extends PropertyKey> = Simp
   }
 >
 
+type ActiveWhenGetter<Schema, Deps> = (context: ValueContext<OwnDraft<Schema>, Deps>) => boolean
+
 export type ActiveWhenOptions<Schema, ActiveKeys extends PropertyKey, Deps> = {
-  readonly [Key in ActiveKeys]: (context: ValueContext<OwnDraft<Schema>, Deps>) => boolean
+  readonly [Key in ActiveKeys]: ActiveWhenGetter<Schema, Deps>
 }
 
 export type ChildDepsOptions<Schema, Children, Deps> = {
@@ -100,8 +102,8 @@ export interface DefineGroupBaseOptions<Schema, Children, ActiveKeys extends Pro
    */
   readonly children?: Children
   /**
-   * When each listed child takes part, decided from the group's own draft. An inactive child is not validated and
-   * stays out of the output, and its value is kept.
+   * When each listed child takes part, decided by a getter of the group's own draft. An inactive child is not validated
+   * and stays out of the output, and its value is kept.
    */
   readonly activeWhen?: ActiveWhenOptions<Schema, ActiveKeys, Deps>
   /** A rule across the group's values, children included. Error paths are relative to the group. */
