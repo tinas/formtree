@@ -1,14 +1,12 @@
 # Quick Start
 
-## Installation
-
 ::: tip Prerequisites
 This guide assumes basic familiarity with TypeScript, and formtree needs TypeScript 5.4 or later.
 Its examples write schemas with [Zod](https://zod.dev), so install it to follow along; any
 [Standard Schema](https://standardschema.dev) library can take its place.
 :::
 
-Install formtree:
+## Installation
 
 <div class="vue-only">
 
@@ -26,10 +24,6 @@ npm install @formtree/vue
 yarn add @formtree/vue
 ```
 
-:::
-
-::: tip
-`@formtree/vue` includes the core, so everything in this guide is imported from it.
 :::
 
 </div>
@@ -50,10 +44,6 @@ npm install @formtree/react
 yarn add @formtree/react
 ```
 
-:::
-
-::: tip
-`@formtree/react` includes the core, so everything in this guide is imported from it.
 :::
 
 </div>
@@ -78,11 +68,7 @@ yarn add @formtree/core
 
 </div>
 
-## Creating Your First Form
-
-Let's build a contact form.
-
-### 1. Describe the Form
+## Defining the Form
 
 A definition says which values the form holds and which rules each value follows. It has no state,
 so put it in its own file:
@@ -95,9 +81,13 @@ import { z } from 'zod'
 
 export const contactForm = defineGroup({
   schema: z.object({
-    name: z.string({ error: 'Enter your name' }).trim().min(1, { error: 'Enter your name' }),
+    name: z.string({ error: 'Enter your name' }).trim().min(1, {
+      error: 'Enter your name',
+    }),
     email: z.email({ error: 'Enter a valid email address' }),
-    message: z.string({ error: 'Write a message' }).min(10, { error: 'Write at least 10 characters' }),
+    message: z.string({ error: 'Write a message' }).min(10, {
+      error: 'Write at least 10 characters',
+    }),
   }),
 })
 ```
@@ -112,9 +102,13 @@ import { z } from 'zod'
 
 export const contactForm = defineGroup({
   schema: z.object({
-    name: z.string({ error: 'Enter your name' }).trim().min(1, { error: 'Enter your name' }),
+    name: z.string({ error: 'Enter your name' }).trim().min(1, {
+      error: 'Enter your name',
+    }),
     email: z.email({ error: 'Enter a valid email address' }),
-    message: z.string({ error: 'Write a message' }).min(10, { error: 'Write at least 10 characters' }),
+    message: z.string({ error: 'Write a message' }).min(10, {
+      error: 'Write at least 10 characters',
+    }),
   }),
 })
 ```
@@ -129,9 +123,13 @@ import { z } from 'zod'
 
 export const contactForm = defineGroup({
   schema: z.object({
-    name: z.string({ error: 'Enter your name' }).trim().min(1, { error: 'Enter your name' }),
+    name: z.string({ error: 'Enter your name' }).trim().min(1, {
+      error: 'Enter your name',
+    }),
     email: z.email({ error: 'Enter a valid email address' }),
-    message: z.string({ error: 'Write a message' }).min(10, { error: 'Write at least 10 characters' }),
+    message: z.string({ error: 'Write a message' }).min(10, {
+      error: 'Write at least 10 characters',
+    }),
   }),
 })
 ```
@@ -140,7 +138,7 @@ export const contactForm = defineGroup({
 
 The text in `error` is what the user sees when a value is missing or wrong.
 
-### 2. Create the Form
+## Creating the Form
 
 <div class="vue-only">
 
@@ -193,7 +191,7 @@ The form holds the values the user enters and checks them against the definition
 
 </div>
 
-### 3. Bind an Input
+## Binding an Input
 
 <div class="vue-only">
 
@@ -226,7 +224,7 @@ The error appears once the user leaves the input, so nobody sees it while still 
 Every value in the form has a node. Pass the node for the name to `useField`, and connect what it
 returns to an input:
 
-```tsx{1,6,8-14}
+```tsx{1,6,8-18}
 import { useField, useForm } from '@formtree/react'
 import { contactForm } from './forms/contact'
 
@@ -237,7 +235,11 @@ export function ContactForm() {
   return (
     <>
       <label htmlFor={name.id}>Name</label>
-      <input {...name.attrs} value={name.value ?? ''} onChange={event => name.setValue(event.target.value)} />
+      <input
+        {...name.attrs}
+        value={name.value ?? ''}
+        onChange={event => name.setValue(event.target.value)}
+      />
       <p id={name.errorId}>{name.errorMessage}</p>
     </>
   )
@@ -287,7 +289,7 @@ appears once the user leaves the input, so nobody sees it while still typing.
 
 </div>
 
-### 4. Submit the Form
+## Submitting the Form
 
 <div class="vue-only">
 
@@ -358,11 +360,19 @@ export function ContactForm() {
       }}
     >
       <label htmlFor={name.id}>Name</label>
-      <input {...name.attrs} value={name.value ?? ''} onChange={event => name.setValue(event.target.value)} />
+      <input
+        {...name.attrs}
+        value={name.value ?? ''}
+        onChange={event => name.setValue(event.target.value)}
+      />
       <p id={name.errorId}>{name.errorMessage}</p>
 
       <label htmlFor={email.id}>Email</label>
-      <input {...email.attrs} value={email.value ?? ''} onChange={event => email.setValue(event.target.value)} />
+      <input
+        {...email.attrs}
+        value={email.value ?? ''}
+        onChange={event => email.setValue(event.target.value)}
+      />
       <p id={email.errorId}>{email.errorMessage}</p>
 
       <label htmlFor={message.id}>Message</label>
@@ -410,7 +420,9 @@ document.querySelector('form')!.addEventListener('submit', event => {
 
 function bindInput(key: 'name' | 'email' | 'message') {
   const field = form.field(key)
-  const input = document.getElementById(field.id) as HTMLInputElement | HTMLTextAreaElement
+  const input = document.getElementById(field.id) as
+    | HTMLInputElement
+    | HTMLTextAreaElement
   const error = document.getElementById(field.errorId)!
 
   input.addEventListener('input', () => field.setValue(input.value))
@@ -455,7 +467,8 @@ itself, with `.prevent` in Vue and `event.preventDefault()` in React and plain J
 
 <div class="vue-only">
 
-::: tip Vue Devtools
+## Inspecting Forms in Vue Devtools {#vue-only-inspecting-forms-in-vue-devtools}
+
 Install the formtree plugin in `main.ts` to inspect your forms in Vue Devtools while you develop:
 
 ```ts [main.ts]
@@ -465,7 +478,5 @@ import App from './App.vue'
 
 createApp(App).use(createFormtree()).mount('#app')
 ```
-
-:::
 
 </div>

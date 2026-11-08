@@ -9,22 +9,23 @@ you.
 
 ## Why Forms Get Hard
 
-Most forms start simple. A few inputs, a schema, and a submit handler are enough, and the code is
-easy to follow.
+A form usually begins simply. A few inputs, a schema, and a submit handler are sufficient, and the
+code remains easy to follow.
 
-Then the form grows. Errors show up before the user has finished typing, so the component gets a
-flag to hide them. The next request adds another flag, and the one after that a condition. Soon the
-form works, but nobody can tell what it requires without reading the whole component.
+As requirements accumulate, the form grows more complex. Errors appear before the user has interacted
+with a field, so the component gains a flag to hide them. The next requirement adds another flag, and the
+one after it a condition. Eventually the form works as intended, but what it requires can no longer
+be determined without reading the entire component.
 
 ## A Form Built from Parts
 
-formtree moves the form's rules out of the component and into a description of the form, called a
-definition, and leaves the component with the markup. Forms are made of parts, so a definition can
-hold a smaller definition for each part, each with its own rules. That nesting is the tree in
-formtree's name.
+formtree moves the rules of a form out of the component and into a description of the form, called
+a definition, leaving the component responsible only for the markup. Because forms are composed of
+parts, a definition can contain a smaller definition for each part, each with its own rules. This
+nesting is the tree in formtree's name.
 
-When you create a form from a definition, every part becomes a node with its own value and errors,
-and each node can be validated and submitted on its own.
+Creating a form from a definition turns every part into a node with its own value and errors, and
+each node can be validated and submitted independently.
 
 ## Submitting a Form in Steps
 
@@ -44,12 +45,13 @@ not validated and are left out of the submitted values.
 
 ## Checking a Value with the Server
 
-A sign-up form asks for a username, and only the server knows whether it is still free. Checks like
-this are easy to get wrong. An answer for an older value can arrive last, and the form shows the
-result for a name the user has already changed.
+A sign-up form asks for a username, and only the server can determine whether it is still
+available. Checks of this kind are difficult to get right. A response for an earlier value can
+arrive last, and the form then displays the result for a name the user has already changed.
 
-In formtree, the check lives in the definition, next to the schema. formtree cancels the request
-for a value that has changed, so the answer always belongs to what is on the screen.
+In formtree, the check is declared in the definition, alongside the schema. formtree cancels the
+request for any value that has since changed, so the response always corresponds to the value on
+screen.
 
 ## Still Got Questions?
 
