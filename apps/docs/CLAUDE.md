@@ -25,7 +25,7 @@ The site is deployed on Netlify at https://form-tree.netlify.app. `og:image` is 
 - The Introduction is where problems are told at length. There a problem is a situation the reader has lived through, told in plain, general words as one case and what goes wrong in it, ending on the one consequence the reader feels; formtree's features reworded as needs ("a form has to decide when…") are not a problem.
 - A section introduces one new concept, in its prose and in its code. A tutorial step brings one API: a sentence on what it is for leads into a small block, then a sentence or two say what it does for the user. A run of sentences each led by an identifier ("`useForm` creates…, `form.field` returns…, `model` goes to…") is line-by-line commentary, so split the step instead.
 - A point gets one familiar case, named plainly. A vague mention ("a card on an edit page") leaves the reader guessing, and a second case that repeats the point ("A settings page with a Save button in each section works the same way") is detail.
-- The Introduction has no code. It says what formtree is, the problem it solves and the idea behind it, each problem section in prose. Code starts in Quick Start, where the Prerequisites tip that opens Installation states the knowledge the guide assumes.
+- The Introduction has no code. It says what formtree is, the problem it solves and the idea behind it, each problem section in prose. Code starts in Quick Start, where the Prerequisites tip above Installation states the knowledge the guide assumes.
 - Every sentence earns its place. A page does not restate what the code just showed, has no intro that recaps the sidebar and no "Next" section.
 - Prose explains with the idea, not an inventory. It does not list a form's parts, fields or messages ("contact details, a delivery address, and a payment"), since the code shows them, and behaviour beyond the section's point (kept values, focus, trimming) waits for the page that teaches it. One familiar example is enough.
 - Prose never lists what can grow or change, such as the supported frameworks, compatible libraries, version ranges or what an object carries. It names the kind ("framework-agnostic", "any Standard Schema library", "the other attributes the input needs") and leaves the rest to the code and the API reference, so a new adapter or attribute needs no prose edit.
@@ -45,7 +45,7 @@ The site is deployed on Netlify at https://form-tree.netlify.app. `og:image` is 
 - Every example a reader would copy exists in all three views. Where Vue and React use components, the JavaScript view uses functions that take a node.
 - A concept snippet that reads the same in every framework sits outside the blocks and imports from `@formtree/core` above `// ---cut---`, so the reader sees no import.
 - A full-file example shows its imports. Vue and React import from their adapter package, because adapter users install only the adapter; JavaScript imports from `@formtree/core`.
-- The JavaScript view binds inputs with a `bindInput(key)` helper (Quick Start, Submit the Form): `input` calls `setValue`, `blur` calls `blur()`, and `field.subscribe` writes `errorMessage`.
+- The JavaScript view binds inputs with a `bindInput(key)` helper (Quick Start, Submitting the Form): `input` calls `setValue`, `blur` calls `blur()`, and `field.subscribe` writes `errorMessage`.
 
 ## Code blocks
 
