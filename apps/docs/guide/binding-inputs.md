@@ -549,26 +549,32 @@ again when vue-i18n's locale changes.
 
 <div class="react-only">
 
-React re-renders an input when its field changes, not when the language does. Call
-`useTranslation()` in each reusable input so its error follows a language switch:
+Pass the current language to `<FormtreeProvider>`:
 
-```tsx{2,6} [text-field.tsx]
-import { useField } from '@formtree/react'
+```tsx{4,8,11} [app.tsx]
+import type { FormError } from '@formtree/react'
+import { FormtreeProvider } from '@formtree/react'
+import i18next from 'i18next'
 import { useTranslation } from 'react-i18next'
+import { ContactForm } from './contact-form'
 
-export function TextField({ name, label }: { name: string; label: string }) {
-  const field = useField<string>(name)
-  useTranslation()
+export function App() {
+  const { i18n } = useTranslation()
 
   return (
-    <div>
-      <label htmlFor={field.id}>{label}</label>
-      <input {...field.attrs} value={field.value ?? ''} onChange={event => field.setValue(event.target.value)} />
-      <p id={field.errorId}>{field.errorMessage}</p>
-    </div>
+    <FormtreeProvider formatError={formatError} language={i18n.language}>
+      <ContactForm />
+    </FormtreeProvider>
   )
 }
+
+function formatError(error: FormError) {
+  return i18next.t(error.code, { ...error.params })
+}
 ```
+
+When `language` changes, every component that reads a form re-renders, and `formatError` reads the new
+language from i18next.
 
 </div>
 

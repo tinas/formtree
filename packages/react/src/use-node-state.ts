@@ -3,6 +3,8 @@ import type { RefObject } from 'react'
 
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 
+import { useLanguage } from './formtree-provider'
+
 /**
  * Any node: a form, a group, an array, an item or a field.
  *
@@ -39,10 +41,11 @@ export function useNodeState(
   select: (node: StatefulNode<unknown>) => unknown = stateOf,
 ): unknown {
   const universal = node as unknown as UniversalNode
+  const language = useLanguage()
   const committed = useRef<Selection<unknown>>(undefined)
   const readSelection = useMemo(
     () => createSelectionReader(universal, () => select(node), committed),
-    [universal, node, select],
+    [universal, node, select, language],
   )
   const selected = useSyncExternalStore(universal.subscribe, readSelection, readSelection)
   useEffect(() => {

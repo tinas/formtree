@@ -97,7 +97,7 @@ State is immutable; every mutation goes through a pure transition and then `comm
 | `use-form.ts`           | `createForm` once per component (`useState` initializer), id from `useId`, `setDeps` in an effect when `deps` changes, `dispose` on unmount; never subscribes or provides |
 | `node-context.tsx`      | `<FormNodeProvider node>` (explicit), `useFormNode(Definition)` (nearest node of that definition, throws otherwise), `useFormNode()` (nearest node, loose type)           |
 | `use-field.ts`          | `useField(name \| node)`: `value`, `setValue`, `attrs` (null aria mapped to undefined, `onBlur`), `state`, `errorMessage`, ids; selects the field's own reads             |
-| `formtree-provider.tsx` | `<FormtreeProvider>`: `FormDefaults` for every `useForm` below it, read once when a form is created                                                                       |
+| `formtree-provider.tsx` | `<FormtreeProvider>`: `FormDefaults` for every `useForm` below it, read once when a form is created, and `language`, which re-renders every reader when it changes        |
 
 - Nodes are the core's own objects: `useSyncExternalStore` needs only the memoised reads, so nothing is wrapped.
 - A component re-renders only through `useNodeState` and `useField`; `useForm` and `useFormNode` never subscribe. React re-renders every child of a re-rendered component, so a subscription to the root or a group would re-render the whole subtree on every keystroke. A component reads what it shows with a selector, `useNodeState(card, node => node.state.active)`, the counterpart of a Vue `computed`. Reading a node without a hook gives the last render's value; `apps/docs/guide/components.md` says so. Guarded by "the component does not re-render when the form changes" and "only the field component whose field changed re-renders" in `use-form.test.tsx`.
@@ -106,7 +106,8 @@ State is immutable; every mutation goes through a pure transition and then `comm
 - `FormNodeProvider` memoises its context value by node and parent and renders `NODE_CONTEXT.Provider`, which keeps React 18.3 working (peer `^18.3.0 || ^19.0.0`).
 - Under `StrictMode` effects run twice, so `dispose` runs before the form is used; `dispose` only cancels async work and the form keeps working (tested).
 - `value` and `setValue` instead of ready-made input props: only the component knows how its element represents the value (numbers, empty strings, objects from a select).
-- Same names as the Vue adapter except the providers (`<FormNodeProvider>`, `<FormtreeProvider>` where Vue has `provideFormNode`, `createFormtree`). `useField` reads `errorMessage` when the field changes, so a language switch shows only in components that re-render; the docs have the generic input call `useTranslation()`.
+- Same names as the Vue adapter except the providers (`<FormNodeProvider>`, `<FormtreeProvider>` where Vue has `provideFormNode`, `createFormtree`).
+- `language` on `<FormtreeProvider>` is how a language switch reaches React, which cannot see the language a `formatError` reads. A form reads its options once, so `formatError` reads the language itself (a new function would never reach the form), and a new `language` re-renders every `useNodeState` and `useField` reader, whose selection memo includes it. It has a context of its own, because the defaults object changes whenever an inline default such as `focusElement` does, and readers must not re-render with it. Guarded by "a new language re-renders the messages of every form below it" in `formtree-provider.test.tsx`.
 
 ## Code conventions
 

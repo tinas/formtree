@@ -58,4 +58,25 @@ describe('FormtreeProvider', () => {
 
     expect(screen.getByTestId('message').textContent).toBe('name.required')
   })
+
+  test('a new language re-renders the messages of every form below it', () => {
+    const messages = { en: 'Enter your name', tr: 'Adınızı girin' }
+    let language: keyof typeof messages = 'en'
+    const captured: Captured = {}
+    function App({ current }: { current: keyof typeof messages }) {
+      return (
+        <FormtreeProvider formatError={() => messages[language]} language={current}>
+          <NameField captured={captured} />
+        </FormtreeProvider>
+      )
+    }
+    const { rerender } = render(<App current="en" />)
+    act(() => captured.form?.field('name').blur())
+    expect(screen.getByTestId('message').textContent).toBe('Enter your name')
+
+    language = 'tr'
+    rerender(<App current="tr" />)
+
+    expect(screen.getByTestId('message').textContent).toBe('Adınızı girin')
+  })
 })
