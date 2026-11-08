@@ -240,7 +240,7 @@ export interface NodeBase<Value, Output> {
    * that unsubscribes.
    */
   readonly subscribe: (listener: () => void) => () => void
-  /** Writes a draft value. `undefined` empties a field. */
+  /** Writes a draft value. `undefined` empties a field and removes its key from the parent's value. */
   readonly setValue: (value: Value) => void
   /** Marks the node as touched and starts checks that run on blur. */
   readonly blur: () => void
