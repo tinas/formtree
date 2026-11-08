@@ -7,9 +7,10 @@ import { ERROR_SOURCE } from '../errors/form-error'
 import { CLEAR_ON } from '../errors/stored-error'
 import { domIdOf } from '../nodes/node-identity'
 import { toFormError, visibilityContextOf } from '../nodes/node-state'
-import { comparePaths, isWithinPath } from '../paths/path'
+import { isWithinPath } from '../paths/path'
 import { clearExternalErrors, setExternalErrors } from '../state/error-transitions'
 import { activeErrors, visibleErrorsAt } from '../validation/visibility'
+import { inDefinitionOrder } from './error-order'
 import { emitNodeEvent, FORM_EVENT } from './form-events'
 import { commitState } from './form-runtime'
 
@@ -43,14 +44,12 @@ export function listNodeErrors(
   nodeId: string,
   options: ListErrorsOptions = {},
 ): Array<ListedError> {
-  return errorsWithin(runtime, nodeId, options)
-    .map(error => {
-      return {
-        ...toFormError(runtime.state, error),
-        targetId: domIdOf(runtime, error.targetId),
-      }
-    })
-    .sort((first, second) => comparePaths(first.path, second.path))
+  return inDefinitionOrder(runtime, errorsWithin(runtime, nodeId, options)).map(error => {
+    return {
+      ...toFormError(runtime.state, error),
+      targetId: domIdOf(runtime, error.targetId),
+    }
+  })
 }
 
 export function activeErrorsWithin(runtime: FormRuntime, nodeId: string): ReadonlyArray<StoredError> {
@@ -64,7 +63,8 @@ function errorsWithin(runtime: FormRuntime, nodeId: string, options: ListErrorsO
   if (options.includeHidden) {
     return targetErrors
   }
-  const targetIds = new Set(targetErrors.map(error => error.targetId))
   const context = visibilityContextOf(runtime)
-  return [...targetIds].flatMap(targetId => visibleErrorsAt(context, targetId))
+  const targetIds = new Set(targetErrors.map(error => error.targetId))
+  const visible = new Set([...targetIds].flatMap(targetId => visibleErrorsAt(context, targetId)))
+  return targetErrors.filter(error => visible.has(error))
 }

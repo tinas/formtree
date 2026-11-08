@@ -174,16 +174,77 @@ describe('submit', () => {
     expect(onInvalid).toHaveBeenCalledWith(expect.arrayContaining([expect.objectContaining({ path: 'setup.name' })]))
   })
 
-  test('the first invalid field in document order receives focus', async () => {
+  test('the first invalid field on the page receives focus', async () => {
     const form = createPromotionForm()
     document.body.innerHTML = `
+      <input id="promotion:setup.name" />
       <input id="promotion:setup.product" />
+    `
+
+    await form.group('setup').handleSubmit(vi.fn())()
+
+    expect(document.activeElement?.id).toBe('promotion:setup.name')
+  })
+
+  test('focus skips an error whose element is hidden, such as one in a closed dialog', async () => {
+    const form = createPromotionForm()
+    document.body.innerHTML = `
+      <dialog><input id="promotion:setup.product" /></dialog>
       <input id="promotion:setup.name" />
     `
 
     await form.group('setup').handleSubmit(vi.fn())()
 
+    expect(document.activeElement?.id).toBe('promotion:setup.name')
+  })
+
+  test('onInvalid can open the dialog a field is in before focus moves', async () => {
+    const form = createPromotionForm()
+    document.body.innerHTML = `
+      <dialog><input id="promotion:setup.product" /></dialog>
+      <input id="promotion:setup.name" />
+    `
+
+    await form.group('setup').handleSubmit(vi.fn(), {
+      onInvalid: () => document.querySelector('dialog')?.setAttribute('open', ''),
+    })()
+
     expect(document.activeElement?.id).toBe('promotion:setup.product')
+  })
+
+  test('focus waits for onInvalid, so a field it renders can receive focus', async () => {
+    const form = createPromotionForm()
+    document.body.innerHTML = `<input id="promotion:setup.name" />`
+
+    await form.group('setup').handleSubmit(vi.fn(), {
+      onInvalid: async () => {
+        await Promise.resolve()
+        document.body.insertAdjacentHTML('afterbegin', '<input id="promotion:setup.product" />')
+      },
+    })()
+
+    expect(document.activeElement?.id).toBe('promotion:setup.product')
+  })
+
+  test('focus moves once every check has answered, so a slow check above a sync error gets it', async () => {
+    const signUpForm = defineGroup({
+      children: {
+        username: defineField({
+          schema: z.string(),
+          validateAsync: { debounceMs: 0, run: async () => ({ code: 'This username is taken' }) },
+        }),
+        email: defineField({ schema: z.email({ error: 'Enter a valid email address' }) }),
+      },
+    })
+    const form = createForm(signUpForm, { id: 'sign-up', initialValue: { username: 'ada', email: 'ada' } })
+    document.body.innerHTML = `
+      <input id="sign-up:username" />
+      <input id="sign-up:email" />
+    `
+
+    await form.handleSubmit(vi.fn())()
+
+    expect(document.activeElement?.id).toBe('sign-up:username')
   })
 
   test('the summary receives focus when asked to', async () => {

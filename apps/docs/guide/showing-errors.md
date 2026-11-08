@@ -261,8 +261,10 @@ function summaryItem(error: ListedError): HTMLLIElement {
 
 </div>
 
-`form.formatError` gives each error the text its input shows. The `summaryId` and `tabindex="-1"`
-let a failed submit focus the list, as [Submitting](/guide/submitting) shows.
+`form.formatError` gives each error the text its input shows. The errors come in the order of the
+definition, so in a form laid out as it is defined, the first link leads to the field a failed submit
+focuses. The `summaryId` and `tabindex="-1"` let a failed submit focus the list, as
+[Submitting](/guide/submitting) shows.
 
 ## Setting Errors Yourself
 

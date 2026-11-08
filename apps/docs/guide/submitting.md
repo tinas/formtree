@@ -108,7 +108,10 @@ const send = form.handleSubmit(
 )
 ```
 
-`focusElement` decides how an element is focused, for example with smooth scrolling.
+`focusElement` decides how an element is focused, for example with smooth scrolling. A field hidden on
+the page, such as one in a closed dialog, is skipped. To focus it instead, open the dialog in
+`onInvalid`, which runs before focus moves. Focus waits for the promise it returns, so the dialog can
+render first.
 
 ::: tip Every Form at Once
 [App Defaults](/guide/app-defaults) sets both options for every form.
