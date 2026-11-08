@@ -1,5 +1,16 @@
 # @formtree/vue
 
+## 0.3.0
+
+### Minor Changes
+
+- [#52](https://github.com/tinas/formtree/pull/52) [`0d01011`](https://github.com/tinas/formtree/commit/0d01011dde44ee6c05f6dfbe74a09a2a4350ccfb) Thanks [@tinas](https://github.com/tinas)! - `state.requesting` is `true` while a check's `run` or a schema that answers asynchronously runs in the subtree, so a "Checking…" hint no longer shows while a check waits after its trigger or before a run that new deps start returns early. `validating` keeps its meaning and stays `true` from the trigger until the answer. The Vue devtools tag a waiting check apart from a requesting one.
+
+### Patch Changes
+
+- Updated dependencies [[`0d01011`](https://github.com/tinas/formtree/commit/0d01011dde44ee6c05f6dfbe74a09a2a4350ccfb)]:
+  - @formtree/core@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes

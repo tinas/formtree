@@ -1,6 +1,6 @@
 {
   "name": "@formtree/react",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The React adapter of formtree, a headless form tree in which every part of a form validates and submits on its own.",
   "keywords": [
     "arktype",
