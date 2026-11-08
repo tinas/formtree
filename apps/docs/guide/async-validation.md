@@ -207,8 +207,8 @@ While invoice is selected, the promo code has the rule's error, so its server ch
 
 ## Submitting During a Check
 
-`handleSubmit` waits for running checks and starts any that have not run yet, so the handler
-receives only a value the server has confirmed:
+`handleSubmit` asks every check again and waits for one that is already running, so the handler
+receives only a value the server has just confirmed:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -238,9 +238,12 @@ const signUp = form.handleSubmit(async account => {
 })
 ```
 
-::: tip Asking Again
-A check keeps its answer for a value. To ask the server again anyway, validate
-[from scratch](/guide/validation#validating-from-scratch).
+`validate()` asks again in the same way. A schema and a rule run again only when their value changes,
+so a rule only the server can answer belongs in a check.
+
+::: tip Fewer Requests
+A check sends a request every time it runs, even for a value it has checked before. To answer a
+repeated value without one, cache the request inside `run`.
 :::
 
 ## Handling Failed Requests
@@ -268,8 +271,8 @@ const usernameField = defineField({
 })
 ```
 
-A failed check runs again on its next trigger and on every submit or `validate()`. A submit whose
-check fails again resolves to `'unchecked'` and focuses its field.
+A failed check runs again on its next trigger, even for the same value. A submit whose check fails
+again resolves to `'unchecked'` and focuses its field.
 
 ::: warning Error Statuses
 `fetch` rejects only when the network fails, so `run` throws for an error status itself.

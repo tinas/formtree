@@ -28,11 +28,6 @@ const RUN_STATUS = {
 
 type RunStatus = (typeof RUN_STATUS)[keyof typeof RUN_STATUS]
 
-interface CheckAnswer {
-  readonly output: unknown
-  readonly inputs: ReadonlyArray<ErrorInput>
-}
-
 export interface CheckEntry {
   status: RunStatus
   output: unknown
@@ -40,7 +35,6 @@ export interface CheckEntry {
   timer: ReturnType<typeof setTimeout> | undefined
   controller: AbortController | undefined
   running: Promise<void> | undefined
-  answers: Array<CheckAnswer>
 }
 
 export function reconcileChecks(runtime: FormRuntime, state: FormState, scopes: ReadonlyArray<Scope>): FormState {
@@ -66,18 +60,9 @@ export function scheduleBlurChecks(runtime: FormRuntime, state: FormState, nodeI
   return next
 }
 
-export function markFailedChecksStaleWithin(runtime: FormRuntime, nodeId: string): void {
-  for (const [ownerId, entry] of runtime.checkEntries) {
-    if (isFailedCheck(runtime.state, ownerId) && isWithinPath(ownerId, nodeId)) {
-      entry.status = RUN_STATUS.stale
-    }
-  }
-}
-
-export function markChecksStaleWithin(runtime: FormRuntime, nodeId: string): void {
+export function markSettledChecksStaleWithin(runtime: FormRuntime, nodeId: string): void {
   for (const [ownerId, entry] of runtime.checkEntries) {
     if (entry.status == RUN_STATUS.idle && isWithinPath(ownerId, nodeId)) {
-      entry.answers = entry.answers.filter(answer => !deepEqual(answer.output, entry.output))
       entry.status = RUN_STATUS.stale
     }
   }
@@ -140,17 +125,8 @@ function reconcileCheck({ runtime, state, scope, options }: CheckReconciliation)
     return state
   }
   abortCheck(runtime, ownerId, entry)
-  if (!Object.is(scope.deps, entry.deps)) {
-    entry.answers = []
-  }
   entry.output = output
   entry.deps = scope.deps
-  const answer = entry.answers.find(cached => deepEqual(cached.output, output))
-  if (answer != undefined) {
-    entry.status = RUN_STATUS.idle
-    emitCheckEnd(runtime, { nodeId: ownerId, errors: answer.inputs, cached: true })
-    return withCheckErrors(state, { ownerId, inputs: answer.inputs })
-  }
   const cleared = withCheckErrors(state, { ownerId, inputs: [] })
   if (existing == undefined || options.on != ASYNC_TRIGGER.change) {
     entry.status = RUN_STATUS.stale
@@ -168,7 +144,6 @@ function createEntry(): CheckEntry {
     timer: undefined,
     controller: undefined,
     running: undefined,
-    answers: [],
   }
 }
 
@@ -260,10 +235,9 @@ function answerCheck(run: CheckRun, inputs: ReadonlyArray<ErrorInput>): void {
     return
   }
   const { runtime, ownerId, entry } = run
-  entry.answers.push({ output: entry.output, inputs })
   finishRun(entry)
   commitState(runtime, withCheckErrors(runtime.state, { ownerId, inputs }))
-  emitCheckEnd(runtime, { nodeId: ownerId, errors: inputs, cached: false })
+  emitCheckEnd(runtime, { nodeId: ownerId, errors: inputs })
 }
 
 function failCheck(run: CheckRun, error: unknown): void {

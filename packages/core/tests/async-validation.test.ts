@@ -104,7 +104,7 @@ describe('async validation', () => {
     expect(checkedCodes).toEqual(['WELCOME10'])
   })
 
-  test('results become async errors and are cached per value', async () => {
+  test('results become async errors, and a value that comes back is asked again', async () => {
     const name = createPromotionForm().field('setup.name')
 
     name.setValue('Taken')
@@ -118,8 +118,11 @@ describe('async validation', () => {
     await vi.advanceTimersByTimeAsync(300)
 
     name.setValue('Taken')
+    expect(name.state.errors).toEqual([])
+    name.blur()
+    await vi.advanceTimersByTimeAsync(300)
     expect(name.state.errors).toEqual([expect.objectContaining({ code: 'This name is already used' })])
-    expect(nameChecks).toHaveLength(2)
+    expect(nameChecks.map(check => check.name)).toEqual(['Taken', 'Other', 'Taken'])
   })
 
   test('a check runs again for every different file, even one with the same name', async () => {
@@ -211,22 +214,6 @@ describe('async validation', () => {
     expect(form.state.failedChecks).toEqual([{ path: 'username', error: NETWORK_ERROR }])
   })
 
-  test('a failed check is not cached and runs again when its value comes back', async () => {
-    const { server, username } = createSignUpForm('change')
-    username.setValue('alice')
-    await vi.advanceTimersByTimeAsync(0)
-
-    server.down = false
-    username.setValue('bob')
-    await vi.advanceTimersByTimeAsync(0)
-    username.setValue('alice')
-    await vi.advanceTimersByTimeAsync(0)
-
-    expect(server.calls).toBe(3)
-    expect(username.state.failedChecks).toEqual([])
-    expect(username.state.valid).toBe(true)
-  })
-
   test('a submit runs a failed check again and is unchecked while it still fails', async () => {
     const { server, form, username } = createSignUpForm('change')
     const onValid = vi.fn()
@@ -271,21 +258,20 @@ describe('async validation', () => {
     expect(server.calls).toBe(3)
   })
 
-  test('ignoreCache asks again for a value whose answer is cached', async () => {
+  test('validate asks an answered check again', async () => {
     const { server, username } = createSignUpForm('change')
     server.down = false
     username.setValue('alice')
     await vi.advanceTimersByTimeAsync(0)
     server.taken = true
 
-    await expect(username.validate()).resolves.toMatchObject({ valid: true })
-    await expect(username.validate({ ignoreCache: true })).resolves.toMatchObject({ valid: false })
+    await expect(username.validate()).resolves.toMatchObject({ valid: false })
 
     expect(server.calls).toBe(2)
     expect(username.state.errors).toEqual([expect.objectContaining({ code: 'This username is taken' })])
   })
 
-  test('a submit with ignoreCache asks again before the handler', async () => {
+  test('a submit asks an answered check again before the handler', async () => {
     const { server, form, username } = createSignUpForm('change')
     const onValid = vi.fn()
     server.down = false
@@ -293,24 +279,50 @@ describe('async validation', () => {
     await vi.advanceTimersByTimeAsync(0)
     server.taken = true
 
-    await expect(form.handleSubmit(onValid, { ignoreCache: true })()).resolves.toBe('invalid')
+    await expect(form.handleSubmit(onValid)()).resolves.toBe('invalid')
 
     expect(server.calls).toBe(2)
     expect(onValid).not.toHaveBeenCalled()
   })
 
-  test('ignoreCache asks again when the schema of the checked value is asynchronous', async () => {
-    const run = vi.fn(() => undefined)
-    const codeField = defineField({
-      schema: z.string().refine(async () => true),
-      validateAsync: { debounceMs: 0, run },
+  test('a submit waits for a running check instead of asking again', async () => {
+    const answers: Array<() => void> = []
+    const usernameField = defineField({
+      schema: z.string(),
+      validateAsync: {
+        on: 'blur',
+        debounceMs: 0,
+        run: () =>
+          new Promise<undefined>(resolve => {
+            answers.push(() => resolve(undefined))
+          }),
+      },
     })
-    const code = createForm(codeField, { initialValue: 'SAVE10' })
-    await code.validate()
+    const username = createForm(usernameField, { initialValue: 'alice' })
+    username.blur()
+    await vi.advanceTimersByTimeAsync(0)
 
-    await code.validate({ ignoreCache: true })
+    const submit = username.handleSubmit(vi.fn())()
+    for (const answer of answers) {
+      answer()
+    }
 
-    expect(run).toHaveBeenCalledTimes(2)
+    await expect(submit).resolves.toBe('success')
+    expect(answers).toHaveLength(1)
+  })
+
+  test('an answered check does not run again while its value stays the same', async () => {
+    const { server, form, username } = createSignUpForm('blur')
+    server.down = false
+    username.setValue('alice')
+    username.blur()
+    await vi.advanceTimersByTimeAsync(0)
+
+    form.field('email').setValue('alice@example.com')
+    username.blur()
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(server.calls).toBe(1)
   })
 
   test('a failed check that runs again is pending, not failed', async () => {

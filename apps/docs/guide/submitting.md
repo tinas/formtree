@@ -57,7 +57,8 @@ The submit covers the node and everything below it, so errors elsewhere neither 
 and a part that is turned off resolves to `'skipped'`.
 
 ::: tip Submitting the Whole Form Later
-A later submit of the whole form reuses the step's results for values that have not changed.
+A later submit of the whole form runs the step's schemas and rules again only for values that have
+changed, and asks its server checks again.
 :::
 
 ## Errors from the Server

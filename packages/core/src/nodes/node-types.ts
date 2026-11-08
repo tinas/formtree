@@ -3,7 +3,6 @@ import type { DEFINITION_KIND } from '../definitions/definition-kind'
 import type { ClearOn } from '../errors/stored-error'
 import type { ErrorInput, ErrorSource, FormError } from '../errors/form-error'
 import type { DeepPartial } from '../types'
-import type { ValidateOptions } from '../validation/validation-pass'
 import type { NodeKind } from './node-kind'
 import type { IsArrayShape, IsGroupShape, ItemShapeOf, PathInput, ShapeAtPath } from './path-types'
 
@@ -122,7 +121,7 @@ export type SubmitHandler<Output> = (output: Output) => unknown
  *
  * @category Submitting
  */
-export interface SubmitOptions extends ValidateOptions {
+export interface SubmitOptions {
   /**
    * Called with the errors, in the order `listErrors` lists them, when the subtree has errors. Focus moves once the
    * promise it returns settles, so it can open what hides a field, such as a dialog.
@@ -250,13 +249,13 @@ export interface NodeBase<Value, Output> {
   /** Marks the node as touched and starts checks that run on blur. */
   readonly blur: () => void
   /**
-   * Validates the subtree, waits for pending checks, retries failed ones and returns the result without making errors
-   * visible.
+   * Validates the subtree, asks its checks again, waiting for any already running, and returns the result without
+   * making errors visible.
    */
-  readonly validate: (options?: ValidateOptions) => Promise<ValidationResult<Output>>
+  readonly validate: () => Promise<ValidationResult<Output>>
   /**
-   * Returns a submit function for this node. It skips while a submit runs, validates the subtree and either shows
-   * and focuses its errors and the checks that threw, or calls `onValid` with the output.
+   * Returns a submit function for this node. It skips while a submit runs, validates the subtree as `validate` does
+   * and either shows and focuses its errors and the checks that threw, or calls `onValid` with the output.
    */
   readonly handleSubmit: (onValid: SubmitHandler<Output>, options?: SubmitOptions) => () => Promise<SubmitOutcome>
   /** Returns the subtree to its initial value, or makes `options.value` its new initial value. */

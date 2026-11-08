@@ -166,29 +166,29 @@ describe('shapes', () => {
     expect(conditions.items[0].state.valid).toBe(true)
   })
 
-  test('ignoreCache runs schemas and rules again for unchanged values', async () => {
+  test('validate and submit run no schema or rule again while values stay the same', async () => {
     const validate = vi.fn(() => undefined)
     const form = createForm(defineGroup({ schema: z.object({ name: z.string().optional() }), validate }))
     const callsAfterCreate = validate.mock.calls.length
 
     await form.validate()
+    await form.handleSubmit(vi.fn())()
+
     expect(validate).toHaveBeenCalledTimes(callsAfterCreate)
-
-    await form.validate({ ignoreCache: true })
-    expect(validate).toHaveBeenCalledTimes(callsAfterCreate + 1)
   })
 
-  test('ignoreCache on a schema key runs the schema and rules that cover it again', async () => {
-    const validate = vi.fn(() => undefined)
-    const form = createForm(defineGroup({ schema: z.object({ name: z.string().optional() }), validate }))
-    const callsAfterCreate = validate.mock.calls.length
+  test('a schema that answers asynchronously runs once per value, a submit included', async () => {
+    const validate = vi.fn((value: unknown) => Promise.resolve({ value: value as string }))
+    const codeSchema: StandardSchemaV1<string> = { '~standard': { version: 1, vendor: 'test', validate } }
+    const code = createForm(defineField({ schema: codeSchema }), { initialValue: 'SAVE10' })
 
-    await form.field('name').validate({ ignoreCache: true })
+    await code.validate()
+    await code.handleSubmit(vi.fn())()
 
-    expect(validate).toHaveBeenCalledTimes(callsAfterCreate + 1)
+    expect(validate).toHaveBeenCalledTimes(1)
   })
 
-  test('ignoreCache ignores the schema run it replaced', async () => {
+  test('a schema run for a value that changed since is ignored', async () => {
     const runs: Array<(valid: boolean) => void> = []
     const codeSchema: StandardSchemaV1<string> = {
       '~standard': {
@@ -202,13 +202,15 @@ describe('shapes', () => {
     }
     const code = createForm(defineField({ schema: codeSchema }), { initialValue: 'SAVE10', mode: 'all' })
 
-    const validation = code.validate({ ignoreCache: true })
+    code.setValue('SAVE20')
+    const validation = code.validate()
     runs[1](true)
     await validation
     runs[0](false)
     await new Promise(resolve => setTimeout(resolve, 0))
 
     expect(code.state.errors).toEqual([])
+    expect(code.state.valid).toBe(true)
   })
 
   test('recursive definitions validate at every depth', () => {

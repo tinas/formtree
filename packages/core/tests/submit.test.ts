@@ -162,7 +162,7 @@ describe('submit', () => {
     expect(limits.state.submitCount).toBe(0)
   })
 
-  test('a root submit after a step submit reuses the results of the step', async () => {
+  test('a root submit after a step submit asks the step check again but runs none of its rules', async () => {
     const validateStep = vi.fn(() => undefined)
     const checkStep = vi.fn(async () => undefined)
     const stepGroup = defineGroup({
@@ -179,7 +179,7 @@ describe('submit', () => {
     await expect(form.handleSubmit(vi.fn())()).resolves.toBe('success')
 
     expect(validateStep).not.toHaveBeenCalled()
-    expect(checkStep).toHaveBeenCalledTimes(1)
+    expect(checkStep).toHaveBeenCalledTimes(2)
   })
 
   test('server errors from a step submit block a root submit until their value changes', async () => {

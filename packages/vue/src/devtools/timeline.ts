@@ -29,7 +29,7 @@ const EVENT_HEADINGS: EventHeadings = {
   errors: () => ({ title: 'Errors set', logType: 'default' }),
   checkStart: () => ({ title: 'Check started', logType: 'default' }),
   checkEnd: event => ({
-    title: event.cached ? 'Check reused' : 'Check finished',
+    title: 'Check finished',
     logType: event.errors.length > 0 ? 'warning' : 'default',
   }),
   checkFail: () => ({ title: 'Check failed', logType: 'error' }),
