@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from 'vite-plus/test'
+import { z } from 'zod'
 
-import { createForm } from '../src'
+import { arrayOf, createForm, defineField, defineGroup, defineGroupWithDeps } from '../src'
 import { maxDiscountField } from './fixtures/promotion'
 import { createPromotionForm, PROMOTION_DEPS } from './fixtures/create-promotion-form'
 
@@ -132,5 +133,116 @@ describe('createForm', () => {
 
     await form.handleSubmit(() => {})()
     expect(form.listErrors({ deep: true })).not.toBe(errors)
+  })
+
+  test('error lists are kept per meaning of their options', () => {
+    const form = createPromotionForm()
+
+    expect(form.listErrors({ deep: true, includeHidden: true })).not.toEqual(form.listErrors({ deep: true }))
+    expect(form.listErrors({ deep: false })).toBe(form.listErrors())
+  })
+
+  test('a field holding a file or a map is dirty once another one is chosen', () => {
+    const uploadForm = defineGroup({
+      children: {
+        attachment: defineField({ schema: z.instanceof(File) }),
+        labels: defineField({ schema: z.instanceof(Map) }),
+      },
+    })
+    const form = createForm(uploadForm, {
+      initialValue: {
+        attachment: new File(['draft'], 'notes.txt', { lastModified: 0 }),
+        labels: new Map([['color', 'red']]),
+      },
+    })
+    const attachment = form.field('attachment')
+    const labels = form.field('labels')
+
+    attachment.setValue(new File(['final'], 'notes.txt', { lastModified: 0 }))
+    labels.setValue(new Map([['color', 'blue']]))
+
+    expect(attachment.state.dirty).toBe(true)
+    expect(labels.state.dirty).toBe(true)
+  })
+
+  test('a class instance where a group is expected keeps its values', () => {
+    class Address {
+      city = 'Lisbon'
+      street = 'Rua Augusta'
+    }
+    const addressGroup = defineGroup({ schema: z.object({ city: z.string(), street: z.string() }) })
+    const form = createForm(defineGroup({ children: { address: addressGroup } }), {
+      initialValue: { address: new Address() },
+    })
+    const address = form.group('address')
+
+    expect(address.field('city').state.value).toBe('Lisbon')
+    expect(address.state.dirty).toBe(false)
+    address.field('street').setValue('Rua Nova')
+    expect(address.state.value).toEqual({ city: 'Lisbon', street: 'Rua Nova' })
+  })
+
+  test('a path through the prototype key reaches no value and ignores writes', () => {
+    const rolesForm = defineGroup({ schema: z.record(z.string(), z.record(z.string(), z.boolean())) })
+    const form = createForm(rolesForm)
+    const prototypeNode = form.field('__proto__')
+
+    form.field('__proto__.isAdmin').setValue(true)
+
+    expect(prototypeNode.state.value).toBeUndefined()
+    expect(Object.hasOwn(form.state.value, '__proto__')).toBe(false)
+    expect(Object.assign({}, form.state.value)).not.toHaveProperty('isAdmin')
+  })
+
+  test('a key named like an Object member is an ordinary key', () => {
+    const builderForm = defineGroup({
+      schema: z.record(z.string(), z.string()),
+      children: { constructor: defineField({ schema: z.string().optional() }) },
+    })
+    const form = createForm(builderForm)
+    const constructorField = form.field('constructor')
+
+    expect(form.state.valid).toBe(true)
+    expect(constructorField.state.value).toBeUndefined()
+    expect(form.field('toString').state.value).toBeUndefined()
+    constructorField.setValue('Ada')
+    expect(form.state.value).toEqual({ constructor: 'Ada' })
+  })
+
+  test('values on a polluted Object.prototype never reach the form', () => {
+    const pollution = {
+      nickname: 'Mallory',
+      contact: { email: 'mallory@example.com' },
+      address: { city: 'Nowhere', isAdmin: true },
+    }
+    for (const [key, value] of Object.entries(pollution)) {
+      Object.defineProperty(Object.prototype, key, { value, configurable: true, writable: true })
+    }
+    try {
+      const profileForm = defineGroupWithDeps<{ nickname?: string }>()({
+        schema: z.object({ address: z.record(z.string(), z.string()).optional() }),
+        children: {
+          nickname: defineField({ schema: z.string().optional() }),
+          contact: defineGroup({ children: { phones: arrayOf(defineField({ schema: z.string() })) } }),
+        },
+      })
+      const form = createForm(profileForm, { deps: {} })
+      const nickname = form.field('nickname')
+      const listener = vi.fn()
+      form.subscribe(listener)
+
+      expect(form.state.value).toEqual({ contact: { phones: [] } })
+      expect(nickname.state.value).toBeUndefined()
+      form.setDeps({ nickname: 'Mallory' })
+      expect(listener).toHaveBeenCalledOnce()
+      nickname.setValue('Mallory')
+      expect(form.state.dirty).toBe(true)
+      form.field('address.city').setValue('Lisbon')
+      expect(form.state.value.address).toEqual({ city: 'Lisbon' })
+    } finally {
+      for (const key of Object.keys(pollution)) {
+        Reflect.deleteProperty(Object.prototype, key)
+      }
+    }
   })
 })

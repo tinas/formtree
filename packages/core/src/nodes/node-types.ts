@@ -174,6 +174,22 @@ export interface ListErrorsOptions {
   readonly includeHidden?: boolean
 }
 
+const LIST_ERRORS_KEY_PARTS: Record<keyof ListErrorsOptions, (options: ListErrorsOptions) => boolean> = {
+  deep: options => options.deep == true,
+  includeHidden: options => options.includeHidden == true,
+}
+
+/**
+ * A key that `listErrors` options with the same meaning share, for a cache kept per options.
+ *
+ * @internal
+ */
+export function listErrorsKey(options: ListErrorsOptions = {}): string {
+  return Object.values(LIST_ERRORS_KEY_PARTS)
+    .map(part => part(options))
+    .join()
+}
+
 /**
  * An error listed by `listErrors`.
  *

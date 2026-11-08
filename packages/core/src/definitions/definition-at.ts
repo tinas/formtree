@@ -2,13 +2,14 @@ import type { Definition } from './definition'
 import type { DefinitionHandlers } from './runtime-options'
 
 import { pathAndAncestors, splitPath } from '../paths/path'
+import { ownValue } from '../paths/value-tree'
 import { itemKeyOf } from '../state/node-id'
 import { resolveItemDefinition } from './definition'
 import { matchDefinition } from './runtime-options'
 
 const CHILD_DEFINITION: DefinitionHandlers<string, Definition | undefined> = {
   field: () => undefined,
-  group: (definition, segment) => definition.children[segment],
+  group: (definition, segment) => ownValue(definition.children, segment),
   array: (definition, segment) => (itemKeyOf(segment) == undefined ? undefined : resolveItemDefinition(definition)),
 }
 

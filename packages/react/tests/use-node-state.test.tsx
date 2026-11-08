@@ -66,6 +66,24 @@ describe('useNodeState', () => {
     expect(screen.getByText('true:false')).toBeDefined()
   })
 
+  test('a selector may return a new array of the values it read', () => {
+    const renders = vi.fn()
+    let form: ReturnType<typeof useForm<typeof profileGroup>> | undefined
+    function Status() {
+      form = useForm(profileGroup, { deps: PROFILE_DEPS })
+      const [dirty, submitting] = useNodeState(form, form => [form.state.dirty, form.state.submitting])
+      renders()
+      return <span>{`${dirty}:${submitting}`}</span>
+    }
+    render(<Status />)
+
+    act(() => form?.field('name').setValue('A'))
+    act(() => form?.field('name').setValue('Ad'))
+
+    expect(renders).toHaveBeenCalledTimes(2)
+    expect(screen.getByText('true:false')).toBeDefined()
+  })
+
   test('a list re-renders only when a row is added, removed or moved', () => {
     const renders = vi.fn()
     let form: ReturnType<typeof useForm<typeof tagsForm>> | undefined

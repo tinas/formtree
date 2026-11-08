@@ -1,5 +1,26 @@
+/**
+ * Whether a value is an object whose prototype is `Object` or `null`. Paths walk only such objects and arrays, and
+ * compare them by their contents. Any other object, such as a `File` or a class instance, is a value of its own.
+ *
+ * @category Utilities
+ */
 export function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value == 'object' && value != null && !Array.isArray(value) && !(value instanceof Date)
+  if (typeof value != 'object' || value == null) {
+    return false
+  }
+  const prototype: unknown = Object.getPrototypeOf(value)
+  return prototype == Object.prototype || prototype == null
+}
+
+export function ownValue<Value>(record: Readonly<Record<string, Value>>, key: string): Value | undefined {
+  return Object.hasOwn(record, key) ? record[key] : undefined
+}
+
+export function toGroupRecord(value: unknown): Record<string, unknown> {
+  if (isPlainObject(value)) {
+    return value
+  }
+  return typeof value == 'object' && value != null && !Array.isArray(value) ? { ...value } : {}
 }
 
 export function getIn(tree: unknown, segments: ReadonlyArray<string>): unknown {
@@ -8,7 +29,7 @@ export function getIn(tree: unknown, segments: ReadonlyArray<string>): unknown {
     if (Array.isArray(current)) {
       current = current[Number(segment)]
     } else if (isPlainObject(current)) {
-      current = current[segment]
+      current = ownValue(current, segment)
     } else {
       return undefined
     }
@@ -35,7 +56,7 @@ function writeIn(tree: unknown, segments: ReadonlyArray<string>, value: unknown)
   const container = isPlainObject(tree) ? tree : {}
   return {
     ...container,
-    [segment]: writeIn(container[segment], rest, value),
+    [segment]: writeIn(ownValue(container, segment), rest, value),
   }
 }
 

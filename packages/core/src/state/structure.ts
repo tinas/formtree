@@ -4,7 +4,7 @@ import type { DefinitionHandlers } from '../definitions/runtime-options'
 import { definitionAt } from '../definitions/definition-at'
 import { resolveItemDefinition } from '../definitions/definition'
 import { matchDefinition } from '../definitions/runtime-options'
-import { isPlainObject } from '../paths/value-tree'
+import { ownValue, toGroupRecord } from '../paths/value-tree'
 
 const MATERIALIZERS: DefinitionHandlers<unknown, unknown> = {
   field: (_definition, value) => value,
@@ -22,11 +22,12 @@ export function materializeAt(root: Definition, nodeId: string, value: unknown):
 }
 
 function materializeGroup(definition: AnyGroupDefinition, value: unknown): unknown {
-  const base = isPlainObject(value) ? value : {}
+  const base = toGroupRecord(value)
   let result = base
   for (const [key, child] of Object.entries(definition.children)) {
-    const childValue = materializeStructure(child, base[key])
-    if (!Object.is(childValue, base[key])) {
+    const currentValue = ownValue(base, key)
+    const childValue = materializeStructure(child, currentValue)
+    if (!Object.is(childValue, currentValue)) {
       result = { ...result, [key]: childValue }
     }
   }

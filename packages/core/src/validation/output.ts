@@ -6,7 +6,7 @@ import type { SyncEntry } from './sync-validation'
 import { definitionAt } from '../definitions/definition-at'
 import { matchDefinition } from '../definitions/runtime-options'
 import { joinPath, splitPath } from '../paths/path'
-import { getIn, isPlainObject } from '../paths/value-tree'
+import { getIn, toGroupRecord } from '../paths/value-tree'
 import { itemSegment, toPath } from '../state/node-id'
 
 export interface OutputInput {
@@ -47,7 +47,7 @@ function buildGroupOutput(definition: AnyGroupDefinition, input: OutputInput): u
     .filter(child => !input.state.inactive.has(child.nodeId))
     .map(child => [child.key, buildOutput({ ...input, nodeId: child.nodeId })])
   return {
-    ...(isPlainObject(ownOutput) ? ownOutput : {}),
+    ...toGroupRecord(ownOutput),
     ...Object.fromEntries(childOutputs),
   }
 }

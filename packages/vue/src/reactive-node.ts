@@ -1,6 +1,7 @@
 import type { FormControls, ListedError, ListErrorsOptions, UniversalNode } from '@formtree/core'
 import type { ComputedRef, ShallowRef } from 'vue'
 
+import { listErrorsKey } from '@formtree/core'
 import { computed, shallowRef } from 'vue'
 
 export interface FormBridge {
@@ -70,7 +71,7 @@ function computedErrorLists(
 ): (options?: ListErrorsOptions) => ReadonlyArray<ListedError> {
   const lists = new Map<string, ComputedRef<ReadonlyArray<ListedError>>>()
   return options => {
-    const key = JSON.stringify(options ?? {})
+    const key = listErrorsKey(options)
     const cached = lists.get(key)
     if (cached != undefined) {
       return cached.value

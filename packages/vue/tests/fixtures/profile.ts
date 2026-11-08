@@ -13,6 +13,7 @@ export const profileGroup = defineGroupWithDeps<{ minAge: number }>()({
     z.object({
       name: z.string({ error: 'name.required' }).min(1, { error: 'name.required' }),
       age: z.number({ error: 'age.required' }).min(deps.minAge, { error: 'age.too_young' }),
+      avatar: z.instanceof(File).optional(),
     }),
   children: { address: addressGroup },
 })

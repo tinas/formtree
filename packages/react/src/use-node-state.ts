@@ -1,6 +1,7 @@
 import type { NodeState, UniversalNode } from '@formtree/core'
 import type { RefObject } from 'react'
 
+import { shallowEqual } from '@formtree/core'
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 
 import { useLanguage } from './formtree-provider'
@@ -70,30 +71,8 @@ function createSelectionReader<Value>(
     }
     const next = select()
     const previous = memo ?? committed.current
-    const value = previous != undefined && isShallowEqual(previous.value, next) ? previous.value : next
+    const value = previous != undefined && shallowEqual(previous.value, next) ? previous.value : next
     memo = { version: node.version, value }
     return value
   }
-}
-
-function isShallowEqual(previous: unknown, next: unknown): boolean {
-  if (Object.is(previous, next)) {
-    return true
-  }
-  if (Array.isArray(previous) && Array.isArray(next)) {
-    return previous.length == next.length && previous.every((item, index) => Object.is(item, next[index]))
-  }
-  if (isPlainRecord(previous) && isPlainRecord(next)) {
-    const keys = Object.keys(previous)
-    return keys.length == Object.keys(next).length && keys.every(key => Object.is(previous[key], next[key]))
-  }
-  return false
-}
-
-function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  if (typeof value != 'object' || value == null) {
-    return false
-  }
-  const prototype = Object.getPrototypeOf(value)
-  return prototype == Object.prototype || prototype == null
 }
