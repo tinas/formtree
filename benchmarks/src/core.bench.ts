@@ -3,6 +3,7 @@ import { expect, test } from 'vite-plus/test'
 
 import {
   answerOf,
+  checkedQuestionsForm,
   ORDER_ROW_COUNT,
   orderForm,
   orderRow,
@@ -77,8 +78,11 @@ test('validating and submitting', async ({ bench }) => {
     initialValue: Object.fromEntries(questionNames.map(name => [name, 'answer'])),
   })
 
-  await bench('core: validate 100 questions without the cache', async () => {
-    await questionnaire.validate({ ignoreCache: true })
+  const checkedQuestions = createForm(checkedQuestionsForm, {
+    initialValue: Object.fromEntries(questionNames.map(name => [name, 'answer'])),
+  })
+  await bench('core: validate 100 questions that each ask the server', async () => {
+    await checkedQuestions.validate()
   }).run()
 
   let submitted: unknown

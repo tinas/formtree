@@ -1,6 +1,5 @@
 import type { FormError } from '../errors/form-error'
 import type { SubmitHandler, SubmitOptions, SubmitOutcome, ValidationResult } from '../nodes/node-types'
-import type { ValidateOptions } from '../validation/validation-pass'
 import type { FormRuntime } from './form-runtime'
 
 import { isInternalErrorSource } from '../errors/form-error'
@@ -24,12 +23,8 @@ export interface NodeSubmission {
   readonly options?: SubmitOptions
 }
 
-export async function validateNode(
-  runtime: FormRuntime,
-  nodeId: string,
-  options?: ValidateOptions,
-): Promise<ValidationResult<unknown>> {
-  await settleValidationWithin(runtime, nodeId, options)
+export async function validateNode(runtime: FormRuntime, nodeId: string): Promise<ValidationResult<unknown>> {
+  await settleValidationWithin(runtime, nodeId)
   const errors = orderedErrorsWithin(runtime, nodeId)
   const failedChecks = failedChecksWithin(runtime.state, nodeId)
   if (errors.length > 0 || failedChecks.length > 0) {
@@ -52,7 +47,7 @@ export async function submitNode({ runtime, nodeId, onValid, options = {} }: Nod
   }
   commitState(runtime, beginSubmit(runtime.state, nodeId))
   emitNodeEvent(runtime, FORM_EVENT.submitStart, nodeId)
-  await settleValidationWithin(runtime, nodeId, options)
+  await settleValidationWithin(runtime, nodeId)
   const errors = orderedErrorsWithin(runtime, nodeId)
   if (errors.length > 0) {
     endSubmitWithErrors(runtime, nodeId, SUBMIT_OUTCOME.invalid)

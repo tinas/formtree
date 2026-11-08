@@ -32,7 +32,7 @@ export interface AsyncValidationContext<Deps> {
 
 /**
  * A check against something outside the form, such as a server. It runs only while the schema passes, receives the
- * output, caches its answers per value and is awaited by a submit.
+ * output and runs again at every `validate()` and submit, which wait for its answer.
  *
  * @category Validation
  */

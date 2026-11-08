@@ -30,7 +30,6 @@ export type FormEventType = (typeof FORM_EVENT)[keyof typeof FORM_EVENT]
 export interface FormEventDetails {
   readonly [FORM_EVENT.checkEnd]: {
     readonly errors: ReadonlyArray<ErrorInput>
-    readonly cached: boolean
   }
   readonly [FORM_EVENT.checkFail]: {
     readonly error: unknown
@@ -62,12 +61,11 @@ export function emitNodeEvent(runtime: FormRuntime, type: PlainEventType, nodeId
 export interface CheckEnd {
   readonly nodeId: string
   readonly errors: ReadonlyArray<ErrorInput>
-  readonly cached: boolean
 }
 
-export function emitCheckEnd(runtime: FormRuntime, { nodeId, errors, cached }: CheckEnd): void {
+export function emitCheckEnd(runtime: FormRuntime, { nodeId, errors }: CheckEnd): void {
   if (runtime.observers.size > 0) {
-    emitEvent(runtime, { type: FORM_EVENT.checkEnd, path: pathOf(runtime, nodeId), errors, cached })
+    emitEvent(runtime, { type: FORM_EVENT.checkEnd, path: pathOf(runtime, nodeId), errors })
   }
 }
 

@@ -97,7 +97,7 @@ describe('form events', () => {
     ])
   })
 
-  test('an asynchronous check reports its start, its result and a reused result', async () => {
+  test('an asynchronous check reports its start and its result', async () => {
     const form = createPromotionForm()
     const events = recordEvents(form)
     const name = form.field('setup.name')
@@ -105,23 +105,10 @@ describe('form events', () => {
     name.setValue('Taken')
     name.blur()
     await vi.advanceTimersByTimeAsync(300)
-    name.setValue('Other')
-    name.setValue('Taken')
 
     expect(events.filter(event => event.type.startsWith('check'))).toEqual([
       { type: 'checkStart', path: 'setup.name' },
-      {
-        type: 'checkEnd',
-        path: 'setup.name',
-        errors: [{ code: 'This name is already used' }],
-        cached: false,
-      },
-      {
-        type: 'checkEnd',
-        path: 'setup.name',
-        errors: [{ code: 'This name is already used' }],
-        cached: true,
-      },
+      { type: 'checkEnd', path: 'setup.name', errors: [{ code: 'This name is already used' }] },
     ])
   })
 

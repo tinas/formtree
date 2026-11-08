@@ -25,6 +25,15 @@ export const questionFieldsForm = defineGroup({
   children: Object.fromEntries(questionNames.map(name => [name, defineField({ schema: answerSchema() })])),
 })
 
+export const checkedQuestionsForm = defineGroup({
+  children: Object.fromEntries(
+    questionNames.map(name => [
+      name,
+      defineField({ schema: answerSchema(), validateAsync: { debounceMs: 0, run: () => undefined } }),
+    ]),
+  ),
+})
+
 const topicGroup = defineGroup({
   schema: z.object(Object.fromEntries(namesOf('question', TOPIC_QUESTION_COUNT).map(name => [name, answerSchema()]))),
 })

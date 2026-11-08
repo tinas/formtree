@@ -25,6 +25,7 @@ The contributor workflow lives in @CONTRIBUTING.md. This file holds what applies
 - `null` for empty, and drafts filled from schema defaults (rule 7).
 - Adapters per schema library. Standard Schema only.
 - Wildcard paths for async rules. A check belongs to its definition.
+- Caching a check's answers. The server is the source of truth, so `validate()` and a submit ask every check again, and an app that wants fewer requests caches the request inside `run`.
 - Dependencies between siblings (rule 10).
 - Built-in messages. `formatError` turns codes into text.
 - Persistence and unsaved-changes prompts. `subscribe` and `dirty` are enough.

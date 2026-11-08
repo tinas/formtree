@@ -6,24 +6,9 @@ import type { PendingSchemaRun } from './sync-validation'
 import { isInternalErrorSource } from '../errors/form-error'
 import { commitState } from '../form/form-runtime'
 import { isWithinPath } from '../paths/path'
-import {
-  markChecksStaleWithin,
-  markFailedChecksStaleWithin,
-  reconcileChecks,
-  startChecksWithin,
-} from './async-validation'
+import { markSettledChecksStaleWithin, reconcileChecks, startChecksWithin } from './async-validation'
 import { collectScopes } from './scopes'
-import { applySyncValidation, markSyncEntriesStaleFor, settleSchemaRun } from './sync-validation'
-
-/**
- * Options of `validate`.
- *
- * @category Nodes
- */
-export interface ValidateOptions {
-  /** Validates again without reusing cached results. @defaultValue `false` */
-  readonly ignoreCache?: boolean
-}
+import { applySyncValidation, settleSchemaRun } from './sync-validation'
 
 export function runValidationPass(runtime: FormRuntime, state: FormState): FormState {
   const collection = collectScopes({ definition: runtime.definition, state, previousDeps: runtime.scopeDeps })
@@ -41,16 +26,8 @@ export function commitWithValidation(runtime: FormRuntime, state: FormState): vo
   commitState(runtime, runValidationPass(runtime, state))
 }
 
-export async function settleValidationWithin(
-  runtime: FormRuntime,
-  nodeId: string,
-  { ignoreCache = false }: ValidateOptions = {},
-): Promise<void> {
-  if (ignoreCache) {
-    markSyncEntriesStaleFor(runtime.syncEntries, nodeId)
-    markChecksStaleWithin(runtime, nodeId)
-  }
-  markFailedChecksStaleWithin(runtime, nodeId)
+export async function settleValidationWithin(runtime: FormRuntime, nodeId: string): Promise<void> {
+  markSettledChecksStaleWithin(runtime, nodeId)
   commitWithValidation(runtime, runtime.state)
   let pending = startPendingWithin(runtime, nodeId)
   while (pending.length > 0) {

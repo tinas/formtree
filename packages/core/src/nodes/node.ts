@@ -2,7 +2,6 @@ import type { Definition } from '../definitions/definition'
 import type { ErrorInput } from '../errors/form-error'
 import type { FormEventObserver } from '../form/form-events'
 import type { FormRuntime } from '../form/form-runtime'
-import type { ValidateOptions } from '../validation/validation-pass'
 import type { NodeKind } from './node-kind'
 import type {
   ClearErrorsOptions,
@@ -67,7 +66,7 @@ export interface UniversalNode {
   readonly observe: (observer: FormEventObserver) => () => void
   readonly setValue: (value: unknown) => void
   readonly blur: () => void
-  readonly validate: (options?: ValidateOptions) => Promise<ValidationResult<unknown>>
+  readonly validate: () => Promise<ValidationResult<unknown>>
   readonly handleSubmit: (onValid: SubmitHandler<unknown>, options?: SubmitOptions) => () => Promise<SubmitOutcome>
   readonly reset: (options?: ResetOptions<unknown>) => void
   readonly setErrors: (errors: ReadonlyArray<ErrorInput>, options?: SetErrorsOptions) => void
@@ -222,7 +221,7 @@ function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
     observe: observer => observeRuntime(runtime, observer),
     setValue: value => setNodeValue(runtime, nodeId, value),
     blur: () => blurNode(runtime, nodeId),
-    validate: options => validateNode(runtime, nodeId, options),
+    validate: () => validateNode(runtime, nodeId),
     handleSubmit: (onValid, options) => () => submitNode({ runtime, nodeId, onValid, options }),
     reset: options => resetNodeValue(runtime, nodeId, options),
     setErrors: (errors, options) => setNodeErrors({ runtime, nodeId, errors, options }),

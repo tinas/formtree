@@ -11,7 +11,6 @@ import type { Scope } from './scopes'
 import { arrayOptionsOf, fieldOptionsOf, groupOptionsOf, matchDefinition } from '../definitions/runtime-options'
 import { ERROR_SOURCE, toErrorInputs } from '../errors/form-error'
 import { CLEAR_ON } from '../errors/stored-error'
-import { isWithinPath } from '../paths/path'
 import { runSchema } from '../standard-schema/run-schema'
 import { isStandardSchema } from '../standard-schema/standard-schema'
 import { withAdded, withDeleted } from '../state/collections'
@@ -32,7 +31,6 @@ export interface SyncEntry {
   readonly status: SchemaStatus
   readonly output: unknown
   readonly token: number
-  readonly stale: boolean
 }
 
 export interface PendingSchemaRun {
@@ -77,10 +75,7 @@ export function applySyncValidation({ entries, state, scopes }: SyncValidationIn
   for (const scope of scopes) {
     const previous = entries.get(scope.nodeId)
     const isUnchanged =
-      previous != undefined &&
-      !previous.stale &&
-      Object.is(previous.value, scope.value) &&
-      Object.is(previous.deps, scope.deps)
+      previous != undefined && Object.is(previous.value, scope.value) && Object.is(previous.deps, scope.deps)
     if (!isUnchanged) {
       const validation = matchDefinition(scope.definition, SCOPE_VALIDATORS, { scope, previous })
       const token = (previous?.token ?? 0) + 1
@@ -92,14 +87,6 @@ export function applySyncValidation({ entries, state, scopes }: SyncValidationIn
     }
   }
   return { state: next, pending }
-}
-
-export function markSyncEntriesStaleFor(entries: Map<string, SyncEntry>, nodeId: string): void {
-  for (const [entryId, entry] of entries) {
-    if (isWithinPath(entryId, nodeId) || isWithinPath(nodeId, entryId)) {
-      entries.set(entryId, { ...entry, stale: true })
-    }
-  }
 }
 
 export interface SchemaSettlement {
@@ -198,7 +185,6 @@ function toSyncEntry({ scope, validation, token }: SyncEntryInput): SyncEntry {
     status: run instanceof Promise ? SCHEMA_STATUS.pending : run.valid ? SCHEMA_STATUS.valid : SCHEMA_STATUS.invalid,
     output: run instanceof Promise || !run.valid ? undefined : run.output,
     token,
-    stale: false,
   }
 }
 

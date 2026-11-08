@@ -84,5 +84,4 @@ export type {
 export { shallowEqual } from './paths/equality'
 export { isPlainObject } from './paths/value-tree'
 export type { StandardSchemaV1 } from './standard-schema/standard-schema'
-export type { ValidateOptions } from './validation/validation-pass'
 export type { DeepPartial } from './types'
