@@ -86,6 +86,48 @@ const signUp = form.handleSubmit(async account => {
 The call resolves to `'rejected'`, and each error shows on its field and blocks every submit that
 covers it until the user changes that value.
 
+## Validating on the Server
+
+To check a request on the server with the rules of the form, create a form from the same definition
+with the request's data and call `validate`:
+
+```ts twoslash
+// @noStaticSemanticInfo
+// @filename: store.ts
+import type { OutputOf } from '@formtree/core'
+import type { checkoutForm } from './forms/checkout'
+
+export declare function listShippingCountries(): Promise<Array<string>>
+export declare function placeOrder(order: OutputOf<typeof checkoutForm>): Promise<void>
+// @filename: index.ts
+// ---cut---
+import { createForm } from '@formtree/core'
+import { checkoutForm } from './forms/checkout'
+import { listShippingCountries, placeOrder } from './store'
+
+export async function handleCheckout(request: Request, cartId: string) {
+  const form = createForm(checkoutForm, {
+    initialValue: await request.json(),
+    deps: { cartId, countries: await listShippingCountries() },
+  })
+  const result = await form.validate()
+  if (result.valid) {
+    await placeOrder(result.value)
+    return new Response(null, { status: 201 })
+  }
+  if (result.errors.length > 0) {
+    return Response.json({ errors: result.errors }, { status: 422 })
+  }
+  return new Response(null, { status: 503 })
+}
+```
+
+`validate` resolves to the output, or to the errors with paths from the root, which the submit
+function of the whole form returns as they are. It runs every `validateAsync` check at once, without
+waiting for a blur or a debounce, so `run` calls on the server whatever it calls in the browser, and
+the form needs its `deps` there too. A part that is turned off stays out of the output. A check whose
+`run` throws leaves no error, only an entry in `failedChecks`, so that request fails as unavailable.
+
 ## Focusing the First Error
 
 A failed submit focuses the first field with an error, or the error summary with
