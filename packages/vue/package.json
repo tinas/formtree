@@ -1,6 +1,6 @@
 {
   "name": "@formtree/vue",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The Vue adapter of formtree, a headless form tree in which every part of a form validates and submits on its own.",
   "keywords": [
     "arktype",
