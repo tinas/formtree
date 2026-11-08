@@ -24,7 +24,7 @@ interface WizardPosition {
   index: number
 }
 
-export function bindWizard(binding: WizardBinding): () => void {
+export function bindWizard(binding: WizardBinding): void {
   const position: WizardPosition = { index: 0 }
   binding.steps.forEach((step, index) => {
     step.element.addEventListener('submit', event => {
@@ -36,7 +36,7 @@ export function bindWizard(binding: WizardBinding): () => void {
     position.index = Math.max(0, position.index - 1)
     renderWizard(binding, position)
   })
-  return () => renderWizard(binding, position)
+  renderWizard(binding, position)
 }
 
 interface StepSubmission {

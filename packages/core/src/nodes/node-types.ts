@@ -205,6 +205,11 @@ export interface NodeBase<Value, Output> {
    * not cached, so a message translated in `formatError` follows the current language where it is read.
    */
   readonly errorMessage: string | undefined
+  /**
+   * Calls the listener once after a change to this node's `state` or path, or once per `batch`. Returns a function
+   * that unsubscribes.
+   */
+  readonly subscribe: (listener: () => void) => () => void
   /** Writes a draft value. `undefined` empties a field. */
   readonly setValue: (value: Value) => void
   /** Marks the node as touched and starts checks that run on blur. */
@@ -225,7 +230,7 @@ export interface NodeBase<Value, Output> {
   readonly setErrors: (errors: ReadonlyArray<ErrorInput>, options?: SetErrorsOptions) => void
   /** Removes external errors in this subtree. Schema and rule errors follow their values. */
   readonly clearErrors: (options?: ClearErrorsOptions) => void
-  readonly listErrors: (options?: ListErrorsOptions) => Array<ListedError>
+  readonly listErrors: (options?: ListErrorsOptions) => ReadonlyArray<ListedError>
   /** Focuses the element with this node's id, through the form's `focusElement`. */
   readonly focus: () => void
 }
@@ -240,7 +245,7 @@ export interface FieldNode<Value, Output = Value> extends NodeBase<Value, Output
   readonly errorId: string
   /** Id for a description element. */
   readonly descriptionId: string
-  readonly getAttributes: () => FieldAttributes
+  readonly attributes: FieldAttributes
 }
 
 /**

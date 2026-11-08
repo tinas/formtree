@@ -148,9 +148,9 @@ function bindInput(key: 'name' | 'email' | 'message') {
 
   input.addEventListener('input', () => field.setValue(input.value))
   input.addEventListener('blur', () => field.blur())
-  form.subscribe(() => {
+  field.subscribe(() => {
     error.textContent = field.errorMessage ?? ''
-    for (const [attribute, value] of Object.entries(field.getAttributes())) {
+    for (const [attribute, value] of Object.entries(field.attributes)) {
       if (value == null) {
         input.removeAttribute(attribute)
       } else {
@@ -209,7 +209,7 @@ const errors = computed(() => form.listErrors({ deep: true }))
 <div class="react-only">
 
 ```tsx
-const errors = form.listErrors({ deep: true })
+const errors = useNodeState(form, node => node.listErrors({ deep: true }))
 
 return (
   <ul id={form.summaryId} tabIndex={-1}>

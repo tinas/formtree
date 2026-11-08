@@ -64,8 +64,6 @@ function forgetDetachedNodes(runtime: FormRuntime): void {
   for (const nodeId of runtime.nodes.keys()) {
     if (!isAttached(runtime.state.arrayKeys, nodeId)) {
       runtime.nodes.delete(nodeId)
-      runtime.nodeStates.delete(nodeId)
-      runtime.itemLists.delete(nodeId)
     }
   }
 }

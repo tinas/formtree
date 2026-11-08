@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vite-plus/test'
+import { describe, expect, test, vi } from 'vite-plus/test'
 
 import { PROMOTION_DEPS, createPromotionForm } from './fixtures/create-promotion-form'
 import { createForm } from '../src'
@@ -30,6 +30,20 @@ describe('array items', () => {
     expect(slots.items[1]).toBe(first)
     expect(first.index).toBe(1)
     expect(first.path).toBe('spending.slots.1')
+  })
+
+  test('a field subscriber is notified when its row moves', () => {
+    const slots = createPromotionForm().array('spending.slots')
+    slots.push({ amount: 1, dates: ['2026-11-01'] })
+    slots.push({ amount: 2, dates: ['2026-11-02'] })
+    const amount = slots.items[0].field('amount')
+    const listener = vi.fn()
+    amount.subscribe(listener)
+
+    slots.move(0, 1)
+
+    expect(listener).toHaveBeenCalledTimes(1)
+    expect(amount.path).toBe('spending.slots.1.amount')
   })
 
   test('errors and touched state travel with their row', () => {

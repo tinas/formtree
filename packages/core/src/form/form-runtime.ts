@@ -1,7 +1,8 @@
 import type { Definition } from '../definitions/definition'
 import type { FormatErrorOption } from '../errors/form-error'
 import type { DisplayModes } from '../modes/display-mode'
-import type { FocusElementOption, FocusErrorOption, NodeState } from '../nodes/node-types'
+import type { UniversalNode } from '../nodes/node'
+import type { FocusElementOption, FocusErrorOption } from '../nodes/node-types'
 import type { FormState } from '../state/form-state'
 import type { CheckEntry } from '../validation/async-validation'
 import type { SyncEntry } from '../validation/sync-validation'
@@ -11,16 +12,6 @@ export interface FormRuntimeOptions extends DisplayModes {
   readonly shouldFocusError: FocusErrorOption
   readonly focusElement: FocusElementOption
   readonly formatError: FormatErrorOption
-}
-
-export interface CachedNodeState {
-  readonly version: number
-  readonly state: NodeState<unknown>
-}
-
-export interface CachedItems {
-  readonly keys: ReadonlyArray<string> | undefined
-  readonly nodes: ReadonlyArray<object>
 }
 
 export interface FormRuntime {
@@ -34,9 +25,7 @@ export interface FormRuntime {
   scopeDeps: ReadonlyMap<string, unknown>
   readonly listeners: Set<() => void>
   readonly observers: Set<FormEventObserver>
-  readonly nodes: Map<string, object>
-  readonly nodeStates: Map<string, CachedNodeState>
-  readonly itemLists: Map<string, CachedItems>
+  readonly nodes: Map<string, UniversalNode>
   readonly syncEntries: Map<string, SyncEntry>
   readonly checkEntries: Map<string, CheckEntry>
   readonly pendingSchemaRuns: Map<string, Promise<void>>

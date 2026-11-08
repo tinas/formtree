@@ -1,4 +1,4 @@
-import type { FieldNode, NodeState, UniversalNode } from '@formtree/core'
+import type { FieldAttributes, FieldNode, NodeState, UniversalNode } from '@formtree/core'
 
 import { useNearestNode } from './node-context'
 import { useNodeState } from './use-node-state'
@@ -39,21 +39,28 @@ export interface FieldView<Value, Output = Value> {
 
 type FieldSource = string | FieldNode<unknown, unknown>
 
+interface FieldReads {
+  readonly state: NodeState<unknown>
+  readonly attributes: FieldAttributes
+  readonly errorMessage: string | undefined
+}
+
 /**
- * Binds a field node to an input, typed by the node, and re-renders the component when the field's state changes.
+ * Binds a field node to an input, typed by the node. The component re-renders only when the field's state or attributes
+ * change.
  *
  * @category Field Bindings
  */
 export function useField<Value, Output>(node: FieldNode<Value, Output>): FieldView<Value, Output>
 /**
  * Binds the field at `name`, relative to the nearest provided node, to an input. The component re-renders only when
- * that field's state changes.
+ * that field's state or attributes change.
  */
 export function useField<Value>(name: string): FieldView<Value | undefined, unknown>
 export function useField(source: FieldSource): FieldView<unknown, unknown> {
   const node = resolveFieldNode(useNearestNode(), source)
-  const state = useNodeState(node)
-  return createFieldView(node, state)
+  const reads = useNodeState(node, readField)
+  return createFieldView(node, reads)
 }
 
 function resolveFieldNode(nearest: UniversalNode | undefined, source: FieldSource): FieldNode<unknown, unknown> {
@@ -66,12 +73,22 @@ function resolveFieldNode(nearest: UniversalNode | undefined, source: FieldSourc
   return nearest.field(source) as unknown as FieldNode<unknown, unknown>
 }
 
-function createFieldView(node: FieldNode<unknown, unknown>, state: NodeState<unknown>): FieldView<unknown, unknown> {
-  const attributes = node.getAttributes()
+function readField(node: FieldNode<unknown, unknown>): FieldReads {
+  return {
+    state: node.state,
+    attributes: node.attributes,
+    errorMessage: node.errorMessage,
+  }
+}
+
+function createFieldView(
+  node: FieldNode<unknown, unknown>,
+  { state, attributes, errorMessage }: FieldReads,
+): FieldView<unknown, unknown> {
   return {
     node,
     state,
-    errorMessage: node.errorMessage,
+    errorMessage,
     id: node.id,
     errorId: node.errorId,
     descriptionId: node.descriptionId,

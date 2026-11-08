@@ -87,7 +87,7 @@ function createFieldView(node: ComputedRef<FieldNode<unknown, unknown>>): FieldV
       return node.value.descriptionId
     },
     get attrs() {
-      const attributes = node.value.getAttributes()
+      const attributes = node.value.attributes
       return {
         ...attributes,
         'aria-describedby': attributes['aria-describedby'] ?? undefined,

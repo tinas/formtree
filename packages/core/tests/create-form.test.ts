@@ -40,14 +40,30 @@ describe('createForm', () => {
     expect(form.id).toBe('promotion')
     expect(name.id).toBe('promotion:setup.name')
     expect(name.errorId).toBe('promotion:setup.name:error')
-    expect(name.getAttributes()).toEqual({
+    expect(name.attributes).toEqual({
       id: 'promotion:setup.name',
       name: 'setup.name',
       'aria-invalid': 'false',
       'aria-describedby': null,
     })
     name.blur()
-    expect(name.getAttributes()['aria-describedby']).toBe('promotion:setup.name:error')
+    expect(name.attributes['aria-describedby']).toBe('promotion:setup.name:error')
+  })
+
+  test('a node subscriber is notified only when that node changes, once per batch', () => {
+    const form = createPromotionForm()
+    const name = form.field('setup.name')
+    const listener = vi.fn()
+    name.subscribe(listener)
+
+    form.field('spending.maxDiscount').setValue(5)
+    expect(listener).not.toHaveBeenCalled()
+
+    form.batch(() => {
+      name.setValue('Q')
+      name.setValue('Q4')
+    })
+    expect(listener).toHaveBeenCalledTimes(1)
   })
 
   test('subscribers are notified once per batch', () => {
@@ -92,5 +108,29 @@ describe('createForm', () => {
     form.field('spending.maxDiscount').setValue(5)
 
     expect(name.state).toBe(before)
+  })
+
+  test('attributes keep their reference while no attribute changes', () => {
+    const form = createPromotionForm()
+    const name = form.field('setup.name')
+    const attributes = name.attributes
+
+    name.setValue('Q4')
+    expect(name.attributes).toBe(attributes)
+
+    name.setValue('')
+    name.blur()
+    expect(name.attributes).not.toBe(attributes)
+  })
+
+  test('an error list keeps its reference while the listed errors stay the same', async () => {
+    const form = createPromotionForm()
+    const errors = form.listErrors({ deep: true })
+
+    form.field('spending.maxDiscount').setValue(5)
+    expect(form.listErrors({ deep: true })).toBe(errors)
+
+    await form.handleSubmit(() => {})()
+    expect(form.listErrors({ deep: true })).not.toBe(errors)
   })
 })

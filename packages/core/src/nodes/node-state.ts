@@ -3,7 +3,7 @@ import type { StoredError } from '../errors/stored-error'
 import type { FormRuntime } from '../form/form-runtime'
 import type { CheckState, FormState } from '../state/form-state'
 import type { VisibilityContext } from '../validation/visibility'
-import type { FailedCheck, NodeState } from './node-types'
+import type { FailedCheck, FieldAttributes, NodeState } from './node-types'
 
 import { deepEqual, shallowEqual } from '../paths/equality'
 import { isWithinPath, splitPath } from '../paths/path'
@@ -13,21 +13,11 @@ import { CHECK_STATUS } from '../state/form-state'
 import { toPath } from '../state/node-id'
 import { valueAt } from '../validation/output'
 import { activeErrors, isActiveNode, visibleErrorsAt } from '../validation/visibility'
+import { domIdOf, errorIdOf, pathOf } from './node-identity'
 
-export function errorMessageOf(runtime: FormRuntime, nodeId: string): string | undefined {
-  const [error] = readNodeState(runtime, nodeId).errors
+export function errorMessageOf(runtime: FormRuntime, state: NodeState<unknown>): string | undefined {
+  const [error] = state.errors
   return error == undefined ? undefined : runtime.options.formatError(error)
-}
-
-export function readNodeState(runtime: FormRuntime, nodeId: string): NodeState<unknown> {
-  const cached = runtime.nodeStates.get(nodeId)
-  if (cached?.version == runtime.version) {
-    return cached.state
-  }
-  const computed = computeNodeState(runtime, nodeId, cached?.state)
-  const state = cached != undefined && shallowEqual(cached.state, computed) ? cached.state : computed
-  runtime.nodeStates.set(nodeId, { version: runtime.version, state })
-  return state
 }
 
 export function visibilityContextOf(runtime: FormRuntime): VisibilityContext {
@@ -64,7 +54,7 @@ export function initialValueAt(state: FormState, nodeId: string): unknown {
   return baselinePath == undefined ? undefined : getIn(state.initialValue, splitPath(baselinePath))
 }
 
-function computeNodeState(
+export function computeNodeState(
   runtime: FormRuntime,
   nodeId: string,
   previous: NodeState<unknown> | undefined,
@@ -91,11 +81,25 @@ function computeNodeState(
   }
 }
 
+export function computeNodeAttributes(
+  runtime: FormRuntime,
+  nodeId: string,
+  state: NodeState<unknown>,
+): FieldAttributes {
+  const hasErrors = state.errors.length > 0
+  return {
+    id: domIdOf(runtime, nodeId),
+    name: pathOf(runtime, nodeId),
+    'aria-invalid': hasErrors ? 'true' : 'false',
+    'aria-describedby': hasErrors ? errorIdOf(runtime, nodeId) : null,
+  }
+}
+
 function checksWithin(state: FormState, nodeId: string): Array<[string, CheckState]> {
   return [...state.checks].filter(([ownerId]) => isWithinPath(ownerId, nodeId))
 }
 
-function keepIfSame<Item extends object>(
+export function keepIfSame<Item extends object>(
   previous: ReadonlyArray<Item> | undefined,
   next: ReadonlyArray<Item>,
 ): ReadonlyArray<Item> {

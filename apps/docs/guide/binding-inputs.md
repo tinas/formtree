@@ -118,9 +118,9 @@ import { contactForm } from './forms/contact-form'
 
 const form = createForm(contactForm, { id: 'contact' })
 
-form.subscribe(bindInput(form.field('name')))
-form.subscribe(bindInput(form.field('email')))
-form.subscribe(bindInput(form.field('message')))
+bindInput(form.field('name'))
+bindInput(form.field('email'))
+bindInput(form.field('message'))
 ```
 
 ```ts twoslash [bind-input.ts]
@@ -134,12 +134,12 @@ export function bindInput(field: FieldNode<string | undefined, unknown>) {
   input.addEventListener('input', () => field.setValue(input.value))
   input.addEventListener('blur', () => field.blur())
   showField()
-  return showField
+  return field.subscribe(showField)
 
   function showField() {
     input.value = field.state.value ?? ''
     error.textContent = field.errorMessage ?? ''
-    setAttributes(input, field.getAttributes())
+    setAttributes(input, field.attributes)
   }
 }
 
@@ -170,7 +170,7 @@ export function setAttributes(element: HTMLElement, attributes: FieldAttributes)
 
 :::
 
-`bindInput` returns `showField` because the form decides when to call it, through `form.subscribe`.
+`bindInput` calls `showField` whenever the field changes and returns the function that stops it.
 `showField` writes the value, the error, and the input's attributes, so a reset shows on the page
 and a screen reader reads the error with the input.
 
@@ -255,14 +255,14 @@ export function bindNumberInput(field: FieldNode<number | undefined, unknown>) {
   input.addEventListener('input', () => field.setValue(readNumber()))
   input.addEventListener('blur', () => field.blur())
   showField()
-  return showField
+  return field.subscribe(showField)
 
   function showField() {
     if (readNumber() != field.state.value) {
       input.value = field.state.value == undefined ? '' : String(field.state.value)
     }
     error.textContent = field.errorMessage ?? ''
-    setAttributes(input, field.getAttributes())
+    setAttributes(input, field.attributes)
   }
 
   function readNumber() {
@@ -377,12 +377,12 @@ export function bindSelect<Value extends string>(
   select.addEventListener('change', () => field.setValue(choices.find(choice => choice == select.value)))
   select.addEventListener('blur', () => field.blur())
   showField()
-  return showField
+  return field.subscribe(showField)
 
   function showField() {
     select.value = field.state.value ?? ''
     error.textContent = field.errorMessage ?? ''
-    setAttributes(select, field.getAttributes())
+    setAttributes(select, field.attributes)
   }
 }
 ```
@@ -400,7 +400,7 @@ export function bindSelect<Value extends string>(
 :::
 
 `choices` turns the selected text back into one of the field's values, as in
-`form.subscribe(bindSelect(form.field('role'), Object.values(ROLE)))`.
+`bindSelect(form.field('role'), Object.values(ROLE))`.
 
 </div>
 
@@ -475,12 +475,12 @@ export function bindCheckbox(field: FieldNode<true | undefined, unknown>) {
   checkbox.addEventListener('change', () => field.setValue(checkbox.checked ? true : undefined))
   checkbox.addEventListener('blur', () => field.blur())
   showField()
-  return showField
+  return field.subscribe(showField)
 
   function showField() {
     checkbox.checked = field.state.value ?? false
     error.textContent = field.errorMessage ?? ''
-    setAttributes(checkbox, field.getAttributes())
+    setAttributes(checkbox, field.attributes)
   }
 }
 ```
@@ -542,33 +542,39 @@ role.setValue('owner')
 
 <div class="vue-only">
 
-Errors on screen follow a language switch by themselves, because the template runs `formatError`
+Errors on screen follow a language switch by themselves, because each field runs `formatError`
 again when vue-i18n's locale changes.
 
 </div>
 
 <div class="react-only">
 
-React re-renders an input when its field changes, not when the language does. Call
-`useTranslation()` in each reusable input so its error follows a language switch:
+Pass the current language to `<FormtreeProvider>`:
 
-```tsx{2,6} [text-field.tsx]
-import { useField } from '@formtree/react'
+```tsx{4,8,11} [app.tsx]
+import type { FormError } from '@formtree/react'
+import { FormtreeProvider } from '@formtree/react'
+import i18next from 'i18next'
 import { useTranslation } from 'react-i18next'
+import { ContactForm } from './contact-form'
 
-export function TextField({ name, label }: { name: string; label: string }) {
-  const field = useField<string>(name)
-  useTranslation()
+export function App() {
+  const { i18n } = useTranslation()
 
   return (
-    <div>
-      <label htmlFor={field.id}>{label}</label>
-      <input {...field.attrs} value={field.value ?? ''} onChange={event => field.setValue(event.target.value)} />
-      <p id={field.errorId}>{field.errorMessage}</p>
-    </div>
+    <FormtreeProvider formatError={formatError} language={i18n.language}>
+      <ContactForm />
+    </FormtreeProvider>
   )
 }
+
+function formatError(error: FormError) {
+  return i18next.t(error.code, { ...error.params })
+}
 ```
+
+When `language` changes, every component that reads a form re-renders, and `formatError` reads the new
+language from i18next.
 
 </div>
 
@@ -596,12 +602,12 @@ export function bindInput(field: FieldNode<string | undefined, unknown>) {
   input.addEventListener('blur', () => field.blur())
   showField()
   i18next.on('languageChanged', showField)
-  return showField
+  return field.subscribe(showField)
 
   function showField() {
     input.value = field.state.value ?? ''
     error.textContent = field.errorMessage ?? ''
-    setAttributes(input, field.getAttributes())
+    setAttributes(input, field.attributes)
   }
 }
 // ---cut-after---

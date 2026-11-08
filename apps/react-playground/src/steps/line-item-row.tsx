@@ -25,8 +25,11 @@ const PRODUCT_OPTIONS = PRODUCTS.map(product => {
 export function LineItemRow({ index }: LineItemRowProps) {
   const lineItems = useFormNode(cartGroup).array('lineItems')
   const row = lineItems.items[index]
-  const rowState = useNodeState(row)
-  const isSaved = rowState.value.id != undefined
+  const progress = useNodeState(row, node => ({
+    isSubmitting: node.state.submitting,
+    isSaved: node.state.value.id != undefined,
+    isDirty: node.state.dirty,
+  }))
   const save = row.handleSubmit(async lineItem => {
     row.reset({ value: await saveLineItem(lineItem) })
   })
@@ -37,15 +40,13 @@ export function LineItemRow({ index }: LineItemRowProps) {
         <SelectField name="sku" label="Product" options={PRODUCT_OPTIONS} />
         <NumberField name="quantity" label="Quantity" />
         <div className="row-actions">
-          <button type="button" aria-disabled={isSaved && !rowState.dirty} onClick={() => save()}>
+          <button type="button" aria-disabled={progress.isSaved && !progress.isDirty} onClick={() => save()}>
             Save
           </button>
           <button type="button" className="secondary" onClick={() => lineItems.remove(row.index)}>
             Remove
           </button>
-          <span className="hint">
-            {rowStatus({ isSubmitting: rowState.submitting, isSaved, isDirty: rowState.dirty })}
-          </span>
+          <span className="hint">{rowStatus(progress)}</span>
         </div>
       </div>
     </FormNodeProvider>

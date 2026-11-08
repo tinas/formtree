@@ -3,8 +3,6 @@ import type { ReactElement, ReactNode } from 'react'
 
 import { createContext, useContext, useMemo } from 'react'
 
-import { useNodeState } from './use-node-state'
-
 type AnyRecord = Record<string, unknown>
 
 /**
@@ -44,8 +42,8 @@ export function FormNodeProvider({ node, children }: FormNodeProviderProps): Rea
 }
 
 /**
- * Returns the nearest provided node of this definition, typed by it, and re-renders the component when its state
- * changes. Throws when no ancestor provided one.
+ * Returns the nearest provided node of this definition, typed by it. It does not re-render the component. Throws when
+ * no ancestor provided one.
  *
  * @category Node Context
  */
@@ -62,7 +60,6 @@ export function useFormNode(definition?: Definition): unknown {
         : '[formtree] useFormNode(definition) found no provided node for this definition.',
     )
   }
-  useNodeState(found.node)
   return found.node
 }
 

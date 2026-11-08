@@ -2,10 +2,11 @@ import type { OutputOf } from '@formtree/react'
 import type { ReactElement } from 'react'
 import type { StepProps } from './steps/step-props'
 
-import { FormNodeProvider, useForm } from '@formtree/react'
+import { FormNodeProvider, useForm, useNodeState } from '@formtree/react'
 import { useState } from 'react'
 
 import { SHIPPING_COUNTRIES } from './api'
+import { FormStatePanel } from './form-state-panel'
 import { checkoutGroup } from './forms/checkout'
 import { CartStep } from './steps/cart-step'
 import { ContactStep } from './steps/contact-step'
@@ -38,7 +39,7 @@ export function App() {
   })
   const [stepIndex, setStepIndex] = useState(0)
   const [output, setOutput] = useState<OutputOf<typeof checkoutGroup>>()
-  const { valid, dirty, value, submitting } = form.state
+  const submitting = useNodeState(form, node => node.state.submitting)
   const stepFormIds = [
     form.group('cart').id,
     form.group('contact').id,
@@ -95,8 +96,7 @@ export function App() {
         </section>
 
         <aside className="inspector">
-          <h2>Form state</h2>
-          <pre>{JSON.stringify({ valid, dirty, value }, null, 2)}</pre>
+          <FormStatePanel />
           <h2>Last submitted output</h2>
           <pre>{output ? JSON.stringify(output, null, 2) : 'Nothing submitted yet.'}</pre>
         </aside>

@@ -22,9 +22,9 @@ const COUNTRY_OPTIONS = COUNTRIES.map(country => {
 
 export function DeliveryStep({ onComplete }: StepProps) {
   const delivery = useFormNode(checkoutGroup).group('delivery')
-  const isShipping = useNodeState(delivery.group('address')).active
-  const needsState = useNodeState(delivery.field('address.state')).active
-  const isPickup = useNodeState(delivery.field('store')).active
+  const isShipping = useNodeState(delivery.group('address'), node => node.state.active)
+  const needsState = useNodeState(delivery.field('address.state'), node => node.state.active)
+  const isPickup = useNodeState(delivery.field('store'), node => node.state.active)
   const onSubmit = delivery.handleSubmit(() => onComplete())
 
   return (

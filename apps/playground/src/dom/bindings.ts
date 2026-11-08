@@ -23,12 +23,13 @@ export interface ChoiceOption {
 export function bindField<Value>(binding: FieldBinding<Value>): () => void {
   binding.control.addEventListener('input', () => binding.node.setValue(binding.parse(binding.control.value)))
   binding.control.addEventListener('blur', () => binding.node.blur())
-  return () => renderField(binding)
+  renderField(binding)
+  return binding.node.subscribe(() => renderField(binding))
 }
 
-export function renderField<Value>(binding: FieldBinding<Value>): void {
+function renderField<Value>(binding: FieldBinding<Value>): void {
   const { state } = binding.node
-  applyAttributes(binding.control, binding.node.getAttributes())
+  applyAttributes(binding.control, binding.node.attributes)
   binding.label.setAttribute('for', binding.node.id)
   binding.message.id = binding.node.errorId
   binding.message.textContent = binding.node.errorMessage ?? ''
@@ -41,11 +42,12 @@ export function renderField<Value>(binding: FieldBinding<Value>): void {
 export function bindCheckbox(binding: CheckboxBinding): () => void {
   binding.control.addEventListener('change', () => binding.node.setValue(binding.control.checked ? true : undefined))
   binding.control.addEventListener('blur', () => binding.node.blur())
-  return () => renderCheckbox(binding)
+  renderCheckbox(binding)
+  return binding.node.subscribe(() => renderCheckbox(binding))
 }
 
 function renderCheckbox(binding: CheckboxBinding): void {
-  applyAttributes(binding.control, binding.node.getAttributes())
+  applyAttributes(binding.control, binding.node.attributes)
   binding.control.checked = binding.node.state.value == true
   binding.message.id = binding.node.errorId
   binding.message.textContent = binding.node.errorMessage ?? ''

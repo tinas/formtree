@@ -23,23 +23,52 @@ interface RowView {
   readonly status: HTMLElement
   readonly productError: HTMLElement
   readonly quantityError: HTMLElement
+  readonly stops: Array<() => void>
+}
+
+interface ShownItems {
+  items: ReadonlyArray<LineItemNode> | undefined
 }
 
 export function bindLineItems(binding: LineItemsBinding): () => void {
   const views = new Map<string, RowView>()
+  const shown: ShownItems = { items: undefined }
   binding.addButton.addEventListener('click', () => binding.node.push({ quantity: 1 }))
-  return () => renderLineItems(binding, views)
+  renderLineItems({ binding, views, shown })
+  return binding.node.subscribe(() => renderLineItems({ binding, views, shown }))
 }
 
-function renderLineItems(binding: LineItemsBinding, views: Map<string, RowView>): void {
-  const rows = binding.node.items.map(row => {
-    const view = views.get(row.key) ?? createRowView(binding, row)
-    views.set(row.key, view)
-    renderRow(view)
-    return view.element
-  })
-  binding.container.replaceChildren(...rows)
+interface LineItemsView {
+  readonly binding: LineItemsBinding
+  readonly views: Map<string, RowView>
+  readonly shown: ShownItems
+}
+
+function renderLineItems({ binding, views, shown }: LineItemsView): void {
   binding.message.textContent = binding.node.errorMessage ?? ''
+  const { items } = binding.node
+  if (items == shown.items) {
+    return
+  }
+  shown.items = items
+  const keys = new Set(items.map(row => row.key))
+  for (const [key, view] of views) {
+    if (!keys.has(key)) {
+      view.stops.forEach(stop => stop())
+      views.delete(key)
+    }
+  }
+  binding.container.replaceChildren(...items.map(row => rowViewOf({ binding, views, shown }, row).element))
+}
+
+function rowViewOf({ binding, views }: LineItemsView, row: LineItemNode): RowView {
+  const existing = views.get(row.key)
+  if (existing != undefined) {
+    return existing
+  }
+  const view = createRowView(binding, row)
+  views.set(row.key, view)
+  return view
 }
 
 function createRowView(binding: LineItemsBinding, row: LineItemNode): RowView {
@@ -53,6 +82,7 @@ function createRowView(binding: LineItemsBinding, row: LineItemNode): RowView {
     status: element.querySelector('.status') as HTMLElement,
     productError: element.querySelector('.product-error') as HTMLElement,
     quantityError: element.querySelector('.quantity-error') as HTMLElement,
+    stops: [],
   }
   fillOptions(
     view.product,
@@ -63,10 +93,12 @@ function createRowView(binding: LineItemsBinding, row: LineItemNode): RowView {
       }
     }),
   )
-  view.product.addEventListener('change', () => row.field('sku').setValue(parseText(view.product.value)))
-  view.product.addEventListener('blur', () => row.field('sku').blur())
-  view.quantity.addEventListener('input', () => row.field('quantity').setValue(parseNumber(view.quantity.value)))
-  view.quantity.addEventListener('blur', () => row.field('quantity').blur())
+  const sku = row.field('sku')
+  const quantity = row.field('quantity')
+  view.product.addEventListener('change', () => sku.setValue(parseText(view.product.value)))
+  view.product.addEventListener('blur', () => sku.blur())
+  view.quantity.addEventListener('input', () => quantity.setValue(parseNumber(view.quantity.value)))
+  view.quantity.addEventListener('blur', () => quantity.blur())
   view.save.addEventListener(
     'click',
     row.handleSubmit(async item => {
@@ -74,23 +106,37 @@ function createRowView(binding: LineItemsBinding, row: LineItemNode): RowView {
     }),
   )
   element.querySelector('.remove')?.addEventListener('click', () => binding.node.remove(row.index))
+  renderProduct(view)
+  renderQuantity(view)
+  renderStatus(view)
+  view.stops.push(
+    sku.subscribe(() => renderProduct(view)),
+    quantity.subscribe(() => renderQuantity(view)),
+    row.subscribe(() => renderStatus(view)),
+  )
   return view
 }
 
-function renderRow(view: RowView): void {
-  const { state } = view.row
+function renderProduct(view: RowView): void {
   const sku = view.row.field('sku')
-  const quantity = view.row.field('quantity')
-  applyAttributes(view.product, sku.getAttributes())
-  applyAttributes(view.quantity, quantity.getAttributes())
+  applyAttributes(view.product, sku.attributes)
   view.productError.id = sku.errorId
-  view.quantityError.id = quantity.errorId
   view.productError.textContent = sku.errorMessage ?? ''
-  view.quantityError.textContent = quantity.errorMessage ?? ''
   view.product.value = sku.state.value ?? ''
+}
+
+function renderQuantity(view: RowView): void {
+  const quantity = view.row.field('quantity')
+  applyAttributes(view.quantity, quantity.attributes)
+  view.quantityError.id = quantity.errorId
+  view.quantityError.textContent = quantity.errorMessage ?? ''
   if (view.quantity.value != formatValue(quantity.state.value)) {
     view.quantity.value = formatValue(quantity.state.value)
   }
+}
+
+function renderStatus(view: RowView): void {
+  const { state } = view.row
   const isSaved = state.value.id != undefined
   view.save.setAttribute('aria-disabled', String(isSaved && !state.dirty))
   view.status.textContent = rowStatus({ isSaved, isDirty: state.dirty, isSubmitting: state.submitting })
