@@ -16,7 +16,7 @@ const text = computed({
 
 <template>
   <div class="demo-field">
-    <label :for="field.id">{{ label }}</label>
+    <label :for="field.id">{{ label }}<span v-if="field.state.required" aria-hidden="true">*</span></label>
     <input v-model="text" v-bind="field.attrs" type="number" :placeholder="placeholder" />
     <p :id="field.errorId" class="demo-error">{{ field.errorMessage }}</p>
   </div>

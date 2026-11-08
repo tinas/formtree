@@ -75,6 +75,11 @@ export interface NodeState<Value> {
   readonly errors: ReadonlyArray<FormError>
   /** True when the subtree has no error, visible or not, and no check that threw. */
   readonly valid: boolean
+  /**
+   * True when the schema reports an error for an empty value here. Groups and arrays are never required, and neither a
+   * group's `validate` rule nor a schema that answers asynchronously makes a node required.
+   */
+  readonly required: boolean
   /** True when a value in the subtree differs from its initial value. */
   readonly dirty: boolean
   /** True when a node in the subtree has lost focus or an array in it has been edited. */
@@ -215,6 +220,7 @@ export interface FieldAttributes {
   readonly name: string
   readonly 'aria-invalid': 'true' | 'false'
   readonly 'aria-describedby': string | null
+  readonly 'aria-required': 'true' | null
 }
 
 export interface NodeBase<Value, Output> {

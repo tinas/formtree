@@ -13,7 +13,7 @@ const field = useField<string>(() => props.name)
 
 <template>
   <div class="demo-field">
-    <label :for="field.id">{{ label }}</label>
+    <label :for="field.id">{{ label }}<span v-if="field.state.required" aria-hidden="true">*</span></label>
     <select v-model="field.model" v-bind="field.attrs">
       <option :value="undefined" disabled>Choose…</option>
       <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>

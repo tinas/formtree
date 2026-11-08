@@ -55,11 +55,14 @@ export function initialValueAt(state: FormState, nodeId: string): unknown {
   return baselinePath == undefined ? undefined : getIn(state.initialValue, splitPath(baselinePath))
 }
 
-export function computeNodeState(
-  runtime: FormRuntime,
-  nodeId: string,
-  previous: NodeState<unknown> | undefined,
-): NodeState<unknown> {
+export interface NodeStateInput {
+  readonly runtime: FormRuntime
+  readonly nodeId: string
+  readonly previous: NodeState<unknown> | undefined
+  readonly required: boolean
+}
+
+export function computeNodeState({ runtime, nodeId, previous, required }: NodeStateInput): NodeState<unknown> {
   const state = runtime.state
   const value = valueAt(state, nodeId)
   const initialValue = initialValueAt(state, nodeId)
@@ -72,6 +75,7 @@ export function computeNodeState(
     initialValue,
     errors: keepIfSame(previous?.errors, errors),
     valid: failedChecks.length == 0 && !activeErrors(state).some(error => isWithinPath(error.targetId, nodeId)),
+    required,
     dirty: !deepEqual(value, initialValue),
     touched: hasPathWithin(state.touched, nodeId),
     validating:
@@ -95,6 +99,7 @@ export function computeNodeAttributes(
     name: pathOf(runtime, nodeId),
     'aria-invalid': hasErrors ? 'true' : 'false',
     'aria-describedby': hasErrors ? errorIdOf(runtime, nodeId) : null,
+    'aria-required': state.required ? 'true' : null,
   }
 }
 

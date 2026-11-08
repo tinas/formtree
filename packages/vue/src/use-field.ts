@@ -16,6 +16,7 @@ export interface FieldBindingAttributes {
   readonly name: string
   readonly 'aria-invalid': 'true' | 'false'
   readonly 'aria-describedby': string | undefined
+  readonly 'aria-required': 'true' | undefined
   readonly onBlur: () => void
 }
 
@@ -91,6 +92,7 @@ function createFieldView(node: ComputedRef<FieldNode<unknown, unknown>>): FieldV
       return {
         ...attributes,
         'aria-describedby': attributes['aria-describedby'] ?? undefined,
+        'aria-required': attributes['aria-required'] ?? undefined,
         onBlur: node.value.blur,
       }
     },
