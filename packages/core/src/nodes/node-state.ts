@@ -15,6 +15,7 @@ import { toPath } from '../state/node-id'
 import { valueAt } from '../validation/output'
 import { hasActiveErrorWithin, isActiveNode, visibleErrorsAt } from '../validation/visibility'
 import { domIdOf, errorIdOf, pathOf } from './node-identity'
+import { isRequiredNode } from './required-probe'
 
 export function errorMessageOf(runtime: FormRuntime, state: NodeState<unknown>): string | undefined {
   const [error] = state.errors
@@ -59,10 +60,9 @@ export interface NodeStateInput {
   readonly runtime: FormRuntime
   readonly nodeId: string
   readonly previous: NodeState<unknown> | undefined
-  readonly required: boolean
 }
 
-export function computeNodeState({ runtime, nodeId, previous, required }: NodeStateInput): NodeState<unknown> {
+export function computeNodeState({ runtime, nodeId, previous }: NodeStateInput): NodeState<unknown> {
   const state = runtime.state
   const value = valueAt(state, nodeId)
   const initialValue = initialValueAt(state, nodeId)
@@ -75,7 +75,7 @@ export function computeNodeState({ runtime, nodeId, previous, required }: NodeSt
     initialValue,
     errors: keepIfSame(previous?.errors, errors),
     valid: failedChecks.length == 0 && !hasActiveErrorWithin(state, nodeId),
-    required,
+    required: isRequiredNode(runtime, nodeId),
     dirty: !deepEqual(value, initialValue),
     touched: hasPathWithin(state.touched, nodeId),
     validating:

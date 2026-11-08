@@ -4,4 +4,4 @@
 '@formtree/react': minor
 ---
 
-Nodes report `state.required`, true when the schema rejects an empty value, and `attributes` carry `aria-required`. In Vue and React, `attrs` passes it to the input, so a label can mark the field and a screen reader announces it as required.
+Nodes report `state.required`, true when the schema rejects an empty value, and `attributes` carry `aria-required`. In Vue and React, `attrs` passes it to the input, so a label can mark the field and a screen reader announces it as required. The schema is asked once with the form empty, so a part that `activeWhen` turns on is required while it is on, and typing never asks the schema again.

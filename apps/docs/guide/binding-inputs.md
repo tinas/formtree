@@ -257,8 +257,10 @@ A CSS rule such as `.required::after { content: '*' }` turns the class into an a
 </div>
 
 The input's attributes already carry `aria-required`, so a screen reader announces the field as
-required. Only the schema is asked, so a field that a group's `validate` rule requires is not marked,
-and neither is one whose schema answers asynchronously.
+required. The schema is asked once, with the form empty, so typing never asks it again. A part that
+[`activeWhen`](/guide/conditional-fields) turns on is marked while it is on, but a key that another
+answer in the same schema requires is not. Neither is a field that a group's `validate` rule requires,
+or one whose schema answers asynchronously.
 
 ## Number Inputs
 
