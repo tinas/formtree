@@ -105,14 +105,14 @@ const card = form.group('card')
 <div class="react-only">
 
 ```tsx
-import { useForm } from '@formtree/react'
+import { useForm, useNodeState } from '@formtree/react'
 import { paymentForm } from './forms/payment'
 
 export function PaymentForm() {
   const form = useForm(paymentForm)
-  const card = form.group('card')
+  const cardActive = useNodeState(form.group('card'), node => node.state.active)
 
-  return card.state.active ? (
+  return cardActive ? (
     <fieldset>
       <legend>Card</legend>
     </fieldset>

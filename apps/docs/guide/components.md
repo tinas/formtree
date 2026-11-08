@@ -147,19 +147,21 @@ Keyed by `key`, each component stays with its item when the list is reordered.
 
 <div class="react-only">
 
-Render one row component per item, keyed by the item's `key`, and pass it the item's `index`:
+Read the items with `useNodeState`, render one row component per item, keyed by the item's `key`,
+and pass it the item's `index`:
 
 ```tsx [line-item-list.tsx]
-import { FormNodeProvider, useFormNode } from '@formtree/react'
+import { FormNodeProvider, useFormNode, useNodeState } from '@formtree/react'
 import { orderForm } from './forms/order'
 import { LineItemRow } from './line-item-row'
 
 export function LineItemList() {
   const lineItems = useFormNode(orderForm).array('lineItems')
+  const items = useNodeState(lineItems, node => node.items)
 
   return (
     <FormNodeProvider node={lineItems}>
-      {lineItems.items.map(lineItem => (
+      {items.map(lineItem => (
         <LineItemRow key={lineItem.key} index={lineItem.index} />
       ))}
     </FormNodeProvider>
@@ -167,7 +169,8 @@ export function LineItemList() {
 }
 ```
 
-The row reads the list by its definition and provides its item:
+The list re-renders when a row is added, removed or moved, not when a value inside a row changes. The
+row reads the list by its definition and provides its item:
 
 ```tsx [line-item-row.tsx]
 import { FormNodeProvider, useFormNode } from '@formtree/react'
@@ -285,7 +288,8 @@ const save = row.handleSubmit(async lineItem => {
 
 <div class="react-only">
 
-Read the row's state with `useNodeState`, which re-renders the component when that node changes:
+Read `submitting` with `useNodeState`, which re-renders the component only when the value it selects
+changes:
 
 ```tsx{1-2,9-12,18-20} [line-item-row.tsx]
 import { FormNodeProvider, useFormNode, useNodeState } from '@formtree/react'
@@ -296,7 +300,7 @@ import { TextField } from './text-field'
 
 export function LineItemRow({ index }: { index: number }) {
   const row = useFormNode(lineItemsArray).items[index]!
-  const { submitting } = useNodeState(row)
+  const submitting = useNodeState(row, node => node.state.submitting)
   const save = row.handleSubmit(async lineItem => {
     await saveLineItem(lineItem)
   })
@@ -313,8 +317,8 @@ export function LineItemRow({ index }: { index: number }) {
 }
 ```
 
-`useFormNode` subscribed the component only to the list, so reading `row.state` directly would show
-the state from the last render.
+A component re-renders only through `useNodeState` and `useField`, so reading `row.state` directly
+would show the state from the last render.
 
 </div>
 

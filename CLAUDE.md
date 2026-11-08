@@ -52,7 +52,7 @@ State is immutable; every mutation goes through a pure transition and then `comm
 - A write to a missing index or a removed row is ignored: no throw, state unchanged.
 - An annotated recursive definition navigates its children as lens nodes, and its output is the annotated type; TypeScript cannot infer the child types of a self-referencing constant. At runtime those nodes are still defined and validated.
 - `FormError.code` is the message the schema reports, a readable text or a translation key; the schema library's own issue code lands in `params.code`. The name stays: the UI translates `code` at render time, and `params` carries the issue values for interpolation.
-- Every node carries an internal `subscribe` (the form's), so an adapter that holds only a node can follow it; React's `useNodeState` uses it.
+- Every node carries an internal `subscribe` (the form's) and `version` (the form's commit count), so an adapter that holds only a node can follow it; React's `useNodeState` subscribes with the one and uses the other as its snapshot.
 - `setDeps` with dependencies equal key by key to the current ones does nothing. React passes a new `deps` object on every render, and a notification there would loop.
 - `handleSubmit` handlers receive only the output, no `{ node }` context; the caller already holds the node. Add it when a real need appears.
 - The function `handleSubmit` returns takes no event and never calls `preventDefault()`. The app prevents the form's default itself (`@submit.prevent`, `event.preventDefault()`), because a hidden `preventDefault` is behaviour the code binding the event does not show.
@@ -91,21 +91,22 @@ State is immutable; every mutation goes through a pure transition and then `comm
 
 ## React adapter (packages/react/src)
 
-| File                    | Role                                                                                                                                                                                                                           |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `use-node-state.ts`     | `useNodeState(node)`: `useSyncExternalStore` over the node's `subscribe` and its memoised `state` snapshot                                                                                                                     |
-| `use-form.ts`           | `createForm` once per component (`useState` initializer), id from `useId`, `setDeps` in an effect when `deps` changes, `dispose` on unmount; subscribes to the root, never provides                                            |
-| `node-context.tsx`      | `<FormNodeProvider node>` (explicit), `useFormNode(Definition)` (nearest node of that definition, subscribes to it, throws otherwise), `useFormNode()` (nearest node, loose type), internal `useNearestNode` (no subscription) |
-| `use-field.ts`          | `useField(name \| node)`: `value`, `setValue`, `attrs` (null aria mapped to undefined, `onBlur`), `state`, `errorMessage`, ids; subscribes to the field only                                                                   |
-| `formtree-provider.tsx` | `<FormtreeProvider>`: `FormDefaults` for every `useForm` below it, read once when a form is created                                                                                                                            |
+| File                    | Role                                                                                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `use-node-state.ts`     | `useNodeState(node, select?)`: `useSyncExternalStore` over the node's `subscribe`, with the form's `version` as the snapshot and a shallow-equal memo of the selection    |
+| `use-form.ts`           | `createForm` once per component (`useState` initializer), id from `useId`, `setDeps` in an effect when `deps` changes, `dispose` on unmount; never subscribes or provides |
+| `node-context.tsx`      | `<FormNodeProvider node>` (explicit), `useFormNode(Definition)` (nearest node of that definition, throws otherwise), `useFormNode()` (nearest node, loose type)           |
+| `use-field.ts`          | `useField(name \| node)`: `value`, `setValue`, `attrs` (null aria mapped to undefined, `onBlur`), `state`, `errorMessage`, ids; selects the field's own reads             |
+| `formtree-provider.tsx` | `<FormtreeProvider>`: `FormDefaults` for every `useForm` below it, read once when a form is created                                                                       |
 
-- Nodes are the core's own objects: `useSyncExternalStore` needs only the memoised snapshots, so nothing is wrapped.
-- A component re-renders only for the nodes it subscribed to: `useForm` the root, `useFormNode` its node, `useField` its field, `useNodeState` any node. Reading another node's `state` without a hook gives the last render's snapshot; `apps/docs/guide/components.md` says so, and the playground reads every branch's `active` through `useNodeState`.
-- `useField(name)` reads the context through `useNearestNode`, without subscribing to the provided node, so an input does not re-render when a sibling changes.
+- Nodes are the core's own objects: `useSyncExternalStore` needs only the memoised reads, so nothing is wrapped.
+- A component re-renders only through `useNodeState` and `useField`; `useForm` and `useFormNode` never subscribe. React re-renders every child of a re-rendered component, so a subscription to the root or a group would re-render the whole subtree on every keystroke. A component reads what it shows with a selector, `useNodeState(card, node => node.state.active)`, the counterpart of a Vue `computed`. Reading a node without a hook gives the last render's value; `apps/docs/guide/components.md` says so. Guarded by "the component does not re-render when the form changes" and "only the field component whose field changed re-renders" in `use-form.test.tsx`.
+- `useNodeState` memoises the selection itself instead of depending on `use-sync-external-store/with-selector`. A selection is computed once per form `version` and selector, and the previous one is kept while the new one is shallowly equal (one level of an array or a plain object), so a selector may return a new object of the values it read; zustand turns that into a render loop. Guarded by "with a selector, the component re-renders only when the selected value changes" and "a selector may return a new object of the values it read" in `use-node-state.test.tsx`.
+- `useField` selects the field's `state`, `attributes` and `errorMessage`. `attributes` carries the path, so an input whose row moves gets its new ids even when no parent re-renders. Guarded by "an input follows its row when the row moves" in `use-field.test.tsx`.
 - `FormNodeProvider` memoises its context value by node and parent and renders `NODE_CONTEXT.Provider`, which keeps React 18.3 working (peer `^18.3.0 || ^19.0.0`).
 - Under `StrictMode` effects run twice, so `dispose` runs before the form is used; `dispose` only cancels async work and the form keeps working (tested).
 - `value` and `setValue` instead of ready-made input props: only the component knows how its element represents the value (numbers, empty strings, objects from a select).
-- Same names as the Vue adapter except the providers (`<FormNodeProvider>`, `<FormtreeProvider>` where Vue has `provideFormNode`, `createFormtree`). `errorMessage` is computed on render, so a language switch shows only in components that re-render; the docs have the generic input call `useTranslation()`.
+- Same names as the Vue adapter except the providers (`<FormNodeProvider>`, `<FormtreeProvider>` where Vue has `provideFormNode`, `createFormtree`). `useField` reads `errorMessage` when the field changes, so a language switch shows only in components that re-render; the docs have the generic input call `useTranslation()`.
 
 ## Code conventions
 

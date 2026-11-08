@@ -133,6 +133,9 @@ function createReactiveNode(bridge: FormBridge, node: UniversalNode): UniversalN
     get items() {
       return items.value
     },
+    get version() {
+      return node.version
+    },
     subscribe: node.subscribe,
     observe: node.observe,
     setValue: node.setValue,

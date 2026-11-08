@@ -209,7 +209,7 @@ const errors = computed(() => form.listErrors({ deep: true }))
 <div class="react-only">
 
 ```tsx
-const errors = form.listErrors({ deep: true })
+const errors = useNodeState(form, node => node.listErrors({ deep: true }))
 
 return (
   <ul id={form.summaryId} tabIndex={-1}>

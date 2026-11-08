@@ -1,5 +1,5 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { memo, StrictMode } from 'react'
+import { StrictMode } from 'react'
 import { afterEach, describe, expect, test, vi } from 'vite-plus/test'
 import { z } from 'zod'
 
@@ -9,22 +9,26 @@ import { PROFILE_DEPS, profileGroup } from './fixtures/profile'
 afterEach(cleanup)
 
 describe('useForm', () => {
-  test('the component re-renders when the state of the root changes', () => {
+  test('the component does not re-render when the form changes', () => {
+    const renders = vi.fn()
+    let form: ReturnType<typeof useForm<typeof profileGroup>> | undefined
     function Profile() {
-      const form = useForm(profileGroup, { deps: PROFILE_DEPS })
-      return <button onClick={() => form.field('name').setValue('Ada')}>{form.state.value.name ?? 'empty'}</button>
+      form = useForm(profileGroup, { deps: PROFILE_DEPS })
+      renders()
+      return null
     }
     render(<Profile />)
 
-    fireEvent.click(screen.getByRole('button'))
+    act(() => form?.field('name').setValue('Ada'))
 
-    expect(screen.getByRole('button').textContent).toBe('Ada')
+    expect(renders).toHaveBeenCalledTimes(1)
   })
 
   test('the form keeps working after StrictMode runs its effects twice', () => {
     function Profile() {
       const form = useForm(profileGroup, { deps: PROFILE_DEPS })
-      return <button onClick={() => form.field('name').setValue('Ada')}>{form.state.value.name ?? 'empty'}</button>
+      const name = useNodeState(form, form => form.state.value.name)
+      return <button onClick={() => form.field('name').setValue('Ada')}>{name ?? 'empty'}</button>
     }
     render(
       <StrictMode>
@@ -37,31 +41,31 @@ describe('useForm', () => {
     expect(screen.getByRole('button').textContent).toBe('Ada')
   })
 
-  test('a field component does not re-render when another field changes', () => {
+  test('only the field component whose field changed re-renders', () => {
     const renders = vi.fn()
-    const NameLabel = memo(function NameLabel() {
-      const name = useField<string>('name')
-      renders()
-      return <span>{name.value ?? 'empty'}</span>
-    })
+    function TextField({ name }: { name: string }) {
+      const field = useField<string>(name)
+      renders(name)
+      return <span>{field.value ?? 'empty'}</span>
+    }
     let form: ReturnType<typeof useForm<typeof profileGroup>> | undefined
     function Profile() {
       form = useForm(profileGroup, { deps: PROFILE_DEPS })
+      renders('profile')
       return (
         <FormNodeProvider node={form}>
-          <NameLabel />
+          <TextField name="name" />
+          <TextField name="address.city" />
         </FormNodeProvider>
       )
     }
     render(<Profile />)
     renders.mockClear()
 
-    act(() => form?.field('age').setValue(30))
-    expect(renders).not.toHaveBeenCalled()
-    act(() => form?.field('name').setValue('Ada'))
+    act(() => form?.field('address.city').setValue('Ankara'))
 
-    expect(renders).toHaveBeenCalledTimes(1)
-    expect(screen.getByText('Ada')).toBeDefined()
+    expect(renders.mock.calls).toEqual([['address.city']])
+    expect(screen.getByText('Ankara')).toBeDefined()
   })
 
   test('new deps written inline reach the form', () => {

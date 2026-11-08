@@ -15,8 +15,8 @@ export function PaymentStep({ onComplete }: StepProps) {
   const checkout = useFormNode(checkoutGroup)
   const payment = checkout.group('payment')
   const acceptTerms = useField(checkout.field('acceptTerms'))
-  const isCard = useNodeState(payment.group('card')).active
-  const isInvoice = useNodeState(payment.group('invoice')).active
+  const isCard = useNodeState(payment.group('card'), node => node.state.active)
+  const isInvoice = useNodeState(payment.group('invoice'), node => node.state.active)
   const onSubmit = payment.handleSubmit(() => onComplete())
 
   return (

@@ -99,13 +99,14 @@ import { checkoutForm } from './forms/checkout'
 
 export function CheckoutSteps() {
   const form = useForm(checkoutForm)
-  const addressState = useNodeState(form.group('address'))
+  const addressValid = useNodeState(form.group('address'), node => node.state.valid)
 
-  return <li className={addressState.valid ? 'complete' : undefined}>Address</li>
+  return <li className={addressValid ? 'complete' : undefined}>Address</li>
 }
 ```
 
-`useNodeState` re-renders the component when the address's state changes.
+`useNodeState` reads from the node and re-renders the component only when what it read changes, here
+when the address becomes valid or invalid.
 
 </div>
 

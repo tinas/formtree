@@ -129,23 +129,23 @@ names the component, so its template can render it.
 <div class="react-only">
 
 ```tsx [condition-tree.tsx]
-import { FormNodeProvider, useFormNode } from '@formtree/react'
+import { FormNodeProvider, useFormNode, useNodeState } from '@formtree/react'
 import { ConditionRow } from './condition-row'
 import { conditionTreeGroup } from './forms/segment'
 
 export function ConditionTree({ index }: { index?: number }) {
   const parent = useFormNode(conditionTreeGroup)
   const tree = index == undefined ? parent : parent.array('groups').items[index]!
-  const conditions = tree.array('conditions')
-  const groups = tree.array('groups')
+  const conditions = useNodeState(tree.array('conditions'), node => node.items)
+  const groups = useNodeState(tree.array('groups'), node => node.items)
 
   return (
     <FormNodeProvider node={tree}>
       <fieldset>
-        {conditions.items.map(condition => (
+        {conditions.map(condition => (
           <ConditionRow key={condition.key} index={condition.index} />
         ))}
-        {groups.items.map(group => (
+        {groups.map(group => (
           <ConditionTree key={group.key} index={group.index} />
         ))}
       </fieldset>

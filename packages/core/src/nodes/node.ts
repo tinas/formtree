@@ -60,6 +60,7 @@ export interface UniversalNode {
   readonly descriptionId: string
   readonly summaryId: string
   readonly items: ReadonlyArray<UniversalNode>
+  readonly version: number
   readonly subscribe: (listener: () => void) => () => void
   readonly observe: (observer: FormEventObserver) => () => void
   readonly setValue: (value: unknown) => void
@@ -197,6 +198,9 @@ function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
     },
     get items() {
       return readItems()
+    },
+    get version() {
+      return runtime.version
     },
     subscribe: listener => subscribeToRuntime(runtime, listener),
     observe: observer => observeRuntime(runtime, observer),

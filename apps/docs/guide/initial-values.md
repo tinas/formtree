@@ -96,9 +96,13 @@ The input stays empty, and the submit handler receives 30. When the user should 
 <div class="react-only">
 
 ```tsx
-<button type="submit" disabled={!form.state.dirty}>
-  Save
-</button>
+const dirty = useNodeState(form, node => node.state.dirty)
+
+return (
+  <button type="submit" disabled={!dirty}>
+    Save
+  </button>
+)
 ```
 
 </div>
