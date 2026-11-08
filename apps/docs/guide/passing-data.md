@@ -101,8 +101,8 @@ fetchShippingCountries().then(countries => {
 
 </div>
 
-Rules that read the data run again with the new data. Values are kept, so a country that is no
-longer on the list turns invalid.
+Rules and checks that read the data run again with the new data. Values are kept, so a country that
+is no longer on the list turns invalid.
 
 ## Passing Data to a Child
 

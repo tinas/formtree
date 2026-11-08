@@ -146,6 +146,45 @@ username.subscribe(() => {
 free waits until `validating` is `false`.
 :::
 
+## Skipping the Saved Value
+
+On an edit form, the record already owns its value, so pass the saved value down as deps and return
+early for it:
+
+```ts twoslash
+// @filename: api.ts
+export declare function isUsernameAvailable(username: string): Promise<boolean>
+// @filename: account.ts
+import { defineFieldWithDeps, defineGroupWithDeps } from '@formtree/core'
+import { z } from 'zod'
+import { isUsernameAvailable } from './api'
+// ---cut---
+interface AccountDeps {
+  savedUsername?: string
+}
+
+const usernameField = defineFieldWithDeps<AccountDeps>()({
+  schema: z.string({ error: 'Choose a username' }).trim().min(3, { error: 'Use at least 3 characters' }),
+  validateAsync: {
+    run: async (username, { deps }) => {
+      if (username == deps.savedUsername) {
+        return undefined
+      }
+      return (await isUsernameAvailable(username)) ? undefined : { code: 'This username is taken' }
+    },
+  },
+})
+
+export const accountForm = defineGroupWithDeps<AccountDeps>()({
+  children: { username: usernameField },
+  childDeps: { username: ({ deps }) => ({ savedUsername: deps.savedUsername }) },
+})
+```
+
+Set the deps when the account loads and after each save, as [Passing Data](/guide/passing-data)
+shows. A check runs again whenever its deps change, so it runs then too, finds the saved value and
+returns without a request. `state.requesting` stays `false`, so no hint flashes.
+
 ## Cancelling Stale Requests
 
 Pass the `signal` that `run` receives on to the request, so a request for a value that has changed
