@@ -41,6 +41,7 @@ import {
 } from './node-identity'
 import { computeNodeAttributes, computeNodeState, errorMessageOf, keepIfSame } from './node-state'
 import { listErrorsKey } from './node-types'
+import { requiredReader } from './required-probe'
 
 /**
  * Runtime object behind every node view, for adapters.
@@ -167,8 +168,9 @@ function subscribeToReads(runtime: FormRuntime, read: () => object, listener: ()
 }
 
 function createNode(runtime: FormRuntime, nodeId: string): UniversalNode {
+  const readRequired = requiredReader(runtime, nodeId)
   const readState = cachedByVersion<NodeState<unknown>>(runtime, previous =>
-    computeNodeState(runtime, nodeId, previous),
+    computeNodeState({ runtime, nodeId, previous, required: readRequired() }),
   )
   const readAttributes = cachedByVersion(runtime, () => computeNodeAttributes(runtime, nodeId, readState()))
   const readItems = cachedItemNodes(runtime, nodeId)

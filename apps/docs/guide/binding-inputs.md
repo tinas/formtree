@@ -176,6 +176,90 @@ and a screen reader reads the error with the input.
 
 </div>
 
+## Marking Required Fields
+
+To mark a required field's label, read `state.required`, which is true when the field's schema rejects
+an empty value:
+
+<div class="vue-only">
+
+```vue{11} [text-field.vue]
+<script setup lang="ts">
+import { useField } from '@formtree/vue'
+
+const props = defineProps<{ name: string; label: string }>()
+
+const field = useField<string>(() => props.name)
+</script>
+
+<template>
+  <div>
+    <label :for="field.id">{{ label }}<span v-if="field.state.required" aria-hidden="true">*</span></label>
+    <input v-model="field.model" v-bind="field.attrs" />
+    <p :id="field.errorId">{{ field.errorMessage }}</p>
+  </div>
+</template>
+```
+
+</div>
+
+<div class="react-only">
+
+```tsx{8-11} [text-field.tsx]
+import { useField } from '@formtree/react'
+
+export function TextField({ name, label }: { name: string; label: string }) {
+  const field = useField<string>(name)
+
+  return (
+    <div>
+      <label htmlFor={field.id}>
+        {label}
+        {field.state.required && <span aria-hidden="true">*</span>}
+      </label>
+      <input {...field.attrs} value={field.value ?? ''} onChange={event => field.setValue(event.target.value)} />
+      <p id={field.errorId}>{field.errorMessage}</p>
+    </div>
+  )
+}
+```
+
+</div>
+
+<div class="javascript-only">
+
+```ts{13} twoslash [bind-input.ts]
+// @noStaticSemanticInfo
+import type { FieldAttributes, FieldNode } from '@formtree/core'
+
+declare function setAttributes(element: HTMLElement, attributes: FieldAttributes): void
+// ---cut---
+export function bindInput(field: FieldNode<string | undefined, unknown>) {
+  const input = document.getElementById(field.id) as HTMLInputElement | HTMLTextAreaElement
+  const error = document.getElementById(field.errorId)!
+
+  input.addEventListener('input', () => field.setValue(input.value))
+  input.addEventListener('blur', () => field.blur())
+  showField()
+  return field.subscribe(showField)
+
+  function showField() {
+    input.value = field.state.value ?? ''
+    error.textContent = field.errorMessage ?? ''
+    input.labels?.[0]?.classList.toggle('required', field.state.required)
+    setAttributes(input, field.attributes)
+  }
+}
+```
+
+A CSS rule such as `.required::after { content: '*' }` turns the class into an asterisk.
+
+</div>
+
+The input's attributes already carry `aria-required`, so a screen reader announces the field as
+required. Only the schema is asked, so a field that a group's `validate` rule requires is not marked,
+and neither is one whose schema answers asynchronously.
+
 ## Number Inputs
 
 A number input converts its text in both directions and writes `undefined` when it is empty:

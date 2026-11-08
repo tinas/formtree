@@ -79,6 +79,7 @@ describe('node context', () => {
     expect(captured.form?.field('address.city').state.value).toBe('Ankara')
     expect(input.attributes('id')).toBe(captured.form?.field('address.city').id)
     expect(input.attributes('name')).toBe('address.city')
+    expect(input.attributes('aria-required')).toBe('true')
 
     await input.setValue('')
     await input.trigger('blur')

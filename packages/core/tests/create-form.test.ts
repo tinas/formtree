@@ -46,6 +46,7 @@ describe('createForm', () => {
       name: 'setup.name',
       'aria-invalid': 'false',
       'aria-describedby': null,
+      'aria-required': 'true',
     })
     name.blur()
     expect(name.attributes['aria-describedby']).toBe('promotion:setup.name:error')

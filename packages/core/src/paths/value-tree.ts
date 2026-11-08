@@ -44,7 +44,7 @@ export function setIn(tree: unknown, segments: ReadonlyArray<string>, value: unk
   return writeIn(tree, segments, value)
 }
 
-function writeIn(tree: unknown, segments: ReadonlyArray<string>, value: unknown): unknown {
+export function writeIn(tree: unknown, segments: ReadonlyArray<string>, value: unknown): unknown {
   if (segments.length == 0) {
     return value
   }
