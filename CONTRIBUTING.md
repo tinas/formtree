@@ -36,6 +36,7 @@ vp run dev         # playground with the core and plain DOM code
 vp run dev:vue     # playground with the Vue adapter
 vp run dev:react   # playground with the React adapter
 vp run docs        # documentation site
+vp run bench       # benchmarks of the core and both adapters
 vp run ready       # format, lint, type check, tests and builds, as in CI
 ```
 

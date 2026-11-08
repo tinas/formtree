@@ -1,6 +1,6 @@
 # formtree
 
-Headless form tree. `packages/core` is the framework-agnostic engine, `packages/vue` and `packages/react` the adapters, and `apps/docs` the documentation site. `apps/playground` drives the core with plain DOM code; `apps/vue-playground` and `apps/react-playground` build the same wizard with Vue SFCs and React components.
+Headless form tree. `packages/core` is the framework-agnostic engine, `packages/vue` and `packages/react` the adapters, and `apps/docs` the documentation site. `apps/playground` drives the core with plain DOM code; `apps/vue-playground` and `apps/react-playground` build the same wizard with Vue SFCs and React components. `benchmarks` measures the core and both adapters.
 
 The contributor workflow lives in @CONTRIBUTING.md. This file holds what applies across the repo: the design rules, what is left out on purpose, the conventions review holds code to, releases and tooling. `packages/core`, `packages/vue`, `packages/react` and `apps/docs` each keep a `CLAUDE.md` with their architecture, their decisions and their gotchas. A path, name or value that the code already shows stays out of all of them.
 
@@ -80,6 +80,8 @@ A decision goes into the `CLAUDE.md` of the package it shapes: what the code doe
 - `packages/vue` and `packages/react` pack with `tsconfig.build.json` (no `paths`), so their `.d.ts` imports `@formtree/core` instead of inlining it; `vp run -r build` packs core first.
 - React files are `.tsx` with `jsx: react-jsx`; `vp check` type-checks them, so the React playground builds with plain `vp build`. Tests use `@testing-library/react` in happy-dom and call `cleanup` in `afterEach`. `apps/docs/tsconfig.typedoc.json` sets `jsx` for TypeDoc.
 - VitePress builds every Markdown file in `apps/docs`, so `srcExclude` keeps `apps/docs/CLAUDE.md` off the site.
+- `benchmarks` holds Vitest 5 benchmarks (a `test` with the `bench` fixture) that import the package sources through tsconfig `paths`, and `vp run bench` runs them. Its `bench` task sets `cache: false`, because the root caches scripts and a replayed benchmark measures nothing.
+- Benchmarks run only on demand, because timings on shared CI runners vary too much to compare. A cost that must not grow is guarded by a test in `vp run ready` instead, either a count, such as how often a schema runs, or the ratio of two sizes measured in one run.
 
 ## Open work
 

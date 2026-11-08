@@ -9,6 +9,7 @@
     "dev:vue": "vp run vue-playground#dev",
     "dev:react": "vp run react-playground#dev",
     "docs": "vp run docs#dev",
+    "bench": "vp run benchmarks#bench",
     "changeset": "changeset",
     "version-packages": "changeset version && vp fmt",
     "release": "vp run ready && changeset publish"
