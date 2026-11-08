@@ -42,6 +42,7 @@ export function resetNodeValue(runtime: FormRuntime, nodeId: string, options: Re
     request: {
       hasValue: 'value' in options,
       value: options.value,
+      keepDirtyValues: options.keepDirtyValues,
       keepTouched: options.keepTouched,
       keepErrors: options.keepErrors,
     },

@@ -246,3 +246,68 @@ describe('createForm', () => {
     }
   })
 })
+
+describe('reset keeping edits', () => {
+  const profileForm = defineGroup({
+    schema: z.object({
+      fullName: z.string(),
+      address: z.object({ city: z.string(), street: z.string() }),
+    }),
+    children: { email: defineField({ schema: z.email() }) },
+  })
+  const savedProfile = {
+    fullName: 'Ada',
+    email: 'ada@example.com',
+    address: { city: 'Lisbon', street: 'Rua Augusta' },
+  }
+
+  test('changed values are kept and the new value fills everything else', () => {
+    const form = createForm(profileForm, { initialValue: savedProfile })
+    form.field('email').setValue('ada@work.example')
+    form.field('address.street').setValue('Rua Nova')
+    const refreshedProfile = {
+      fullName: 'Ada Lovelace',
+      email: 'ada@example.org',
+      address: { city: 'Porto', street: 'Rua Augusta' },
+    }
+
+    form.reset({ value: refreshedProfile, keepDirtyValues: true })
+
+    expect(form.state.value).toEqual({
+      fullName: 'Ada Lovelace',
+      email: 'ada@work.example',
+      address: { city: 'Porto', street: 'Rua Nova' },
+    })
+    expect(form.state.initialValue).toEqual(refreshedProfile)
+    expect(form.field('fullName').state.dirty).toBe(false)
+    expect(form.field('address.city').state.dirty).toBe(false)
+    expect(form.field('email').state.dirty).toBe(true)
+    expect(form.field('address.street').state.dirty).toBe(true)
+  })
+
+  test('a kept edit that the new value also has becomes clean', () => {
+    const form = createForm(profileForm, { initialValue: savedProfile })
+    const email = form.field('email')
+    email.setValue('ada@work.example')
+    form.field('address.street').setValue('Rua Nova')
+
+    form.reset({ value: { ...savedProfile, email: 'ada@work.example' }, keepDirtyValues: true })
+
+    expect(email.state.dirty).toBe(false)
+    expect(form.field('address.street').state.value).toBe('Rua Nova')
+    expect(form.state.dirty).toBe(true)
+  })
+
+  test('without a value every value stays and interactions are cleared', () => {
+    const form = createForm(profileForm, { initialValue: savedProfile })
+    const email = form.field('email')
+    email.setValue('ada@work.example')
+    email.blur()
+
+    form.reset({ keepDirtyValues: true })
+
+    expect(email.state.value).toBe('ada@work.example')
+    expect(email.state.dirty).toBe(true)
+    expect(email.state.touched).toBe(false)
+  })
+})

@@ -17,12 +17,24 @@ export interface KeyCounter {
 interface KeyCollection {
   readonly arrayKeys: Map<string, ReadonlyArray<string>>
   readonly counter: KeyCounter
+  readonly previousKeys: ArrayKeys
 }
 
+const NO_ARRAY_KEYS: ArrayKeys = new Map()
+
 export function assignArrayKeys(keyState: KeyState, nodeId: string, value: unknown): KeyState {
+  return collectKeyState(keyState, nodeId, value, NO_ARRAY_KEYS)
+}
+
+export function reuseArrayKeysByIndex(keyState: KeyState, nodeId: string, value: unknown): KeyState {
+  return collectKeyState(keyState, nodeId, value, keyState.arrayKeys)
+}
+
+function collectKeyState(keyState: KeyState, nodeId: string, value: unknown, previousKeys: ArrayKeys): KeyState {
   const collection: KeyCollection = {
     arrayKeys: new Map(mapWithoutPathsWithin(keyState.arrayKeys, nodeId)),
     counter: { next: keyState.nextItemKey },
+    previousKeys,
   }
   collectArrayKeys(collection, nodeId, value)
   return {
@@ -44,7 +56,8 @@ export function copyArrayKeysWithin(source: ArrayKeys, target: ArrayKeys, nodeId
 
 function collectArrayKeys(collection: KeyCollection, nodeId: string, value: unknown): void {
   if (Array.isArray(value)) {
-    const keys = value.map(() => nextItemKey(collection.counter))
+    const previousKeys = collection.previousKeys.get(nodeId) ?? []
+    const keys = value.map((_item, index) => previousKeys[index] ?? nextItemKey(collection.counter))
     collection.arrayKeys.set(nodeId, keys)
     value.forEach((item, index) => {
       collectArrayKeys(collection, joinPath(nodeId, itemSegment(keys[index])), item)

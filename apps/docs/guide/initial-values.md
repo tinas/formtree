@@ -222,6 +222,81 @@ const saveRow = row.handleSubmit(async lineItem => {
 
 Only that row becomes clean, and a saved new row joins the list's initial value.
 
+## Refreshing Data While Editing
+
+To take in fresh data without losing what the user has changed, reset with `keepDirtyValues`:
+
+<div class="vue-only">
+
+```vue{5,12}
+<script setup lang="ts">
+import type { Contact } from './api'
+
+import { useForm } from '@formtree/vue'
+import { watch } from 'vue'
+import { contactGroup } from './forms/contact'
+
+const props = defineProps<{ contact: Contact }>()
+
+const form = useForm(contactGroup, { initialValue: props.contact })
+
+watch(() => props.contact, contact => form.reset({ value: contact, keepDirtyValues: true }))
+</script>
+```
+
+</div>
+
+<div class="react-only">
+
+```tsx{4,10-12}
+import type { Contact } from './api'
+
+import { useForm } from '@formtree/react'
+import { useEffect } from 'react'
+import { contactGroup } from './forms/contact'
+
+export function EditContact({ contact }: { contact: Contact }) {
+  const form = useForm(contactGroup, { initialValue: contact })
+
+  useEffect(() => {
+    form.reset({ value: contact, keepDirtyValues: true })
+  }, [form, contact])
+}
+```
+
+</div>
+
+<div class="javascript-only">
+
+```ts{1,11-13} twoslash
+// @noStaticSemanticInfo
+// @filename: api.ts
+export interface Contact {
+  readonly fullName: string
+  readonly email: string
+}
+// @filename: index.ts
+// ---cut---
+import type { Form } from '@formtree/core'
+import type { Contact } from './api'
+
+import { createForm } from '@formtree/core'
+import { contactGroup } from './forms/contact'
+
+export function createContactForm(contact: Contact) {
+  return createForm(contactGroup, { initialValue: contact })
+}
+
+export function showLatestContact(form: Form<typeof contactGroup>, contact: Contact) {
+  form.reset({ value: contact, keepDirtyValues: true })
+}
+```
+
+</div>
+
+Values the user changed stay as they are, and everything else shows the fresh data. A list the user changed keeps all
+its rows, and a changed value that the fresh data now also has becomes clean.
+
 ## Warning Before Leaving
 
 To warn before the page closes with unsaved changes, cancel `beforeunload` while the form is dirty:

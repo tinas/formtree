@@ -135,6 +135,11 @@ export interface SubmitOptions extends ValidateOptions {
 export interface ResetOptions<Value> {
   /** A draft to use as the new initial value of the subtree, for example after a save. */
   readonly value?: Value
+  /**
+   * Keep every value that differs from the initial value and reset only the rest. A changed list is kept whole, and a
+   * kept value stays dirty only while it differs from the new initial value.
+   */
+  readonly keepDirtyValues?: boolean
   readonly keepTouched?: boolean
   /** Keep server and asynchronous errors. */
   readonly keepErrors?: boolean
