@@ -54,10 +54,17 @@ export function writeIn(tree: unknown, segments: ReadonlyArray<string>, value: u
     return isIndexOf(tree, index) ? tree.with(index, writeIn(tree[index], rest, value)) : tree
   }
   const container = isPlainObject(tree) ? tree : {}
+  if (rest.length == 0 && Object.is(value, undefined)) {
+    return withoutKey(container, segment)
+  }
   return {
     ...container,
     [segment]: writeIn(ownValue(container, segment), rest, value),
   }
+}
+
+function withoutKey(record: Readonly<Record<string, unknown>>, key: string): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(record).filter(([entryKey]) => entryKey != key))
 }
 
 function isIndexOf(items: ReadonlyArray<unknown>, index: number): boolean {
