@@ -46,6 +46,7 @@ export default defineConfig({
   description: DESCRIPTION,
 
   cleanUrls: true,
+  srcExclude: ['CLAUDE.md'],
 
   themeConfig: {
     logo: '/logo.svg',
