@@ -1,7 +1,7 @@
 import type { DraftOf, OutputOf } from '../definitions/definition'
 import type { DEFINITION_KIND } from '../definitions/definition-kind'
 import type { ClearOn } from '../errors/stored-error'
-import type { ErrorInput, ErrorSource, FormError, ValidateResult } from '../errors/form-error'
+import type { ErrorInput, ErrorSource, FormError } from '../errors/form-error'
 import type { DeepPartial } from '../types'
 import type { ValidateOptions } from '../validation/validation-pass'
 import type { NodeKind } from './node-kind'
@@ -19,7 +19,7 @@ export const SUBMIT_OUTCOME = {
   invalid: 'invalid',
   /** A check in the subtree failed; the handler did not run. */
   unchecked: 'unchecked',
-  /** The handler returned errors. */
+  /** The handler wrote errors into the subtree with `setErrors`. */
   rejected: 'rejected',
   /** The node was already submitting, or it is in an inactive branch; the handler did not run. */
   skipped: 'skipped',
@@ -110,11 +110,12 @@ export type ValidationResult<Output> =
     }
 
 /**
- * Receives the output of the submitted node. Errors it returns are stored as server errors, relative to that node.
+ * Receives the output of the submitted node. What it returns is ignored. Errors that `setErrors` writes into the
+ * submitted subtree while it runs make the submit `'rejected'`.
  *
  * @category Submitting
  */
-export type SubmitHandler<Output> = (output: Output) => ValidateResult | void | Promise<ValidateResult | void>
+export type SubmitHandler<Output> = (output: Output) => unknown
 
 /**
  * Options of `handleSubmit`.
