@@ -21,6 +21,7 @@ State is immutable; every mutation goes through a pure transition and then `comm
 - `activeWhen` keys are their own mapped type parameter (`ActiveKeys`). With the whole object as one parameter, the callbacks lose contextual typing and `value` is implicitly `any`.
 - `defineGroup*` return `NoInfer<Children>` and `NoInfer<ActiveKeys>`. Without it, an inline nested `defineGroup({ schema })` infers `Record<string, Definition>` children from the outer call and demands `childDeps`.
 - In the draft, field children are optional keys; declared groups and arrays are required and built by `createForm` (rule 7).
+- A value that becomes an initial value, `initialValue` and a reset's `value`, is a `DeepPartial` of the draft with readonly lists, because the runtime builds the declared structure for both. A draft's required groups and arrays may be left out, so the node's own submit output, where an `activeWhen` part is optional, and a readonly server object fit without a cast. Guarded by "a reset takes a partial draft with readonly lists, like initialValue" and "a reset takes the output of the node's own submit" in `definitions.test-d.ts`.
 - An annotated recursive definition navigates its children as lens nodes and outputs the annotated type, since TypeScript cannot infer the children of a self-referencing constant. At runtime those nodes are still defined and validated.
 
 ### Values and paths

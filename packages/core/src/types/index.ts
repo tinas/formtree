@@ -17,14 +17,14 @@ export type DraftValue<Value> = Value extends Leaf
 export type DraftObject<Value> = { -readonly [Key in keyof Value]?: DraftValue<Value[Key]> }
 
 /**
- * A partial value at every depth; the shape of `initialValue`.
+ * A partial value at every depth; the shape of `initialValue` and of the `value` a reset takes.
  *
  * @category Form
  */
 export type DeepPartial<Value> = Value extends Leaf
   ? Value
   : Value extends ReadonlyArray<infer Element>
-    ? Array<DeepPartial<Element>>
+    ? ReadonlyArray<DeepPartial<Element>>
     : Value extends object
       ? { [Key in keyof Value]?: DeepPartial<Value[Key]> }
       : Value
