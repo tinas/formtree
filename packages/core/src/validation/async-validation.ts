@@ -10,7 +10,7 @@ import { sharedOptionsOf } from '../definitions/runtime-options'
 import { isSyncErrorSource, toErrorInputs } from '../errors/form-error'
 import { emitCheckEnd, emitCheckFail, emitNodeEvent, FORM_EVENT } from '../form/form-events'
 import { commitState } from '../form/form-runtime'
-import { stableKey } from '../paths/equality'
+import { deepEqual } from '../paths/equality'
 import { isWithinPath } from '../paths/path'
 import { withCheckErrors, withFailedCheck, withoutPendingChecks, withPendingCheck } from '../state/check-transitions'
 import { hasPathWithin } from '../state/collections'
@@ -28,15 +28,19 @@ const RUN_STATUS = {
 
 type RunStatus = (typeof RUN_STATUS)[keyof typeof RUN_STATUS]
 
+interface CheckAnswer {
+  readonly output: unknown
+  readonly inputs: ReadonlyArray<ErrorInput>
+}
+
 export interface CheckEntry {
   status: RunStatus
   output: unknown
-  outputKey: string | undefined
   deps: unknown
   timer: ReturnType<typeof setTimeout> | undefined
   controller: AbortController | undefined
   running: Promise<void> | undefined
-  readonly answers: Map<string, ReadonlyArray<ErrorInput>>
+  answers: Array<CheckAnswer>
 }
 
 export function reconcileChecks(runtime: FormRuntime, state: FormState, scopes: ReadonlyArray<Scope>): FormState {
@@ -73,9 +77,7 @@ export function markFailedChecksStaleWithin(runtime: FormRuntime, nodeId: string
 export function markChecksStaleWithin(runtime: FormRuntime, nodeId: string): void {
   for (const [ownerId, entry] of runtime.checkEntries) {
     if (entry.status == RUN_STATUS.idle && isWithinPath(ownerId, nodeId)) {
-      if (entry.outputKey != undefined) {
-        entry.answers.delete(entry.outputKey)
-      }
+      entry.answers = entry.answers.filter(answer => !deepEqual(answer.output, entry.output))
       entry.status = RUN_STATUS.stale
     }
   }
@@ -130,26 +132,24 @@ function reconcileCheck({ runtime, state, scope, options }: CheckReconciliation)
     }
     abortCheck(runtime, ownerId, entry)
     entry.status = RUN_STATUS.blocked
-    entry.outputKey = undefined
     return withCheckErrors(state, { ownerId, inputs: [] })
   }
   const output = buildOutput({ definition: runtime.definition, entries: runtime.syncEntries, state, nodeId: ownerId })
-  const outputKey = stableKey(output)
-  if (outputKey == entry.outputKey && Object.is(scope.deps, entry.deps)) {
+  const holdsOutput = existing != undefined && entry.status != RUN_STATUS.blocked
+  if (holdsOutput && deepEqual(output, entry.output) && Object.is(scope.deps, entry.deps)) {
     return state
   }
   abortCheck(runtime, ownerId, entry)
   if (!Object.is(scope.deps, entry.deps)) {
-    entry.answers.clear()
+    entry.answers = []
   }
   entry.output = output
-  entry.outputKey = outputKey
   entry.deps = scope.deps
-  const answer = entry.answers.get(outputKey)
+  const answer = entry.answers.find(cached => deepEqual(cached.output, output))
   if (answer != undefined) {
     entry.status = RUN_STATUS.idle
-    emitCheckEnd(runtime, { nodeId: ownerId, errors: answer, cached: true })
-    return withCheckErrors(state, { ownerId, inputs: answer })
+    emitCheckEnd(runtime, { nodeId: ownerId, errors: answer.inputs, cached: true })
+    return withCheckErrors(state, { ownerId, inputs: answer.inputs })
   }
   const cleared = withCheckErrors(state, { ownerId, inputs: [] })
   if (existing == undefined || options.on != ASYNC_TRIGGER.change) {
@@ -164,12 +164,11 @@ function createEntry(): CheckEntry {
   return {
     status: RUN_STATUS.stale,
     output: undefined,
-    outputKey: undefined,
     deps: undefined,
     timer: undefined,
     controller: undefined,
     running: undefined,
-    answers: new Map(),
+    answers: [],
   }
 }
 
@@ -261,9 +260,7 @@ function answerCheck(run: CheckRun, inputs: ReadonlyArray<ErrorInput>): void {
     return
   }
   const { runtime, ownerId, entry } = run
-  if (entry.outputKey != undefined) {
-    entry.answers.set(entry.outputKey, inputs)
-  }
+  entry.answers.push({ output: entry.output, inputs })
   finishRun(entry)
   commitState(runtime, withCheckErrors(runtime.state, { ownerId, inputs }))
   emitCheckEnd(runtime, { nodeId: ownerId, errors: inputs, cached: false })

@@ -3,6 +3,7 @@ import { isIndexSegment, joinPath, joinSegments, lastSegment, splitPath } from '
 export type ArrayKeys = ReadonlyMap<string, ReadonlyArray<string>>
 
 const ITEM_SEGMENT_PATTERN = /^\[(.+)\]$/
+const PROTOTYPE_SEGMENT = '__proto__'
 
 export function itemSegment(key: string): string {
   return `[${key}]`
@@ -37,6 +38,9 @@ export function toPath(arrayKeys: ArrayKeys, nodeId: string): string | undefined
   const pathSegments: Array<string> = []
   let parentId = ''
   for (const segment of splitPath(nodeId)) {
+    if (segment == PROTOTYPE_SEGMENT) {
+      return undefined
+    }
     const key = itemKeyOf(segment)
     if (key == undefined) {
       pathSegments.push(segment)

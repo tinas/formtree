@@ -59,7 +59,7 @@ export { NODE_KIND } from './nodes/node-kind'
 export type { UniversalNode } from './nodes/node'
 export type { LensShape } from './nodes/path-types'
 export type { NodeKind } from './nodes/node-kind'
-export { FOCUS_SUMMARY, SUBMIT_OUTCOME } from './nodes/node-types'
+export { FOCUS_SUMMARY, listErrorsKey, SUBMIT_OUTCOME } from './nodes/node-types'
 export type {
   ArrayItem,
   ArrayNode,
@@ -81,6 +81,8 @@ export type {
   SubmitOutcome,
   ValidationResult,
 } from './nodes/node-types'
+export { shallowEqual } from './paths/equality'
+export { isPlainObject } from './paths/value-tree'
 export type { StandardSchemaV1 } from './standard-schema/standard-schema'
 export type { ValidateOptions } from './validation/validation-pass'
 export type { DeepPartial } from './types'

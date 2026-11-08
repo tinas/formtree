@@ -2,7 +2,7 @@ import type { NodeKind, UniversalNode } from '@formtree/core'
 import type { RegisteredForm } from '../formtree-app'
 import type { InspectorNode, InspectorState, InspectorTag } from './devtools-api'
 
-import { NODE_KIND } from '@formtree/core'
+import { isPlainObject, NODE_KIND } from '@formtree/core'
 
 const ID_SEPARATOR = '#'
 
@@ -197,8 +197,4 @@ function filterTree(nodes: ReadonlyArray<InspectorNode>, filter: string): Array<
     const children = filterTree(node.children ?? [], filter)
     return node.label.toLowerCase().includes(filter) || children.length > 0 ? [{ ...node, children }] : []
   })
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value == 'object' && value != null && !Array.isArray(value)
 }

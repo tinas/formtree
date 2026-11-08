@@ -137,6 +137,15 @@ describe('devtools', () => {
     expect(name?.tags?.map(tag => tag.label)).toEqual(['lens', 'dirty'])
   })
 
+  test('lists no keys below a value that is not a plain object', () => {
+    const { form } = mountProfileForm()
+
+    form.field('avatar').setValue(new File(['a'], 'avatar.png'))
+
+    const avatar = readTree()[0]?.children?.find(node => node.label == 'avatar')
+    expect(avatar?.children).toEqual([])
+  })
+
   test('counts the errors of a subtree by whether the user sees them, and counts submits', async () => {
     const { form } = mountProfileForm()
 

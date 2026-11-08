@@ -128,7 +128,8 @@ function updateSaveButton() {
 
 </div>
 
-Changing a value back makes the form clean again.
+Changing a value back makes the form clean again. Plain objects, arrays, and dates count as the same value when their
+contents are equal, and any other object, such as a `File`, only when it is the same object.
 
 ## Discarding Changes
 

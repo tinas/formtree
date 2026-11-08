@@ -68,6 +68,26 @@ describe('submit', () => {
     expect(form.state.dirty).toBe(false)
   })
 
+  test('a group schema that returns a class instance keeps its values in the output', async () => {
+    class Address {
+      city = ''
+      street = ''
+    }
+    const addressGroup = defineGroup({
+      schema: z
+        .object({ city: z.string(), street: z.string() })
+        .transform(value => Object.assign(new Address(), value)),
+    })
+    const form = createForm(defineGroup({ children: { address: addressGroup } }), {
+      initialValue: { address: { city: 'Lisbon', street: 'Rua Augusta' } },
+    })
+    const onValid = vi.fn()
+
+    await expect(form.handleSubmit(onValid)()).resolves.toBe('success')
+
+    expect(onValid).toHaveBeenCalledWith({ address: { city: 'Lisbon', street: 'Rua Augusta' } })
+  })
+
   test('a field submits on its own, like an inline edit', async () => {
     const maxDiscount = createPromotionForm().field('spending.maxDiscount')
     const onValid = vi.fn()

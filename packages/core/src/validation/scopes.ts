@@ -7,7 +7,7 @@ import { resolveItemDefinition } from '../definitions/definition'
 import { groupOptionsOf, matchDefinition } from '../definitions/runtime-options'
 import { shallowEqual } from '../paths/equality'
 import { joinPath } from '../paths/path'
-import { isPlainObject } from '../paths/value-tree'
+import { isPlainObject, ownValue } from '../paths/value-tree'
 import { itemSegment } from '../state/node-id'
 
 export interface Scope {
@@ -81,14 +81,14 @@ function visitGroupChildren(definition: AnyGroupDefinition, { collector, scope }
   const context = { value, deps: scope.deps }
   for (const [key, child] of Object.entries(definition.children)) {
     const nodeId = joinPath(scope.nodeId, key)
-    if (options.activeWhen[key]?.(context) == false) {
+    if (ownValue(options.activeWhen, key)?.(context) == false) {
       collector.inactive.add(nodeId)
     } else {
       visitScope(collector, {
         nodeId,
         definition: child,
-        value: value[key],
-        deps: stableDeps(collector, nodeId, options.childDeps[key]?.(context)),
+        value: ownValue(value, key),
+        deps: stableDeps(collector, nodeId, ownValue(options.childDeps, key)?.(context)),
       })
     }
   }

@@ -25,7 +25,7 @@ import { observeRuntime } from '../form/form-events'
 import { subscribeToRuntime } from '../form/form-runtime'
 import { submitNode, validateNode } from '../form/submit'
 import { blurNode, editNodeArray, resetNodeValue, setNodeValue } from '../form/value-operations'
-import { shallowEqual, stableKey } from '../paths/equality'
+import { shallowEqual } from '../paths/equality'
 import { joinPath } from '../paths/path'
 import { ARRAY_EDIT } from '../state/array-transitions'
 import { itemSegment, toNodeId } from '../state/node-id'
@@ -40,6 +40,7 @@ import {
   summaryIdOf,
 } from './node-identity'
 import { computeNodeAttributes, computeNodeState, errorMessageOf, keepIfSame } from './node-state'
+import { listErrorsKey } from './node-types'
 
 /**
  * Runtime object behind every node view, for adapters.
@@ -140,7 +141,7 @@ function cachedErrorLists(
 ): (options?: ListErrorsOptions) => ReadonlyArray<ListedError> {
   const readers = new Map<string, () => ReadonlyArray<ListedError>>()
   return options => {
-    const key = stableKey(options ?? {})
+    const key = listErrorsKey(options)
     const cached = readers.get(key)
     if (cached != undefined) {
       return cached()

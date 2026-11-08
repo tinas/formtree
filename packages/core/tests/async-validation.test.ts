@@ -122,6 +122,47 @@ describe('async validation', () => {
     expect(nameChecks).toHaveLength(2)
   })
 
+  test('a check runs again for every different file, even one with the same name', async () => {
+    const checkedSizes: Array<number> = []
+    const photoField = defineField({
+      schema: z.instanceof(File),
+      validateAsync: {
+        debounceMs: 0,
+        run: async file => {
+          checkedSizes.push(file.size)
+          return file.size > 4 ? { code: 'This photo is too large' } : undefined
+        },
+      },
+    })
+    const photo = createForm(photoField)
+
+    photo.setValue(new File(['tiny'], 'photo.png', { lastModified: 0 }))
+    await expect(photo.validate()).resolves.toMatchObject({ valid: true })
+    photo.setValue(new File(['too large'], 'photo.png', { lastModified: 0 }))
+
+    await expect(photo.validate()).resolves.toMatchObject({ valid: false })
+    expect(checkedSizes).toEqual([4, 9])
+  })
+
+  test('a check accepts a bigint value', async () => {
+    const checked: Array<bigint> = []
+    const amountField = defineField({
+      schema: z.bigint(),
+      validateAsync: {
+        debounceMs: 0,
+        run: async amount => {
+          checked.push(amount)
+          return undefined
+        },
+      },
+    })
+    const amount = createForm(amountField)
+
+    expect(() => amount.setValue(10n)).not.toThrow()
+    await amount.validate()
+    expect(checked).toEqual([10n])
+  })
+
   test('submit runs a check that has not run yet and waits for it', async () => {
     const form = createPromotionForm()
     const setup = form.group('setup')
