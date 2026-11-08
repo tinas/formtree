@@ -133,3 +133,99 @@ describe('baselines', () => {
     expect(form.state.dirty).toBe(false)
   })
 })
+
+describe('reset keeping edits', () => {
+  test('a changed list is kept whole', () => {
+    const form = createFormWithSlot()
+    const slots = form.array('spending.slots')
+    slots.items[0].field('amount').setValue(20)
+
+    form.group('spending').reset({
+      value: {
+        maxDiscount: 150,
+        period: 'DAILY',
+        slots: [
+          { id: 1, label: 'Morning', amount: 10, dates: ['2026-11-01'] },
+          { id: 2, amount: 5, dates: ['2026-11-02'] },
+        ],
+      },
+      keepDirtyValues: true,
+    })
+
+    expect(slots.state.value).toEqual([{ id: 1, amount: 20, dates: ['2026-11-01'] }])
+    expect(slots.state.dirty).toBe(true)
+    expect(form.field('spending.maxDiscount').state.value).toBe(150)
+  })
+
+  test('a row the user did not change in a kept list stays clean', () => {
+    const form = createFormWithSlot()
+    const slots = form.array('spending.slots')
+    slots.push({ amount: 5, dates: ['2026-11-02'] })
+
+    form.group('spending').reset({
+      value: { maxDiscount: 100, period: 'DAILY', slots: [{ id: 1, amount: 10, dates: ['2026-11-01'] }] },
+      keepDirtyValues: true,
+    })
+
+    expect(slots.items).toHaveLength(2)
+    expect(slots.items[0].state.dirty).toBe(false)
+    expect(slots.items[1].state.dirty).toBe(true)
+  })
+
+  test('an unchanged list takes the new rows and keeps its row nodes', () => {
+    const form = createFormWithSlot()
+    const slots = form.array('spending.slots')
+    const row = slots.items[0]
+    row.field('amount').blur()
+    form.field('spending.maxDiscount').setValue(200)
+
+    form.group('spending').reset({
+      value: { maxDiscount: 100, period: 'DAILY', slots: [{ id: 1, amount: 15, dates: ['2026-11-01'] }] },
+      keepDirtyValues: true,
+      keepTouched: true,
+    })
+
+    expect(slots.items[0]).toBe(row)
+    expect(row.field('amount').state.value).toBe(15)
+    expect(row.field('amount').state.touched).toBe(true)
+    expect(slots.state.dirty).toBe(false)
+    expect(form.field('spending.maxDiscount').state.value).toBe(200)
+  })
+
+  test('a changed list the new value already has becomes clean, its rows too', () => {
+    const form = createFormWithSlot()
+    const slots = form.array('spending.slots')
+    slots.push({ amount: 5, dates: ['2026-11-02'] })
+    const added = slots.items[1]
+
+    form.group('spending').reset({
+      value: {
+        maxDiscount: 150,
+        period: 'DAILY',
+        slots: [
+          { id: 1, amount: 10, dates: ['2026-11-01'] },
+          { amount: 5, dates: ['2026-11-02'] },
+        ],
+      },
+      keepDirtyValues: true,
+    })
+
+    expect(slots.items[1]).toBe(added)
+    expect(added.state.dirty).toBe(false)
+    expect(form.state.dirty).toBe(false)
+  })
+
+  test('a row reset keeps the values changed in that row', () => {
+    const form = createFormWithSlot()
+    const row = form.array('spending.slots').items[0]
+    row.field('amount').setValue(20)
+    form.field('spending.maxDiscount').setValue(200)
+
+    row.reset({ value: { id: 1, label: 'Morning', amount: 10, dates: ['2026-11-01'] }, keepDirtyValues: true })
+
+    expect(row.state.value).toEqual({ id: 1, label: 'Morning', amount: 20, dates: ['2026-11-01'] })
+    expect(row.field('amount').state.dirty).toBe(true)
+    expect(row.field('label').state.dirty).toBe(false)
+    expect(form.field('spending.maxDiscount').state.value).toBe(200)
+  })
+})
