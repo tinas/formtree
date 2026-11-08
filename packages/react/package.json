@@ -3,11 +3,15 @@
   "version": "0.1.0",
   "description": "The React adapter of formtree, a headless form tree in which every part of a form validates and submits on its own.",
   "keywords": [
+    "arktype",
     "form",
     "headless",
     "react",
     "standard-schema",
-    "validation"
+    "typescript",
+    "valibot",
+    "validation",
+    "zod"
   ],
   "homepage": "https://form-tree.netlify.app",
   "bugs": "https://github.com/tinas/formtree/issues",
@@ -23,6 +27,7 @@
   ],
   "type": "module",
   "sideEffects": false,
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
     "./package.json": "./package.json"
@@ -52,6 +57,12 @@
     "zod": "catalog:"
   },
   "peerDependencies": {
-    "react": "^18.3.0 || ^19.0.0"
+    "react": "^18.3.0 || ^19.0.0",
+    "typescript": ">=5.4"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
   }
 }
