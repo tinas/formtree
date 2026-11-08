@@ -286,7 +286,14 @@ delivery.setErrors([{ path: 'store', code: 'This store has closed for today' }])
 ```
 
 The error shows at once, whatever the mode, and goes away when the store changes.
-[`SetErrorsOptions`](/api/@formtree/core/interfaces/SetErrorsOptions) covers keeping it longer.
+
+::: tip Warnings That Do Not Block
+An error, one you set included, always stops a submit. A warning that should not, such as a likely
+typo in an email address, is text derived from the value, so compute it from the field's
+`state.value` and show it next to the input.
+:::
+
+[`SetErrorsOptions`](/api/@formtree/core/interfaces/SetErrorsOptions) covers keeping an error longer.
 
 ::: tip One Owner per Error
 Schema runs replace only schema errors, so they never remove an error you set.
