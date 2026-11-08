@@ -1,4 +1,4 @@
-import type { ValidateResult } from '../errors/form-error'
+import type { FormError, ValidateResult } from '../errors/form-error'
 import type { SubmitHandler, SubmitOptions, SubmitOutcome, ValidationResult } from '../nodes/node-types'
 import type { ValidateOptions } from '../validation/validation-pass'
 import type { FormRuntime } from './form-runtime'
@@ -14,7 +14,8 @@ import { buildOutput } from '../validation/output'
 import { settleValidationWithin } from '../validation/validation-pass'
 import { isActiveNode, refreshSnapshotsWithin, SNAPSHOT_TRIGGER } from '../validation/visibility'
 import { activeErrorsWithin } from './error-operations'
-import { focusElementById, focusFirstInDocumentOrder } from './focus'
+import { inDefinitionOrder } from './error-order'
+import { focusElementById, focusFirstOnPage } from './focus'
 import { emitNodeEvent, emitSubmitEnd, FORM_EVENT } from './form-events'
 import { commitState } from './form-runtime'
 
@@ -31,12 +32,12 @@ export async function validateNode(
   options?: ValidateOptions,
 ): Promise<ValidationResult<unknown>> {
   await settleValidationWithin(runtime, nodeId, options)
-  const errors = activeErrorsWithin(runtime, nodeId)
+  const errors = orderedErrorsWithin(runtime, nodeId)
   const failedChecks = failedChecksWithin(runtime.state, nodeId)
   if (errors.length > 0 || failedChecks.length > 0) {
     return {
       valid: false,
-      errors: errors.map(error => toFormError(runtime.state, error)),
+      errors,
       failedChecks,
     }
   }
@@ -54,10 +55,11 @@ export async function submitNode({ runtime, nodeId, onValid, options = {} }: Nod
   commitState(runtime, beginSubmit(runtime.state, nodeId))
   emitNodeEvent(runtime, FORM_EVENT.submitStart, nodeId)
   await settleValidationWithin(runtime, nodeId, options)
-  const errors = activeErrorsWithin(runtime, nodeId)
+  const errors = orderedErrorsWithin(runtime, nodeId)
   if (errors.length > 0) {
-    endFailedSubmit({ runtime, nodeId, options, outcome: SUBMIT_OUTCOME.invalid })
-    options.onInvalid?.(errors.map(error => toFormError(runtime.state, error)))
+    endSubmitWithErrors(runtime, nodeId, SUBMIT_OUTCOME.invalid)
+    await options.onInvalid?.(errors)
+    focusFailures(runtime, nodeId, options)
     return SUBMIT_OUTCOME.invalid
   }
   if (failedCheckIdsWithin(runtime.state, nodeId).length > 0) {
@@ -108,10 +110,18 @@ interface FailedSubmit {
 }
 
 function endFailedSubmit({ runtime, nodeId, options, outcome }: FailedSubmit): void {
+  endSubmitWithErrors(runtime, nodeId, outcome)
+  focusFailures(runtime, nodeId, options)
+}
+
+function endSubmitWithErrors(runtime: FormRuntime, nodeId: string, outcome: SubmitOutcome): void {
   const refreshed = refreshSnapshotsWithin(visibilityContextOf(runtime), { nodeId, trigger: SNAPSHOT_TRIGGER.submit })
   commitState(runtime, endSubmit(refreshed, nodeId))
   emitSubmitEnd(runtime, nodeId, outcome)
-  focusFailures(runtime, nodeId, options)
+}
+
+function orderedErrorsWithin(runtime: FormRuntime, nodeId: string): Array<FormError> {
+  return inDefinitionOrder(runtime, activeErrorsWithin(runtime, nodeId)).map(error => toFormError(runtime.state, error))
 }
 
 function focusFailures(runtime: FormRuntime, nodeId: string, options: SubmitOptions): void {
@@ -126,7 +136,7 @@ function focusFailures(runtime: FormRuntime, nodeId: string, options: SubmitOpti
       ...activeErrorsWithin(runtime, nodeId).map(error => error.targetId),
       ...failedCheckIdsWithin(runtime.state, nodeId),
     ])
-    focusFirstInDocumentOrder(
+    focusFirstOnPage(
       [...targetIds].map(targetId => domIdOf(runtime, targetId)),
       focusElement,
     )

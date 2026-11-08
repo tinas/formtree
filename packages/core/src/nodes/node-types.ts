@@ -35,8 +35,8 @@ export type SubmitOutcome = (typeof SUBMIT_OUTCOME)[keyof typeof SUBMIT_OUTCOME]
 export const FOCUS_SUMMARY = 'summary'
 
 /**
- * Where focus goes after a failed submit: the first element with an error or a check that threw, in document
- * order (`true`), the error summary (`'summary'`) or nowhere (`false`).
+ * Where focus goes after a failed submit: the first element shown on the page with an error or a check that threw,
+ * in document order (`true`), the error summary (`'summary'`) or nowhere (`false`).
  *
  * @category Submitting
  */
@@ -116,8 +116,11 @@ export type SubmitHandler<Output> = (output: Output) => ValidateResult | void | 
  * @category Submitting
  */
 export interface SubmitOptions extends ValidateOptions {
-  /** Called with the errors when the subtree has errors. */
-  readonly onInvalid?: (errors: ReadonlyArray<FormError>) => void
+  /**
+   * Called with the errors, in the order `listErrors` lists them, when the subtree has errors. Focus moves once the
+   * promise it returns settles, so it can open what hides a field, such as a dialog.
+   */
+  readonly onInvalid?: (errors: ReadonlyArray<FormError>) => void | Promise<void>
   /** Overrides the form's option for this submit. */
   readonly shouldFocusError?: FocusErrorOption
   /** Overrides the form's option for this submit. */

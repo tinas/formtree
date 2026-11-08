@@ -5,6 +5,7 @@ import type { CheckState, FormState } from '../state/form-state'
 import type { VisibilityContext } from '../validation/visibility'
 import type { FailedCheck, FieldAttributes, NodeState } from './node-types'
 
+import { inDefinitionOrder } from '../form/error-order'
 import { deepEqual, shallowEqual } from '../paths/equality'
 import { isWithinPath, splitPath } from '../paths/path'
 import { getIn } from '../paths/value-tree'
@@ -62,7 +63,9 @@ export function computeNodeState(
   const state = runtime.state
   const value = valueAt(state, nodeId)
   const initialValue = initialValueAt(state, nodeId)
-  const errors = visibleErrorsAt(visibilityContextOf(runtime), nodeId).map(error => toFormError(state, error))
+  const errors = inDefinitionOrder(runtime, visibleErrorsAt(visibilityContextOf(runtime), nodeId)).map(error =>
+    toFormError(state, error),
+  )
   const failedChecks = keepIfSame(previous?.failedChecks, failedChecksWithin(state, nodeId))
   return {
     value,
