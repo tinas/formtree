@@ -13,7 +13,7 @@ import { hasPathWithin } from '../state/collections'
 import { CHECK_STATUS } from '../state/form-state'
 import { toPath } from '../state/node-id'
 import { valueAt } from '../validation/output'
-import { activeErrors, isActiveNode, visibleErrorsAt } from '../validation/visibility'
+import { hasActiveErrorWithin, isActiveNode, visibleErrorsAt } from '../validation/visibility'
 import { domIdOf, errorIdOf, pathOf } from './node-identity'
 
 export function errorMessageOf(runtime: FormRuntime, state: NodeState<unknown>): string | undefined {
@@ -74,7 +74,7 @@ export function computeNodeState({ runtime, nodeId, previous, required }: NodeSt
     value,
     initialValue,
     errors: keepIfSame(previous?.errors, errors),
-    valid: failedChecks.length == 0 && !activeErrors(state).some(error => isWithinPath(error.targetId, nodeId)),
+    valid: failedChecks.length == 0 && !hasActiveErrorWithin(state, nodeId),
     required,
     dirty: !deepEqual(value, initialValue),
     touched: hasPathWithin(state.touched, nodeId),

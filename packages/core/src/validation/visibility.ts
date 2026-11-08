@@ -51,16 +51,66 @@ export interface VisibilityContext {
   readonly state: FormState
 }
 
+interface ActiveErrorIndex {
+  readonly inactive: ReadonlySet<string>
+  readonly errors: ReadonlyArray<StoredError>
+  readonly byTarget: ReadonlyMap<string, ReadonlyArray<StoredError>>
+  readonly targetsAndAncestors: ReadonlySet<string>
+}
+
+const activeErrorIndexes = new WeakMap<ReadonlyArray<StoredError>, ActiveErrorIndex>()
+
 export function activeErrors(state: FormState): ReadonlyArray<StoredError> {
-  return state.errors.filter(error => isActiveNode(state, error.targetId))
+  return activeErrorIndexOf(state).errors
+}
+
+export function activeErrorsAt(state: FormState, targetId: string): ReadonlyArray<StoredError> {
+  return activeErrorIndexOf(state).byTarget.get(targetId) ?? []
+}
+
+export function hasActiveErrorWithin(state: FormState, nodeId: string): boolean {
+  return activeErrorIndexOf(state).targetsAndAncestors.has(nodeId)
 }
 
 export function isActiveNode(state: FormState, nodeId: string): boolean {
-  return [...state.inactive].every(inactiveId => !isWithinPath(nodeId, inactiveId))
+  for (const inactiveId of state.inactive) {
+    if (isWithinPath(nodeId, inactiveId)) {
+      return false
+    }
+  }
+  return true
+}
+
+function activeErrorIndexOf(state: FormState): ActiveErrorIndex {
+  const cached = activeErrorIndexes.get(state.errors)
+  if (cached?.inactive == state.inactive) {
+    return cached
+  }
+  const index = indexActiveErrors(state)
+  activeErrorIndexes.set(state.errors, index)
+  return index
+}
+
+function indexActiveErrors(state: FormState): ActiveErrorIndex {
+  const errors = state.errors.filter(error => isActiveNode(state, error.targetId))
+  const byTarget = new Map<string, Array<StoredError>>()
+  for (const error of errors) {
+    const targetErrors = byTarget.get(error.targetId)
+    if (targetErrors == undefined) {
+      byTarget.set(error.targetId, [error])
+    } else {
+      targetErrors.push(error)
+    }
+  }
+  const targetsAndAncestors = new Set([...byTarget.keys()].flatMap(pathAndAncestors))
+  return { inactive: state.inactive, errors, byTarget, targetsAndAncestors }
 }
 
 export function visibleErrorsAt(context: VisibilityContext, targetId: string): ReadonlyArray<StoredError> {
-  const errors = activeErrors(context.state).filter(error => error.targetId == targetId)
+  const errors = activeErrorsAt(context.state, targetId)
+  if (errors.length == 0) {
+    return errors
+  }
   const policy = displayPolicyAt(context, targetId)
   const snapshot = context.state.snapshots.get(targetId) ?? []
   return errors.filter(error => {

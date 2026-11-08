@@ -1,4 +1,6 @@
-import { isWithinPath } from '../paths/path'
+import { isWithinPath, pathAndAncestors } from '../paths/path'
+
+const pathsAndAncestorsBySet = new WeakMap<ReadonlySet<string>, ReadonlySet<string>>()
 
 export function withAdded<Item>(set: ReadonlySet<Item>, item: Item): ReadonlySet<Item> {
   return set.has(item) ? set : new Set([...set, item])
@@ -14,7 +16,17 @@ export function withDeleted<Item>(set: ReadonlySet<Item>, item: Item): ReadonlyS
 }
 
 export function hasPathWithin(set: ReadonlySet<string>, ancestor: string): boolean {
-  return [...set].some(path => isWithinPath(path, ancestor))
+  return set.size > 0 && pathsAndAncestorsOf(set).has(ancestor)
+}
+
+function pathsAndAncestorsOf(paths: ReadonlySet<string>): ReadonlySet<string> {
+  const cached = pathsAndAncestorsBySet.get(paths)
+  if (cached != undefined) {
+    return cached
+  }
+  const closure = new Set(Array.from(paths, pathAndAncestors).flat())
+  pathsAndAncestorsBySet.set(paths, closure)
+  return closure
 }
 
 export function withoutPathsWithin(set: ReadonlySet<string>, ancestor: string): ReadonlySet<string> {
