@@ -96,6 +96,12 @@ const lineItemsArray = arrayOf(lineItemGroup, {
 
 The rule receives every row, and each error's path starts with the row's index.
 
+::: tip Showing It After a Submit
+Adding, removing, or moving a row marks the list as touched, so with the default display mode the
+rule's error shows at once. To wait for a submit, show it only while `form.state.submitCount` is
+above zero.
+:::
+
 ## Saving One Row
 
 Each row is a node, so it can be submitted on its own, such as from a Save button on the row:

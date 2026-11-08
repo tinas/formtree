@@ -133,7 +133,7 @@ the form needs its `deps` there too. A part that is turned off stays out of the 
 
 ## Focusing the First Error
 
-A failed submit focuses the first field with an error, or the error summary with
+A failed submit focuses the first field on the page with an error, or the error summary with
 `shouldFocusError: 'summary'`:
 
 ```ts twoslash
@@ -153,10 +153,12 @@ const send = form.handleSubmit(
 )
 ```
 
-`focusElement` decides how an element is focused, for example with smooth scrolling. A field hidden on
-the page, such as one in a closed dialog, is skipped. To focus it instead, open the dialog in
-`onInvalid`, which runs before focus moves. Focus waits for the promise it returns, so the dialog can
-render first.
+Focus finds a field's element by the field's `id`, so a custom input, such as a group of
+[radio buttons](/guide/binding-inputs#radio-buttons), puts that `id` on the element that should
+receive focus. `focusElement` decides how an element is focused, for example with smooth scrolling.
+A field hidden on the page, such as one in a closed dialog, is skipped. To focus it instead, open the
+dialog in `onInvalid`, which runs before focus moves. Focus waits for the promise it returns, so the
+dialog can render first.
 
 ::: tip Every Form at Once
 [App Defaults](/guide/app-defaults) sets both options for every form.

@@ -578,6 +578,124 @@ the field empty.
 
 </div>
 
+## Radio Buttons
+
+Radio buttons share one value, so the field's attributes go on the group around them:
+
+<div class="vue-only">
+
+```vue [radio-field.vue]
+<script setup lang="ts">
+import { useField } from '@formtree/vue'
+
+const props = defineProps<{
+  name: string
+  label: string
+  options: ReadonlyArray<{ value: string; label: string }>
+}>()
+
+const field = useField<string>(() => props.name)
+</script>
+
+<template>
+  <fieldset v-bind="field.attrs" role="radiogroup" tabindex="-1">
+    <legend>{{ label }}</legend>
+    <label v-for="option in options" :key="option.value">
+      <input
+        v-model="field.model"
+        type="radio"
+        :name="field.attrs.name"
+        :value="option.value"
+        @blur="field.attrs.onBlur"
+      />
+      {{ option.label }}
+    </label>
+    <p :id="field.errorId">{{ field.errorMessage }}</p>
+  </fieldset>
+</template>
+```
+
+</div>
+
+<div class="react-only">
+
+```tsx [radio-field.tsx]
+import { useField } from '@formtree/react'
+
+interface RadioFieldProps {
+  name: string
+  label: string
+  options: ReadonlyArray<{ value: string; label: string }>
+}
+
+export function RadioField({ name, label, options }: RadioFieldProps) {
+  const field = useField<string>(name)
+
+  return (
+    <fieldset {...field.attrs} role="radiogroup" tabIndex={-1}>
+      <legend>{label}</legend>
+      {options.map(option => (
+        <label key={option.value}>
+          <input
+            type="radio"
+            name={field.attrs.name}
+            value={option.value}
+            checked={field.value == option.value}
+            onChange={() => field.setValue(option.value)}
+            onBlur={field.attrs.onBlur}
+          />
+          {option.label}
+        </label>
+      ))}
+      <p id={field.errorId}>{field.errorMessage}</p>
+    </fieldset>
+  )
+}
+```
+
+</div>
+
+<div class="javascript-only">
+
+```ts twoslash [bind-radio-group.ts]
+// @noStaticSemanticInfo
+// @filename: bind-input.ts
+import type { FieldAttributes } from '@formtree/core'
+
+export declare function setAttributes(element: HTMLElement, attributes: FieldAttributes): void
+// @filename: bind-radio-group.ts
+// ---cut---
+import type { FieldNode } from '@formtree/core'
+import { setAttributes } from './bind-input'
+
+export function bindRadioGroup(field: FieldNode<string | undefined, unknown>) {
+  const group = document.getElementById(field.id) as HTMLFieldSetElement
+  const radios = Array.from(group.querySelectorAll<HTMLInputElement>('input[type="radio"]'))
+  const error = document.getElementById(field.errorId)!
+
+  for (const radio of radios) {
+    radio.addEventListener('change', () => field.setValue(radio.value))
+    radio.addEventListener('blur', () => field.blur())
+  }
+  showField()
+  return field.subscribe(showField)
+
+  function showField() {
+    for (const radio of radios) {
+      radio.checked = radio.value == field.state.value
+    }
+    error.textContent = field.errorMessage ?? ''
+    setAttributes(group, field.attributes)
+  }
+}
+```
+
+</div>
+
+The group holds the field's `id` and `tabindex="-1"`, so a failed submit can focus it, and
+`role="radiogroup"` lets screen readers read its error with it. Every radio shares the field's
+`name`, so only one of them is checked at a time.
+
 ## Typed Bindings
 
 A name cannot tell TypeScript what its field holds, but a node can. Bind a field's node, and
