@@ -37,6 +37,8 @@ const EXAMPLE_FORMS = [
   'segment',
   'product',
   'contact-form',
+  'drink-order',
+  'notifications',
 ]
 
 const API_SIDEBAR_FILE = new URL('../api/typedoc-sidebar.json', import.meta.url)
@@ -104,6 +106,8 @@ export default defineConfig({
           text: 'Examples',
           items: [
             { text: 'Contact Form', link: '/examples/' },
+            { text: 'Radio Group', link: '/examples/radio-group' },
+            { text: 'Checkbox Group', link: '/examples/checkbox-group' },
             { text: 'Inline Edit', link: '/examples/inline-edit' },
             { text: 'Promo Code', link: '/examples/promo-code' },
             { text: 'Role-based Rules', link: '/examples/role-based-rules' },
