@@ -19,5 +19,12 @@
       "@formtree/vue": ["../../packages/vue/src/index.ts"]
     }
   },
-  "include": [".vitepress/**/*.ts", ".vitepress/**/*.vue", "examples/**/*.ts", "examples/**/*.vue"]
+  "include": [
+    ".vitepress/**/*.ts",
+    ".vitepress/**/*.vue",
+    "examples/**/*.ts",
+    "examples/**/*.vue",
+    "tutorial/**/*.ts",
+    "tutorial/**/*.vue"
+  ]
 }

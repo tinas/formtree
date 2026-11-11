@@ -52,7 +52,7 @@ A decision goes into the `CLAUDE.md` of the package it shapes: what the code doe
 - Behaviour that differs per kind lives in an exhaustive table, not in `kind == 'x'` branches.
 - String domain values are `as const` objects with a derived type.
 - Definitions are values, not components. They are camelCase with a kind suffix, such as `emailField`, `deliveryGroup` or `lineItemsArray`. A definition used as the root of a form ends with `Form` instead (`signUpForm`), so `useForm(signUpForm)` reads as a sentence; the suffix names what the definition is used as. PascalCase stays for types, interfaces and components.
-- Components never receive nodes through props. A business component reads its node with `useFormNode(Definition)`, a generic input takes a `name` and a row takes an `index`.
+- Components never receive nodes through props. A node passed as a prop has to be drilled through every component in between, while a provided one reaches any depth, so the component that creates the form provides it and the rest look it up. A business component reads its node with `useFormNode(Definition)`, a generic input takes a `name` and a row takes an `index`.
 - React components live in kebab-case `.tsx` files with named exports.
 - A constant used by one file stays in that file. Only a package's entry re-exports.
 - Relative imports have no extension.
@@ -89,6 +89,7 @@ A decision goes into the `CLAUDE.md` of the package it shapes: what the code doe
 
 - Hover types are hard to read: nested drafts and outputs show as `Simplify<DraftObject<…> & {} & {…}>`, group nodes as `GroupNode<GroupDefinitionOf<…>>`. Until that is fixed, docs use `//    ^?` only where the type reads well.
 - Playgrounds and docs demos have only been checked with scripted headless Chrome flows; the React playground only for a clean first render, since the repo has no browser driver.
+- The tutorial has its first three chapters, in the Vue view only. Still to come are a part in its own component found by its definition (`useFormNode`), a part that applies only sometimes (`activeWhen`), submitting in steps, and the React and JavaScript views of every chapter.
 - Point the devtools `logo` at the docs site's logo (https://form-tree.netlify.app/logo.svg) instead of the bundled `dynamic_form` icon.
 
 <!--VITE PLUS START-->

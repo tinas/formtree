@@ -12,6 +12,7 @@ export default defineConfig({
       'apps/docs/api/**',
       'apps/docs/examples/**',
       'apps/docs/guide/**',
+      'apps/docs/tutorial/**',
     ],
   },
   lint: {

@@ -1,0 +1,155 @@
+# Binding an Input by Hand
+
+<script setup>
+import CheckoutForm from './steps/binding-by-hand/checkout-form.vue'
+</script>
+
+<div class="vue-only">
+
+This tutorial builds a checkout one chapter at a time, and continues where
+[Quick Start](/guide/quick-start) ends. Quick Start binds its inputs with `useField`. This chapter
+binds them by hand, so the next one can show what `useField` takes off your hands.
+
+</div>
+
+## Starting the Checkout
+
+<div class="vue-only">
+
+The checkout starts with the customer's name and email:
+
+```ts twoslash [forms/checkout.ts]
+// @noStaticSemanticInfo
+import { defineGroup } from '@formtree/vue'
+import { z } from 'zod'
+
+export const checkoutForm = defineGroup({
+  schema: z.object({
+    fullName: z.string({ error: 'Enter your name' }).trim().min(1, {
+      error: 'Enter your name',
+    }),
+    email: z.email({ error: 'Enter a valid email address' }),
+  }),
+})
+```
+
+The component creates the form and keeps the order it submits, so the page can show it:
+
+```vue [checkout-form.vue]
+<script setup lang="ts">
+import type { OutputOf } from '@formtree/vue'
+import { useForm } from '@formtree/vue'
+import { shallowRef } from 'vue'
+import { checkoutForm } from './forms/checkout'
+
+const form = useForm(checkoutForm)
+const order = shallowRef<OutputOf<typeof checkoutForm>>()
+
+const placeOrder = form.handleSubmit(checkout => {
+  order.value = checkout
+})
+</script>
+
+<template>
+  <form novalidate @submit.prevent="placeOrder">
+    <button type="submit">Place order</button>
+  </form>
+  <pre v-if="order">{{ order }}</pre>
+</template>
+```
+
+</div>
+
+## Showing the Value
+
+<div class="vue-only">
+
+Every value in the form has a node, which holds the value and its errors. Get the node for the name
+with `form.field`, show its value in an input, and write what the user types with `setValue`:
+
+```vue{8,18-23} [checkout-form.vue]
+<script setup lang="ts">
+import type { OutputOf } from '@formtree/vue'
+import { useForm } from '@formtree/vue'
+import { shallowRef } from 'vue'
+import { checkoutForm } from './forms/checkout'
+
+const form = useForm(checkoutForm)
+const fullName = form.field('fullName')
+const order = shallowRef<OutputOf<typeof checkoutForm>>()
+
+const placeOrder = form.handleSubmit(checkout => {
+  order.value = checkout
+})
+</script>
+
+<template>
+  <form novalidate @submit.prevent="placeOrder">
+    <label :for="fullName.id">Name</label>
+    <input
+      :id="fullName.id"
+      :value="fullName.state.value"
+      @input="fullName.setValue(($event.target as HTMLInputElement).value)"
+    />
+
+    <button type="submit">Place order</button>
+  </form>
+  <pre v-if="order">{{ order }}</pre>
+</template>
+```
+
+The input shows the node's value, so it also follows changes made in code, such as a reset, and the
+node's `id` connects the label to it.
+
+</div>
+
+## Showing the Error
+
+<div class="vue-only">
+
+Tell the node when the user leaves the input with `blur`, and show its `errorMessage` below:
+
+```vue{8,10}
+<template>
+  <form novalidate @submit.prevent="placeOrder">
+    <label :for="fullName.id">Name</label>
+    <input
+      :id="fullName.id"
+      :value="fullName.state.value"
+      @input="fullName.setValue(($event.target as HTMLInputElement).value)"
+      @blur="fullName.blur"
+    />
+    <p>{{ fullName.errorMessage }}</p>
+
+    <button type="submit">Place order</button>
+  </form>
+  <pre v-if="order">{{ order }}</pre>
+</template>
+```
+
+The form checks the value on every change, but `errorMessage` stays empty until the user has left
+the input, so nobody sees an error while still typing.
+
+</div>
+
+## Trying the Checkout
+
+<div class="vue-only">
+
+Bind the email the same way:
+
+<DemoFrame title="Two inputs bound by hand" class="tutorial-demo">
+  <CheckoutForm />
+</DemoFrame>
+
+Leave the name empty and move on to see its error. Then fill in both inputs and press Place order.
+
+::: code-group
+
+<<< ./steps/binding-by-hand/checkout-form.vue [checkout-form.vue]
+
+<<< ./steps/binding-by-hand/forms/checkout.ts [forms/checkout.ts]
+
+:::
+
+</div>

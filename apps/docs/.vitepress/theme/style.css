@@ -191,7 +191,8 @@
   gap: 8px;
 }
 
-.demo-output {
+.demo-output,
+.tutorial-demo pre {
   min-width: 0;
   margin: 0;
   padding: 12px;
@@ -258,4 +259,36 @@
 
 .demo-preview [aria-invalid='true'] {
   border-color: var(--vp-c-danger-1);
+}
+
+/**
+ * Component: Tutorial Demo
+ * -------------------------------------------------------------------------- */
+
+.tutorial-demo form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 360px;
+}
+
+.tutorial-demo label {
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+}
+
+.tutorial-demo form p {
+  min-height: 18px;
+  margin: 0 0 6px;
+  color: var(--vp-c-danger-1);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.tutorial-demo form button {
+  align-self: flex-start;
+}
+
+.tutorial-demo pre {
+  margin-top: 16px;
 }

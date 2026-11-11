@@ -55,6 +55,7 @@ export default defineConfig({
 
     nav: [
       { text: 'Guide', link: '/guide/', activeMatch: '/guide/' },
+      { text: 'Tutorial', link: '/tutorial/', activeMatch: '/tutorial/' },
       { text: 'Examples', link: '/examples/', activeMatch: '/examples/' },
       { text: 'API', link: '/api/', activeMatch: '/api/' },
     ],
@@ -97,6 +98,17 @@ export default defineConfig({
             { text: 'Passing Data to Rules', link: '/guide/passing-data' },
             { text: 'Recursive Forms', link: '/guide/recursive-forms' },
             { text: 'TypeScript', link: '/guide/typescript' },
+          ],
+        },
+      ],
+
+      '/tutorial/': [
+        {
+          text: 'Tutorial',
+          items: [
+            { text: 'Binding an Input by Hand', link: '/tutorial/' },
+            { text: 'Binding with useField', link: '/tutorial/use-field' },
+            { text: 'Writing an Input Component', link: '/tutorial/input-component' },
           ],
         },
       ],
