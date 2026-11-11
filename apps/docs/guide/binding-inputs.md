@@ -578,6 +578,8 @@ the field empty.
 
 </div>
 
+[Checkbox Group](/examples/checkbox-group) binds several boxes to one list.
+
 ## Radio Buttons
 
 Radio buttons share one value, so the field's attributes go on the group around them:
@@ -694,7 +696,8 @@ export function bindRadioGroup(field: FieldNode<string | undefined, unknown>) {
 
 The group holds the field's `id` and `tabindex="-1"`, so a failed submit can focus it, and
 `role="radiogroup"` lets screen readers read its error with it. Every radio shares the field's
-`name`, so only one of them is checked at a time.
+`name`, so only one of them is checked at a time. [Radio Group](/examples/radio-group) shows this
+live.
 
 ## Typed Bindings
 
