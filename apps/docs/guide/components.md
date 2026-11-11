@@ -116,7 +116,11 @@ const lineItems = provideFormNode(useFormNode(orderForm).array('lineItems'))
 </script>
 
 <template>
-  <LineItemRow v-for="lineItem in lineItems.items" :key="lineItem.key" :index="lineItem.index" />
+  <LineItemRow
+    v-for="lineItem in lineItems.items"
+    :key="lineItem.key"
+    :index="lineItem.index"
+  />
 </template>
 ```
 
@@ -217,7 +221,9 @@ import { orderForm } from './forms/order'
 const form = createForm(orderForm)
 const lineItems = form.array('lineItems')
 const list = document.getElementById('line-items')!
-const rowTemplate = document.getElementById('line-item-row') as HTMLTemplateElement
+const rowTemplate = document.getElementById(
+  'line-item-row',
+) as HTMLTemplateElement
 const rowElements = new Map<string, HTMLElement>()
 
 renderRows()
@@ -233,7 +239,8 @@ function renderRows() {
 }
 
 function createRow(row: NodeOf<typeof lineItemGroup> & ArrayItem) {
-  const element = rowTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement
+  const blankRow = rowTemplate.content.firstElementChild!
+  const element = blankRow.cloneNode(true) as HTMLElement
 
   element.querySelector('.remove')!.addEventListener('click', () => {
     rowElements.delete(row.key)
@@ -325,7 +332,7 @@ would show the state from the last render.
 
 Update the row from its own `subscribe` to show what it is doing, such as a save in progress:
 
-```ts{3,5-14,17} twoslash [line-item-list.ts]
+```ts{4,6-15,18} twoslash [line-item-list.ts]
 // @noStaticSemanticInfo
 // @filename: forms/order.ts
 import { defineGroup } from '@formtree/core'
@@ -352,7 +359,8 @@ const rowElements = new Map<string, HTMLElement>()
 declare function renderRows(): void
 // ---cut---
 function createRow(row: NodeOf<typeof lineItemGroup> & ArrayItem) {
-  const element = rowTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement
+  const blankRow = rowTemplate.content.firstElementChild!
+  const element = blankRow.cloneNode(true) as HTMLElement
   const save = element.querySelector<HTMLButtonElement>('.save')!
 
   save.addEventListener(

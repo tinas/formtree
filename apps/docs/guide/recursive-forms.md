@@ -24,13 +24,18 @@ export interface ConditionTreeInput {
   groups: Array<ConditionTreeInput>
 }
 
-export const conditionTreeGroup: GroupDefinition<ConditionTreeInput> = defineGroup({
-  schema: z.object({ match: z.enum(['all', 'any'], { error: 'Choose how the conditions combine' }) }),
-  children: {
-    conditions: arrayOf(conditionGroup),
-    groups: arrayOf(() => conditionTreeGroup),
-  },
-})
+export const conditionTreeGroup: GroupDefinition<ConditionTreeInput> =
+  defineGroup({
+    schema: z.object({
+      match: z.enum(['all', 'any'], {
+        error: 'Choose how the conditions combine',
+      }),
+    }),
+    children: {
+      conditions: arrayOf(conditionGroup),
+      groups: arrayOf(() => conditionTreeGroup),
+    },
+  })
 ```
 
 The function delays the reference until a form needs the nested level. TypeScript cannot infer the
@@ -42,7 +47,7 @@ under `groups`.
 Every level runs the same rules. Pass the group's dependencies on to its nested groups in
 `childDeps`:
 
-```ts{1-2,8-15} twoslash
+```ts{1-5,15-22} twoslash
 import type { GroupDefinition, InputOf } from '@formtree/core'
 import { arrayOf, defineGroupWithDeps } from '@formtree/core'
 import { z } from 'zod'
@@ -70,22 +75,29 @@ export interface ConditionTreeInput {
   groups: Array<ConditionTreeInput>
 }
 // ---cut---
-export const conditionTreeGroup: GroupDefinition<ConditionTreeInput, ConditionTreeInput, AttributeDeps> =
-  defineGroupWithDeps<AttributeDeps>()({
-    schema: z.object({ match: z.enum(['all', 'any'], { error: 'Choose how the conditions combine' }) }),
-    children: {
-      conditions: arrayOf(conditionGroup),
-      groups: arrayOf(() => conditionTreeGroup),
-    },
-    childDeps: {
-      conditions: ({ deps }) => deps,
-      groups: ({ deps }) => deps,
-    },
-    validate: ({ value }) =>
-      value.conditions.length + value.groups.length == 0
-        ? { path: 'conditions', code: 'Add a condition or a group' }
-        : undefined,
-  })
+export const conditionTreeGroup: GroupDefinition<
+  ConditionTreeInput,
+  ConditionTreeInput,
+  AttributeDeps
+> = defineGroupWithDeps<AttributeDeps>()({
+  schema: z.object({
+    match: z.enum(['all', 'any'], {
+      error: 'Choose how the conditions combine',
+    }),
+  }),
+  children: {
+    conditions: arrayOf(conditionGroup),
+    groups: arrayOf(() => conditionTreeGroup),
+  },
+  childDeps: {
+    conditions: ({ deps }) => deps,
+    groups: ({ deps }) => deps,
+  },
+  validate: ({ value }) =>
+    value.conditions.length + value.groups.length == 0
+      ? { path: 'conditions', code: 'Add a condition or a group' }
+      : undefined,
+})
 ```
 
 The dependency type is the third argument of `GroupDefinition`. A condition at any depth checks
@@ -108,15 +120,26 @@ defineOptions({ name: 'ConditionTree' })
 const props = defineProps<{ index?: number }>()
 
 const parent = useFormNode(conditionTreeGroup)
-const tree = props.index == undefined ? parent : provideFormNode(parent.array('groups').items[props.index]!)
+let tree = parent
+if (props.index != undefined) {
+  tree = provideFormNode(parent.array('groups').items[props.index]!)
+}
 const conditions = tree.array('conditions')
 const groups = tree.array('groups')
 </script>
 
 <template>
   <fieldset>
-    <ConditionRow v-for="condition in conditions.items" :key="condition.key" :index="condition.index" />
-    <ConditionTree v-for="group in groups.items" :key="group.key" :index="group.index" />
+    <ConditionRow
+      v-for="condition in conditions.items"
+      :key="condition.key"
+      :index="condition.index"
+    />
+    <ConditionTree
+      v-for="group in groups.items"
+      :key="group.key"
+      :index="group.index"
+    />
   </fieldset>
 </template>
 ```
@@ -135,8 +158,14 @@ import { conditionTreeGroup } from './forms/segment'
 
 export function ConditionTree({ index }: { index?: number }) {
   const parent = useFormNode(conditionTreeGroup)
-  const tree = index == undefined ? parent : parent.array('groups').items[index]!
-  const conditions = useNodeState(tree.array('conditions'), node => node.items)
+  let tree = parent
+  if (index != undefined) {
+    tree = parent.array('groups').items[index]!
+  }
+  const conditions = useNodeState(
+    tree.array('conditions'),
+    node => node.items,
+  )
   const groups = useNodeState(tree.array('groups'), node => node.items)
 
   return (
@@ -173,7 +202,9 @@ import type { NodeOf } from '@formtree/core'
 import { renderConditionRow } from './condition-row'
 import { conditionTreeGroup } from './forms/segment'
 
-export function renderConditionTree(tree: NodeOf<typeof conditionTreeGroup>): HTMLFieldSetElement {
+type ConditionTree = NodeOf<typeof conditionTreeGroup>
+
+export function renderConditionTree(tree: ConditionTree) {
   const fieldset = document.createElement('fieldset')
   for (const condition of tree.array('conditions').items) {
     fieldset.append(renderConditionRow(condition))

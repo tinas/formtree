@@ -31,6 +31,10 @@ const status = computed(() => {
 const save = row.handleSubmit(async item => {
   row.reset({ value: await saveLineItem(item) })
 })
+
+function moveUp() {
+  lineItems.move(props.index, props.index - 1)
+}
 </script>
 
 <template>
@@ -39,7 +43,9 @@ const save = row.handleSubmit(async item => {
     <NumberField name="quantity" label="Quantity" />
     <div class="demo-row" style="margin-top: 22px">
       <button type="button" @click="save">Save</button>
-      <button type="button" :disabled="index == 0" @click="lineItems.move(index, index - 1)">Move up</button>
+      <button type="button" :disabled="index == 0" @click="moveUp">
+        Move up
+      </button>
       <button type="button" @click="lineItems.remove(index)">Remove</button>
       <span class="demo-hint">{{ status }}</span>
     </div>

@@ -15,13 +15,15 @@ export interface ShippingDeps {
 }
 
 export const addressGroup = defineGroupWithDeps<ShippingDeps>()({
-  schema: ({ deps }) =>
-    z.object({
+  schema: ({ deps }) => {
+    const shipsTo = (country: string) => deps.countries.includes(country)
+    return z.object({
       street: z.string({ error: 'Street is required' }),
-      country: z
-        .string({ error: 'Country is required' })
-        .refine(country => deps.countries.includes(country), { error: 'We do not ship to this country yet' }),
-    }),
+      country: z.string({ error: 'Country is required' }).refine(shipsTo, {
+        error: 'We do not ship to this country yet',
+      }),
+    })
+  },
 })
 ```
 
@@ -136,9 +138,9 @@ import { z } from 'zod'
 // ---cut---
 export const passwordField = defineFieldWithDeps<{ minLength: number }>()({
   schema: ({ deps }) =>
-    z
-      .string({ error: 'Password is required' })
-      .min(deps.minLength, { error: `Use at least ${deps.minLength} characters` }),
+    z.string({ error: 'Password is required' }).min(deps.minLength, {
+      error: `Use at least ${deps.minLength} characters`,
+    }),
 })
 
 export const accountForm = defineGroup({
@@ -213,7 +215,9 @@ import { checkoutForm } from './forms/checkout'
 
 declare function fetchShippingCountries(): Promise<Array<string>>
 // ---cut---
-async function loadCheckoutDeps(cartId: string): Promise<DepsOf<typeof checkoutForm>> {
+type CheckoutDeps = DepsOf<typeof checkoutForm>
+
+async function loadCheckoutDeps(cartId: string): Promise<CheckoutDeps> {
   return { cartId, countries: await fetchShippingCountries() }
 }
 ```

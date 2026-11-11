@@ -7,7 +7,9 @@ export const lineItemGroup = defineGroup({
   schema: z.object({
     id: z.number().int().positive().optional(),
     sku: requiredText('Product is required'),
-    quantity: z.number({ error: 'Quantity is required' }).int().positive({ error: 'Quantity must be at least 1' }),
+    quantity: z.number({ error: 'Quantity is required' }).int().positive({
+      error: 'Quantity must be at least 1',
+    }),
   }),
 })
 
@@ -26,7 +28,13 @@ function duplicateProducts(rows: ReadonlyArray<LineItemDraft>) {
       return []
     }
     if (seen.has(row.sku)) {
-      return [{ path: `${index}.sku`, code: 'This product is already in the cart', params: { sku: row.sku } }]
+      return [
+        {
+          path: `${index}.sku`,
+          code: 'This product is already in the cart',
+          params: { sku: row.sku },
+        },
+      ]
     }
     seen.add(row.sku)
     return []

@@ -11,11 +11,13 @@ import { z } from 'zod'
 export const signUpForm = defineGroup({
   schema: z.object({
     email: z.email({ error: 'Enter a valid email address' }),
-    password: z.string({ error: 'Enter a password' }).min(8, { error: 'Use at least 8 characters' }),
+    password: z.string({ error: 'Enter a password' }).min(8, {
+      error: 'Use at least 8 characters',
+    }),
     confirmPassword: z.string({ error: 'Repeat the password' }),
   }),
-  validate: ({ value }) =>
-    value.confirmPassword != undefined && value.confirmPassword != value.password
+  validate: ({ value: { password, confirmPassword } }) =>
+    confirmPassword != undefined && confirmPassword != password
       ? { path: 'confirmPassword', code: 'Passwords do not match' }
       : undefined,
 })
@@ -40,7 +42,9 @@ export const signUpForm = defineGroup({
   schema: z
     .object({
       email: z.email({ error: 'Enter a valid email address' }),
-      password: z.string({ error: 'Enter a password' }).min(8, { error: 'Use at least 8 characters' }),
+      password: z.string({ error: 'Enter a password' }).min(8, {
+        error: 'Use at least 8 characters',
+      }),
       confirmPassword: z.string({ error: 'Repeat the password' }),
     })
     .refine(value => value.confirmPassword == value.password, {
@@ -67,11 +71,13 @@ import { z } from 'zod'
 const signUpForm = defineGroup({
   schema: z.object({
     email: z.email({ error: 'Enter a valid email address' }),
-    password: z.string({ error: 'Enter a password' }).min(8, { error: 'Use at least 8 characters' }),
+    password: z.string({ error: 'Enter a password' }).min(8, {
+      error: 'Use at least 8 characters',
+    }),
     confirmPassword: z.string({ error: 'Repeat the password' }),
   }),
-  validate: ({ value }) =>
-    value.confirmPassword != undefined && value.confirmPassword != value.password
+  validate: ({ value: { password, confirmPassword } }) =>
+    confirmPassword != undefined && confirmPassword != password
       ? { path: 'confirmPassword', code: 'Passwords do not match' }
       : undefined,
 })
@@ -99,11 +105,13 @@ import { z } from 'zod'
 const signUpForm = defineGroup({
   schema: z.object({
     email: z.email({ error: 'Enter a valid email address' }),
-    password: z.string({ error: 'Enter a password' }).min(8, { error: 'Use at least 8 characters' }),
+    password: z.string({ error: 'Enter a password' }).min(8, {
+      error: 'Use at least 8 characters',
+    }),
     confirmPassword: z.string({ error: 'Repeat the password' }),
   }),
-  validate: ({ value }) =>
-    value.confirmPassword != undefined && value.confirmPassword != value.password
+  validate: ({ value: { password, confirmPassword } }) =>
+    confirmPassword != undefined && confirmPassword != password
       ? { path: 'confirmPassword', code: 'Passwords do not match' }
       : undefined,
 })

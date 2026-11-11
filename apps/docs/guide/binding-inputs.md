@@ -83,7 +83,11 @@ export function TextField({ name, label }: { name: string; label: string }) {
   return (
     <div>
       <label htmlFor={field.id}>{label}</label>
-      <input {...field.attrs} value={field.value ?? ''} onChange={event => field.setValue(event.target.value)} />
+      <input
+        {...field.attrs}
+        value={field.value ?? ''}
+        onChange={event => field.setValue(event.target.value)}
+      />
       <p id={field.errorId}>{field.errorMessage}</p>
     </div>
   )
@@ -127,8 +131,10 @@ bindInput(form.field('message'))
 // @noStaticSemanticInfo
 import type { FieldAttributes, FieldNode } from '@formtree/core'
 
+type TextInput = HTMLInputElement | HTMLTextAreaElement
+
 export function bindInput(field: FieldNode<string | undefined, unknown>) {
-  const input = document.getElementById(field.id) as HTMLInputElement | HTMLTextAreaElement
+  const input = document.getElementById(field.id) as TextInput
   const error = document.getElementById(field.errorId)!
 
   input.addEventListener('input', () => field.setValue(input.value))
@@ -143,7 +149,7 @@ export function bindInput(field: FieldNode<string | undefined, unknown>) {
   }
 }
 
-export function setAttributes(element: HTMLElement, attributes: FieldAttributes) {
+export function setAttributes(element: Element, attributes: FieldAttributes) {
   for (const [attribute, value] of Object.entries(attributes)) {
     if (value == null) {
       element.removeAttribute(attribute)
@@ -183,7 +189,7 @@ an empty value:
 
 <div class="vue-only">
 
-```vue{11} [text-field.vue]
+```vue{11-13} [text-field.vue]
 <script setup lang="ts">
 import { useField } from '@formtree/vue'
 
@@ -194,7 +200,9 @@ const field = useField<string>(() => props.name)
 
 <template>
   <div>
-    <label :for="field.id">{{ label }}<span v-if="field.state.required" aria-hidden="true">*</span></label>
+    <label :for="field.id">
+      {{ label }}<span v-if="field.state.required" aria-hidden="true">*</span>
+    </label>
     <input v-model="field.model" v-bind="field.attrs" />
     <p :id="field.errorId">{{ field.errorMessage }}</p>
   </div>
@@ -217,7 +225,11 @@ export function TextField({ name, label }: { name: string; label: string }) {
         {label}
         {field.state.required && <span aria-hidden="true">*</span>}
       </label>
-      <input {...field.attrs} value={field.value ?? ''} onChange={event => field.setValue(event.target.value)} />
+      <input
+        {...field.attrs}
+        value={field.value ?? ''}
+        onChange={event => field.setValue(event.target.value)}
+      />
       <p id={field.errorId}>{field.errorMessage}</p>
     </div>
   )
@@ -232,10 +244,11 @@ export function TextField({ name, label }: { name: string; label: string }) {
 // @noStaticSemanticInfo
 import type { FieldAttributes, FieldNode } from '@formtree/core'
 
+type TextInput = HTMLInputElement | HTMLTextAreaElement
 declare function setAttributes(element: HTMLElement, attributes: FieldAttributes): void
 // ---cut---
 export function bindInput(field: FieldNode<string | undefined, unknown>) {
-  const input = document.getElementById(field.id) as HTMLInputElement | HTMLTextAreaElement
+  const input = document.getElementById(field.id) as TextInput
   const error = document.getElementById(field.errorId)!
 
   input.addEventListener('input', () => field.setValue(input.value))
@@ -301,7 +314,12 @@ const text = computed({
 ```tsx [number-field.tsx]
 import { useField } from '@formtree/react'
 
-export function NumberField({ name, label }: { name: string; label: string }) {
+interface NumberFieldProps {
+  name: string
+  label: string
+}
+
+export function NumberField({ name, label }: NumberFieldProps) {
   const field = useField<number>(name)
 
   return (
@@ -311,11 +329,15 @@ export function NumberField({ name, label }: { name: string; label: string }) {
         {...field.attrs}
         type="number"
         value={field.value ?? ''}
-        onChange={event => field.setValue(event.target.value == '' ? undefined : Number(event.target.value))}
+        onChange={event => field.setValue(toNumber(event.target.value))}
       />
       <p id={field.errorId}>{field.errorMessage}</p>
     </div>
   )
+}
+
+function toNumber(text: string) {
+  return text == '' ? undefined : Number(text)
 }
 ```
 
@@ -323,7 +345,7 @@ export function NumberField({ name, label }: { name: string; label: string }) {
 
 <div class="javascript-only">
 
-```ts{4,8,14-16,21-23} twoslash [bind-number-input.ts]
+```ts{4-6,10,16-19,24-26} twoslash [bind-number-input.ts]
 // @noStaticSemanticInfo
 // @filename: bind-input.ts
 import type { FieldAttributes } from '@formtree/core'
@@ -334,7 +356,9 @@ export declare function setAttributes(element: HTMLElement, attributes: FieldAtt
 import type { FieldNode } from '@formtree/core'
 import { setAttributes } from './bind-input'
 
-export function bindNumberInput(field: FieldNode<number | undefined, unknown>) {
+export function bindNumberInput(
+  field: FieldNode<number | undefined, unknown>,
+) {
   const input = document.getElementById(field.id) as HTMLInputElement
   const error = document.getElementById(field.errorId)!
 
@@ -345,7 +369,8 @@ export function bindNumberInput(field: FieldNode<number | undefined, unknown>) {
 
   function showField() {
     if (readNumber() != field.state.value) {
-      input.value = field.state.value == undefined ? '' : String(field.state.value)
+      input.value =
+        field.state.value == undefined ? '' : String(field.state.value)
     }
     error.textContent = field.errorMessage ?? ''
     setAttributes(input, field.attributes)
@@ -379,7 +404,11 @@ interface SelectOption {
   readonly label: string
 }
 
-const props = defineProps<{ name: string; label: string; options: ReadonlyArray<SelectOption> }>()
+const props = defineProps<{
+  name: string
+  label: string
+  options: ReadonlyArray<SelectOption>
+}>()
 
 const field = useField<string>(() => props.name)
 </script>
@@ -389,7 +418,13 @@ const field = useField<string>(() => props.name)
     <label :for="field.id">{{ label }}</label>
     <select v-model="field.model" v-bind="field.attrs">
       <option :value="undefined" disabled>Choose…</option>
-      <option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
+      <option
+        v-for="option in options"
+        :key="option.value"
+        :value="option.value"
+      >
+        {{ option.label }}
+      </option>
     </select>
     <p :id="field.errorId">{{ field.errorMessage }}</p>
   </div>
@@ -420,7 +455,11 @@ export function SelectField({ name, label, options }: SelectFieldProps) {
   return (
     <div>
       <label htmlFor={field.id}>{label}</label>
-      <select {...field.attrs} value={field.value ?? ''} onChange={event => field.setValue(event.target.value)}>
+      <select
+        {...field.attrs}
+        value={field.value ?? ''}
+        onChange={event => field.setValue(event.target.value)}
+      >
         <option value="" disabled>
           Choose…
         </option>
@@ -442,7 +481,7 @@ export function SelectField({ name, label, options }: SelectFieldProps) {
 
 ::: code-group
 
-```ts{4-7,11,17} twoslash [bind-select.ts]
+```ts{4-7,11-13,19} twoslash [bind-select.ts]
 // @noStaticSemanticInfo
 // @filename: bind-input.ts
 import type { FieldAttributes } from '@formtree/core'
@@ -460,7 +499,9 @@ export function bindSelect<Value extends string>(
   const select = document.getElementById(field.id) as HTMLSelectElement
   const error = document.getElementById(field.errorId)!
 
-  select.addEventListener('change', () => field.setValue(choices.find(choice => choice == select.value)))
+  select.addEventListener('change', () =>
+    field.setValue(choices.find(choice => choice == select.value)),
+  )
   select.addEventListener('blur', () => field.blur())
   showField()
   return field.subscribe(showField)
@@ -521,7 +562,12 @@ const field = useField<boolean>(() => props.name)
 ```tsx [checkbox-field.tsx]
 import { useField } from '@formtree/react'
 
-export function CheckboxField({ name, label }: { name: string; label: string }) {
+interface CheckboxFieldProps {
+  name: string
+  label: string
+}
+
+export function CheckboxField({ name, label }: CheckboxFieldProps) {
   const field = useField<boolean>(name)
 
   return (
@@ -543,7 +589,7 @@ export function CheckboxField({ name, label }: { name: string; label: string }) 
 
 <div class="javascript-only">
 
-```ts{4,8,14} twoslash [bind-checkbox.ts]
+```ts{4,8-10,16} twoslash [bind-checkbox.ts]
 // @noStaticSemanticInfo
 // @filename: bind-input.ts
 import type { FieldAttributes } from '@formtree/core'
@@ -558,7 +604,9 @@ export function bindCheckbox(field: FieldNode<true | undefined, unknown>) {
   const checkbox = document.getElementById(field.id) as HTMLInputElement
   const error = document.getElementById(field.errorId)!
 
-  checkbox.addEventListener('change', () => field.setValue(checkbox.checked ? true : undefined))
+  checkbox.addEventListener('change', () =>
+    field.setValue(checkbox.checked ? true : undefined),
+  )
   checkbox.addEventListener('blur', () => field.blur())
   showField()
   return field.subscribe(showField)
@@ -668,9 +716,11 @@ export declare function setAttributes(element: HTMLElement, attributes: FieldAtt
 import type { FieldNode } from '@formtree/core'
 import { setAttributes } from './bind-input'
 
-export function bindRadioGroup(field: FieldNode<string | undefined, unknown>) {
+export function bindRadioGroup(
+  field: FieldNode<string | undefined, unknown>,
+) {
   const group = document.getElementById(field.id) as HTMLFieldSetElement
-  const radios = Array.from(group.querySelectorAll<HTMLInputElement>('input[type="radio"]'))
+  const radios = group.querySelectorAll<HTMLInputElement>('[type="radio"]')
   const error = document.getElementById(field.errorId)!
 
   for (const radio of radios) {
@@ -786,7 +836,7 @@ language from i18next.
 
 Call `showField` again when the language changes:
 
-```ts{2,11} twoslash [bind-input.ts]
+```ts{2,13} twoslash [bind-input.ts]
 // @noStaticSemanticInfo
 // @filename: i18next.d.ts
 declare module 'i18next' {
@@ -798,8 +848,10 @@ declare module 'i18next' {
 import type { FieldAttributes, FieldNode } from '@formtree/core'
 import i18next from 'i18next'
 
+type TextInput = HTMLInputElement | HTMLTextAreaElement
+
 export function bindInput(field: FieldNode<string | undefined, unknown>) {
-  const input = document.getElementById(field.id) as HTMLInputElement | HTMLTextAreaElement
+  const input = document.getElementById(field.id) as TextInput
   const error = document.getElementById(field.errorId)!
 
   input.addEventListener('input', () => field.setValue(input.value))

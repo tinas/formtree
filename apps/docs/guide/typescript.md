@@ -11,7 +11,9 @@ import { defineField } from '@formtree/core'
 import { z } from 'zod'
 // ---cut---
 const birthdayField = defineField({
-  schema: z.iso.date({ error: 'Enter a date' }).transform(text => new Date(text)),
+  schema: z.iso.date({ error: 'Enter a date' }).transform(text => {
+    return new Date(text)
+  }),
 })
 
 type BirthdayDraft = DraftOf<typeof birthdayField>
@@ -103,6 +105,8 @@ types functions in the order they are written:
 
 ```ts twoslash
 // @noStaticSemanticInfo
+import type { ShippingDeps } from './forms/delivery'
+
 import { defineField, defineGroupWithDeps } from '@formtree/core'
 import { z } from 'zod'
 
@@ -110,14 +114,16 @@ const stateField = defineField({
   schema: z.string({ error: 'State is required' }),
 })
 // ---cut---
-export const addressGroup = defineGroupWithDeps<{ countries: ReadonlyArray<string> }>()({
-  schema: ({ deps }) =>
-    z.object({
+export const addressGroup = defineGroupWithDeps<ShippingDeps>()({
+  schema: ({ deps }) => {
+    const shipsTo = (country: string) => deps.countries.includes(country)
+    return z.object({
       street: z.string({ error: 'Street is required' }),
-      country: z
-        .string({ error: 'Country is required' })
-        .refine(country => deps.countries.includes(country), { error: 'We do not ship to this country yet' }),
-    }),
+      country: z.string({ error: 'Country is required' }).refine(shipsTo, {
+        error: 'We do not ship to this country yet',
+      }),
+    })
+  },
   children: { state: stateField },
   activeWhen: {
     state: ({ value }) => value.country == 'US',

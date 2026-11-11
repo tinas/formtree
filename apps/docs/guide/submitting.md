@@ -45,7 +45,7 @@ const form = createForm(checkoutForm, {
   deps: { cartId: 'cart_42', countries: ['DE', 'NL'] },
 })
 // ---cut---
-const continueToPayment = form.group('delivery').handleSubmit(async delivery => {
+const submitDelivery = form.group('delivery').handleSubmit(async delivery => {
   await saveDelivery(delivery)
   showStep('payment')
 })
@@ -81,7 +81,12 @@ const form = createForm(accountForm)
 const signUp = form.handleSubmit(async account => {
   const response = await createAccount(account)
   if (response.errors) {
-    form.setErrors(response.errors.map(error => ({ path: error.field, code: error.message })))
+    form.setErrors(
+      response.errors.map(error => ({
+        path: error.field,
+        code: error.message,
+      })),
+    )
   }
 })
 ```
@@ -172,10 +177,10 @@ A button outside the `<form>` element submits it through the HTML `form` attribu
 
 ```vue
 <template>
-  <form id="delivery-step" novalidate @submit.prevent="continueToPayment">…</form>
+  <form id="delivery" novalidate @submit.prevent="submitDelivery">…</form>
 
   <footer>
-    <button type="submit" form="delivery-step">Continue</button>
+    <button type="submit" form="delivery">Continue</button>
   </footer>
 </template>
 ```
@@ -188,18 +193,18 @@ A button outside the `<form>` element submits it through the HTML `form` attribu
 return (
   <>
     <form
-      id="delivery-step"
+      id="delivery"
       noValidate
       onSubmit={event => {
         event.preventDefault()
-        void continueToPayment()
+        void submitDelivery()
       }}
     >
       …
     </form>
 
     <footer>
-      <button type="submit" form="delivery-step">
+      <button type="submit" form="delivery">
         Continue
       </button>
     </footer>
@@ -212,10 +217,10 @@ return (
 <div class="javascript-only">
 
 ```html
-<form id="delivery-step" novalidate>…</form>
+<form id="delivery" novalidate>…</form>
 
 <footer>
-  <button type="submit" form="delivery-step">Continue</button>
+  <button type="submit" form="delivery">Continue</button>
 </footer>
 ```
 

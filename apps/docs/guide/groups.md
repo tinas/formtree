@@ -12,8 +12,12 @@ import { z } from 'zod'
 // ---cut---
 export const addressGroup = defineGroup({
   schema: z.object({
-    street: z.string({ error: 'Street is required' }).trim().min(1, { error: 'Street is required' }),
-    city: z.string({ error: 'City is required' }).trim().min(1, { error: 'City is required' }),
+    street: z.string({ error: 'Street is required' }).trim().min(1, {
+      error: 'Street is required',
+    }),
+    city: z.string({ error: 'City is required' }).trim().min(1, {
+      error: 'City is required',
+    }),
   }),
 })
 
@@ -45,8 +49,12 @@ import { z } from 'zod'
 
 const addressGroup = defineGroup({
   schema: z.object({
-    street: z.string({ error: 'Street is required' }).trim().min(1, { error: 'Street is required' }),
-    city: z.string({ error: 'City is required' }).trim().min(1, { error: 'City is required' }),
+    street: z.string({ error: 'Street is required' }).trim().min(1, {
+      error: 'Street is required',
+    }),
+    city: z.string({ error: 'City is required' }).trim().min(1, {
+      error: 'City is required',
+    }),
   }),
 })
 
@@ -99,7 +107,8 @@ import { checkoutForm } from './forms/checkout'
 
 export function CheckoutSteps() {
   const form = useForm(checkoutForm)
-  const addressValid = useNodeState(form.group('address'), node => node.state.valid)
+  const address = form.group('address')
+  const addressValid = useNodeState(address, node => node.state.valid)
 
   return <li className={addressValid ? 'complete' : undefined}>Address</li>
 }
@@ -120,8 +129,12 @@ import { z } from 'zod'
 
 const addressGroup = defineGroup({
   schema: z.object({
-    street: z.string({ error: 'Street is required' }).trim().min(1, { error: 'Street is required' }),
-    city: z.string({ error: 'City is required' }).trim().min(1, { error: 'City is required' }),
+    street: z.string({ error: 'Street is required' }).trim().min(1, {
+      error: 'Street is required',
+    }),
+    city: z.string({ error: 'City is required' }).trim().min(1, {
+      error: 'City is required',
+    }),
   }),
 })
 

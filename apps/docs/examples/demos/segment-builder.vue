@@ -11,7 +11,10 @@ import ConditionTree from './condition-tree.vue'
 const deviceAvailable = ref(true)
 
 const attributes = computed(() => {
-  return deviceAvailable.value ? ATTRIBUTES : ATTRIBUTES.filter(attribute => attribute.id != 'device')
+  if (deviceAvailable.value) {
+    return ATTRIBUTES
+  }
+  return ATTRIBUTES.filter(attribute => attribute.id != 'device')
 })
 
 const form = useForm(segmentForm, {
@@ -40,6 +43,12 @@ const name = useField(form.field('name'))
 provideFormNode(form.group('rules'))
 
 const output = shallowRef<OutputOf<typeof segmentForm>>()
+const outputText = computed(() => {
+  if (output.value == undefined) {
+    return 'Submit to see the output'
+  }
+  return JSON.stringify(output.value, null, 2)
+})
 
 const saveSegment = form.handleSubmit(segment => {
   output.value = segment
@@ -56,7 +65,11 @@ const saveSegment = form.handleSubmit(segment => {
       </div>
       <ConditionTree />
       <label class="demo-row">
-        <input v-model="deviceAvailable" type="checkbox" style="width: auto" />
+        <input
+          v-model="deviceAvailable"
+          type="checkbox"
+          style="width: auto"
+        />
         The server offers the "device" attribute
       </label>
       <div class="demo-row">
@@ -66,7 +79,7 @@ const saveSegment = form.handleSubmit(segment => {
 
     <div class="demo-form">
       <p class="demo-hint">Output</p>
-      <pre class="demo-output">{{ output ? JSON.stringify(output, null, 2) : 'Submit to see the output' }}</pre>
+      <pre class="demo-output">{{ outputText }}</pre>
     </div>
   </div>
 </template>

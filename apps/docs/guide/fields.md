@@ -11,12 +11,16 @@ import { defineField, defineGroup } from '@formtree/core'
 import { z } from 'zod'
 // ---cut---
 export const priceField = defineField({
-  schema: z.number({ error: 'Price is required' }).positive({ error: 'Price must be positive' }),
+  schema: z.number({ error: 'Price is required' }).positive({
+    error: 'Price must be positive',
+  }),
 })
 
 export const productForm = defineGroup({
   schema: z.object({
-    name: z.string({ error: 'Name is required' }).trim().min(1, { error: 'Name is required' }),
+    name: z.string({ error: 'Name is required' }).trim().min(1, {
+      error: 'Name is required',
+    }),
   }),
   children: {
     price: priceField,
@@ -37,12 +41,16 @@ import { createForm, defineField, defineGroup } from '@formtree/core'
 import { z } from 'zod'
 
 const priceField = defineField({
-  schema: z.number({ error: 'Price is required' }).positive({ error: 'Price must be positive' }),
+  schema: z.number({ error: 'Price is required' }).positive({
+    error: 'Price must be positive',
+  }),
 })
 
 const productForm = defineGroup({
   schema: z.object({
-    name: z.string({ error: 'Name is required' }).trim().min(1, { error: 'Name is required' }),
+    name: z.string({ error: 'Name is required' }).trim().min(1, {
+      error: 'Name is required',
+    }),
   }),
   children: {
     price: priceField,
@@ -69,12 +77,16 @@ import { createForm, defineField, defineGroup } from '@formtree/core'
 import { z } from 'zod'
 
 const priceField = defineField({
-  schema: z.number({ error: 'Price is required' }).positive({ error: 'Price must be positive' }),
+  schema: z.number({ error: 'Price is required' }).positive({
+    error: 'Price must be positive',
+  }),
 })
 
 const productForm = defineGroup({
   schema: z.object({
-    name: z.string({ error: 'Name is required' }).trim().min(1, { error: 'Name is required' }),
+    name: z.string({ error: 'Name is required' }).trim().min(1, {
+      error: 'Name is required',
+    }),
   }),
   children: {
     price: priceField,

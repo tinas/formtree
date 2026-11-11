@@ -43,22 +43,27 @@ export interface ConditionTreeInput {
   groups: Array<ConditionTreeInput>
 }
 
-export const conditionTreeGroup: GroupDefinition<ConditionTreeInput, ConditionTreeInput, AttributeDeps> =
-  defineGroupWithDeps<AttributeDeps>()({
-    schema: z.object({ match: z.enum(MATCH, { error: 'Choose how the conditions combine' }) }),
-    children: {
-      conditions: arrayOf(conditionGroup),
-      groups: arrayOf(() => conditionTreeGroup),
-    },
-    childDeps: {
-      conditions: ({ deps }) => deps,
-      groups: ({ deps }) => deps,
-    },
-    validate: ({ value }) =>
-      value.conditions.length + value.groups.length == 0
-        ? { path: 'conditions', code: 'Add a condition or a group' }
-        : undefined,
-  })
+export const conditionTreeGroup: GroupDefinition<
+  ConditionTreeInput,
+  ConditionTreeInput,
+  AttributeDeps
+> = defineGroupWithDeps<AttributeDeps>()({
+  schema: z.object({
+    match: z.enum(MATCH, { error: 'Choose how the conditions combine' }),
+  }),
+  children: {
+    conditions: arrayOf(conditionGroup),
+    groups: arrayOf(() => conditionTreeGroup),
+  },
+  childDeps: {
+    conditions: ({ deps }) => deps,
+    groups: ({ deps }) => deps,
+  },
+  validate: ({ value }) =>
+    value.conditions.length + value.groups.length == 0
+      ? { path: 'conditions', code: 'Add a condition or a group' }
+      : undefined,
+})
 
 export const segmentForm = defineGroupWithDeps<AttributeDeps>()({
   schema: z.object({ name: requiredText('Name the segment') }),
