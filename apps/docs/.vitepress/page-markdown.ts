@@ -40,7 +40,8 @@ const TWOSLASH_CUT_START = /^\s*\/\/\s*---cut-start---\s*$/
 const TWOSLASH_CUT_END = /^\s*\/\/\s*---cut-end---\s*$/
 const TWOSLASH_DIRECTIVE = /^\s*\/\/\s*@\w+/
 const TWOSLASH_QUERY = /^\s*\/\/\s*\^[?!|]/
-const CODE_NOTATION = /\s*\/\/\s*\[!code [^\]]+\]/
+const CODE_NOTATION = /\s*(?:\/\/|<!--)\s*\[!code ([^\]:]+)(?::(\d+))?\]\s*(?:-->)?/
+const REMOVED_LINES_NOTATION = '--'
 
 const MARKDOWN_URL = new RegExp(
   `^/(.+?)(?:\\.(${Object.values(FRAMEWORK)
@@ -172,7 +173,7 @@ export async function writeMarkdownPages(siteConfig: SiteConfig, siteUrl: string
   )
 
   const sidebar = siteConfig.site.themeConfig.sidebar as Record<string, Array<DefaultTheme.SidebarItem>>
-  const sections = [...sidebar['/guide/'], ...sidebar['/examples/']]
+  const sections = [...sidebar['/guide/'], ...sidebar['/tutorial/'], ...sidebar['/examples/']]
   await writeFile(join(siteConfig.outDir, 'llms.txt'), llmsIndex(siteConfig, sections, siteUrl))
   await writeFile(join(siteConfig.outDir, 'llms-full.txt'), llmsFull(sections, markdownOf))
 }
@@ -272,9 +273,33 @@ function parseFenceInfo(info: string): FenceInfo {
 }
 
 function codeBlock({ language, title, twoslash }: FenceInfo, body: ReadonlyArray<string>): Array<string> {
-  const code = (twoslash ? visibleTwoslashLines(body) : body).map(line => line.replace(CODE_NOTATION, ''))
+  const code = withoutCodeNotations(twoslash ? visibleTwoslashLines(body) : body)
   const opening = title == undefined ? `\`\`\`${language}` : `\`\`\`${language} title="${title}"`
   return ['', opening, ...trimBlankEdges(code), '```', '']
+}
+
+function withoutCodeNotations(lines: ReadonlyArray<string>): Array<string> {
+  const code: Array<string> = []
+  let removedLinesAhead = 0
+  for (const line of lines) {
+    if (removedLinesAhead > 0) {
+      removedLinesAhead -= 1
+      continue
+    }
+    const notation = line.match(CODE_NOTATION)
+    if (notation == null) {
+      code.push(line)
+      continue
+    }
+    const text = line.replace(CODE_NOTATION, '')
+    const onItsOwnLine = text.trim() == ''
+    if (notation[1] == REMOVED_LINES_NOTATION) {
+      removedLinesAhead = Number(notation[2] ?? 1) - (onItsOwnLine ? 0 : 1)
+    } else if (!onItsOwnLine) {
+      code.push(text)
+    }
+  }
+  return code
 }
 
 function visibleTwoslashLines(body: ReadonlyArray<string>): Array<string> {
