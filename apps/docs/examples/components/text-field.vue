@@ -8,7 +8,9 @@ const field = useField<string>(() => props.name)
 
 <template>
   <div class="demo-field">
-    <label :for="field.id">{{ label }}<span v-if="field.state.required" aria-hidden="true">*</span></label>
+    <label :for="field.id">
+      {{ label }}<span v-if="field.state.required" aria-hidden="true">*</span>
+    </label>
     <input v-model="field.model" v-bind="field.attrs" autocomplete="off" />
     <p :id="field.errorId" class="demo-error">{{ field.errorMessage }}</p>
   </div>

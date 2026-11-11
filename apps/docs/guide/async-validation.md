@@ -14,9 +14,14 @@ import { z } from 'zod'
 import { isUsernameAvailable } from './api'
 // ---cut---
 const usernameField = defineField({
-  schema: z.string({ error: 'Choose a username' }).trim().min(3, { error: 'Use at least 3 characters' }),
+  schema: z.string({ error: 'Choose a username' }).trim().min(3, {
+    error: 'Use at least 3 characters',
+  }),
   validateAsync: {
-    run: async username => ((await isUsernameAvailable(username)) ? undefined : { code: 'This username is taken' }),
+    run: async username => {
+      const available = await isUsernameAvailable(username)
+      return available ? undefined : { code: 'This username is taken' }
+    },
   },
 })
 
@@ -39,7 +44,7 @@ A group can have a check too, which receives the group's output.
 To check the value when the user leaves the input instead of after each change, set `on` to
 `'blur'`:
 
-```ts{4} twoslash
+```ts{6} twoslash
 // @noStaticSemanticInfo
 // @filename: api.ts
 export declare function isUsernameAvailable(username: string): Promise<boolean>
@@ -49,10 +54,15 @@ import { z } from 'zod'
 import { isUsernameAvailable } from './api'
 // ---cut---
 const usernameField = defineField({
-  schema: z.string({ error: 'Choose a username' }).trim().min(3, { error: 'Use at least 3 characters' }),
+  schema: z.string({ error: 'Choose a username' }).trim().min(3, {
+    error: 'Use at least 3 characters',
+  }),
   validateAsync: {
     on: 'blur',
-    run: async username => ((await isUsernameAvailable(username)) ? undefined : { code: 'This username is taken' }),
+    run: async username => {
+      const available = await isUsernameAvailable(username)
+      return available ? undefined : { code: 'This username is taken' }
+    },
   },
 })
 ```
@@ -87,7 +97,7 @@ const username = useField(form.field('username'))
 
 <div class="react-only">
 
-```tsx{12}
+```tsx{16}
 import { useField, useForm } from '@formtree/react'
 import { signUpForm } from './forms/sign-up'
 
@@ -98,7 +108,11 @@ export function SignUpForm() {
   return (
     <>
       <label htmlFor={username.id}>Username</label>
-      <input {...username.attrs} value={username.value ?? ''} onChange={event => username.setValue(event.target.value)} />
+      <input
+        {...username.attrs}
+        value={username.value ?? ''}
+        onChange={event => username.setValue(event.target.value)}
+      />
       {username.state.requesting && <p>Checking the username…</p>}
       <p id={username.errorId}>{username.errorMessage}</p>
     </>
@@ -132,7 +146,7 @@ const signUpForm = defineGroup({
 const form = createForm(signUpForm)
 // ---cut---
 const username = form.field('username')
-const checking = document.querySelector<HTMLParagraphElement>('#username-checking')!
+const checking = document.getElementById('username-checking')!
 
 username.subscribe(() => {
   checking.hidden = !username.state.requesting
@@ -164,20 +178,25 @@ interface AccountDeps {
 }
 
 const usernameField = defineFieldWithDeps<AccountDeps>()({
-  schema: z.string({ error: 'Choose a username' }).trim().min(3, { error: 'Use at least 3 characters' }),
+  schema: z.string({ error: 'Choose a username' }).trim().min(3, {
+    error: 'Use at least 3 characters',
+  }),
   validateAsync: {
     run: async (username, { deps }) => {
       if (username == deps.savedUsername) {
         return undefined
       }
-      return (await isUsernameAvailable(username)) ? undefined : { code: 'This username is taken' }
+      const available = await isUsernameAvailable(username)
+      return available ? undefined : { code: 'This username is taken' }
     },
   },
 })
 
 export const accountForm = defineGroupWithDeps<AccountDeps>()({
   children: { username: usernameField },
-  childDeps: { username: ({ deps }) => ({ savedUsername: deps.savedUsername }) },
+  childDeps: {
+    username: ({ deps }) => ({ savedUsername: deps.savedUsername }),
+  },
 })
 ```
 
@@ -190,7 +209,7 @@ returns without a request. `state.requesting` stays `false`, so no hint flashes.
 Pass the `signal` that `run` receives on to the request, so a request for a value that has changed
 since is cancelled:
 
-```ts{4-5} twoslash
+```ts{6-8} twoslash
 // @noStaticSemanticInfo
 // @filename: api.ts
 export declare function isUsernameAvailable(username: string, signal: AbortSignal): Promise<boolean>
@@ -200,10 +219,14 @@ import { z } from 'zod'
 import { isUsernameAvailable } from './api'
 // ---cut---
 const usernameField = defineField({
-  schema: z.string({ error: 'Choose a username' }).trim().min(3, { error: 'Use at least 3 characters' }),
+  schema: z.string({ error: 'Choose a username' }).trim().min(3, {
+    error: 'Use at least 3 characters',
+  }),
   validateAsync: {
-    run: async (username, { signal }) =>
-      (await isUsernameAvailable(username, signal)) ? undefined : { code: 'This username is taken' },
+    run: async (username, { signal }) => {
+      const available = await isUsernameAvailable(username, signal)
+      return available ? undefined : { code: 'This username is taken' }
+    },
   },
 })
 ```
@@ -301,12 +324,15 @@ import { defineField } from '@formtree/core'
 import { z } from 'zod'
 // ---cut---
 const usernameField = defineField({
-  schema: z.string({ error: 'Choose a username' }).trim().min(3, { error: 'Use at least 3 characters' }),
+  schema: z.string({ error: 'Choose a username' }).trim().min(3, {
+    error: 'Use at least 3 characters',
+  }),
   validateAsync: {
     run: async (username, { signal }) => {
-      const response = await fetch(`/api/usernames/${encodeURIComponent(username)}`, { signal })
+      const url = `/api/usernames/${encodeURIComponent(username)}`
+      const response = await fetch(url, { signal })
       if (!response.ok) {
-        throw new Error(`The username check failed with status ${response.status}`)
+        throw new Error(`The username check failed (${response.status})`)
       }
       const { available } = (await response.json()) as { available: boolean }
       return available ? undefined : { code: 'This username is taken' }
@@ -353,7 +379,7 @@ const username = useField(form.field('username'))
 
 <div class="react-only">
 
-```tsx{12-19}
+```tsx{16-23}
 import { useField, useForm } from '@formtree/react'
 import { signUpForm } from './forms/sign-up'
 
@@ -364,7 +390,11 @@ export function SignUpForm() {
   return (
     <>
       <label htmlFor={username.id}>Username</label>
-      <input {...username.attrs} value={username.value ?? ''} onChange={event => username.setValue(event.target.value)} />
+      <input
+        {...username.attrs}
+        value={username.value ?? ''}
+        onChange={event => username.setValue(event.target.value)}
+      />
       {username.state.failedChecks.length > 0 && (
         <p>
           We couldn't check the username.
@@ -406,8 +436,8 @@ const signUpForm = defineGroup({
 const form = createForm(signUpForm)
 // ---cut---
 const username = form.field('username')
-const failure = document.querySelector<HTMLParagraphElement>('#username-failure')!
-const tryAgain = document.querySelector<HTMLButtonElement>('#username-try-again')!
+const failure = document.getElementById('username-failure')!
+const tryAgain = document.getElementById('username-try-again')!
 
 tryAgain.addEventListener('click', () => {
   void username.validate()

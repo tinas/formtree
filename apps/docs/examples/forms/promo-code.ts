@@ -11,7 +11,10 @@ export const promoCodeField = defineFieldWithDeps<{ cartId: string }>()({
       if (code == undefined || code == '') {
         return undefined
       }
-      const valid = await checkPromoCode({ code, cartId: deps.cartId }, signal)
+      const valid = await checkPromoCode(
+        { code, cartId: deps.cartId },
+        signal,
+      )
       return valid ? undefined : { code: 'This code is not valid' }
     },
   },

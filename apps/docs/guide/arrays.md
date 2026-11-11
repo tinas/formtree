@@ -12,7 +12,9 @@ import { z } from 'zod'
 const lineItemGroup = defineGroup({
   schema: z.object({
     sku: z.string({ error: 'Product is required' }),
-    quantity: z.number({ error: 'Quantity is required' }).int().positive({ error: 'Quantity must be at least 1' }),
+    quantity: z.number({ error: 'Quantity is required' }).int().positive({
+      error: 'Quantity must be at least 1',
+    }),
   }),
 })
 
@@ -86,11 +88,12 @@ import { lineItemGroup } from './forms/line-items'
 // ---cut---
 const lineItemsArray = arrayOf(lineItemGroup, {
   validate: rows =>
-    rows.flatMap((row, index) =>
-      row.sku != undefined && rows.findIndex(other => other.sku == row.sku) < index
-        ? [{ path: `${index}.sku`, code: 'This product is already in the cart' }]
-        : [],
-    ),
+    rows.flatMap((row, index) => {
+      const firstIndex = rows.findIndex(other => other.sku == row.sku)
+      if (row.sku == undefined || firstIndex == index) return []
+      const path = `${index}.sku`
+      return [{ path, code: 'This product is already in the cart' }]
+    }),
 })
 ```
 

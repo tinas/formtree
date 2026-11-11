@@ -110,7 +110,8 @@ import { paymentForm } from './forms/payment'
 
 export function PaymentForm() {
   const form = useForm(paymentForm)
-  const cardActive = useNodeState(form.group('card'), node => node.state.active)
+  const card = form.group('card')
+  const cardActive = useNodeState(card, node => node.state.active)
 
   return cardActive ? (
     <fieldset>
@@ -172,7 +173,9 @@ const addressGroup = defineGroup({
 
 const deliveryGroup = defineGroup({
   schema: z.object({
-    method: z.enum(['shipping', 'pickup'], { error: 'Choose a delivery method' }),
+    method: z.enum(['shipping', 'pickup'], {
+      error: 'Choose a delivery method',
+    }),
   }),
   children: { address: addressGroup },
   activeWhen: {

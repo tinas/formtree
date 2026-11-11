@@ -229,7 +229,7 @@ To take in fresh data without losing what the user has changed, reset with `keep
 
 <div class="vue-only">
 
-```vue{5,12}
+```vue{5,12-15}
 <script setup lang="ts">
 import type { Contact } from './api'
 
@@ -241,7 +241,10 @@ const props = defineProps<{ contact: Contact }>()
 
 const form = useForm(contactGroup, { initialValue: props.contact })
 
-watch(() => props.contact, contact => form.reset({ value: contact, keepDirtyValues: true }))
+watch(
+  () => props.contact,
+  contact => form.reset({ value: contact, keepDirtyValues: true }),
+)
 </script>
 ```
 
@@ -269,7 +272,7 @@ export function EditContact({ contact }: { contact: Contact }) {
 
 <div class="javascript-only">
 
-```ts{1,11-13} twoslash
+```ts{1,11-16} twoslash
 // @noStaticSemanticInfo
 // @filename: api.ts
 export interface Contact {
@@ -288,7 +291,10 @@ export function createContactForm(contact: Contact) {
   return createForm(contactGroup, { initialValue: contact })
 }
 
-export function showLatestContact(form: Form<typeof contactGroup>, contact: Contact) {
+export function showLatestContact(
+  form: Form<typeof contactGroup>,
+  contact: Contact,
+) {
   form.reset({ value: contact, keepDirtyValues: true })
 }
 ```
@@ -305,8 +311,12 @@ To warn before the page closes with unsaved changes, cancel `beforeunload` while
 <div class="vue-only">
 
 ```ts
-onMounted(() => window.addEventListener('beforeunload', warnAboutUnsavedChanges))
-onBeforeUnmount(() => window.removeEventListener('beforeunload', warnAboutUnsavedChanges))
+onMounted(() => {
+  window.addEventListener('beforeunload', warnAboutUnsavedChanges)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', warnAboutUnsavedChanges)
+})
 
 function warnAboutUnsavedChanges(event: BeforeUnloadEvent) {
   if (form.state.dirty) {
@@ -327,7 +337,9 @@ useEffect(() => {
     }
   }
   window.addEventListener('beforeunload', warnAboutUnsavedChanges)
-  return () => window.removeEventListener('beforeunload', warnAboutUnsavedChanges)
+  return () => {
+    window.removeEventListener('beforeunload', warnAboutUnsavedChanges)
+  }
 }, [form])
 ```
 

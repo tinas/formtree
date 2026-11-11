@@ -8,9 +8,9 @@ export const ROLE = {
 
 export const passwordField = defineFieldWithDeps<{ minLength: number }>()({
   schema: ({ deps }) =>
-    z
-      .string({ error: 'Password is required' })
-      .min(deps.minLength, { error: `Use at least ${deps.minLength} characters` }),
+    z.string({ error: 'Password is required' }).min(deps.minLength, {
+      error: `Use at least ${deps.minLength} characters`,
+    }),
 })
 
 export const accountForm = defineGroup({
@@ -21,10 +21,12 @@ export const accountForm = defineGroup({
   }),
   children: { password: passwordField },
   childDeps: {
-    password: ({ value }) => ({ minLength: value.role == ROLE.admin ? 12 : 8 }),
+    password: ({ value }) => ({
+      minLength: value.role == ROLE.admin ? 12 : 8,
+    }),
   },
-  validate: ({ value }) =>
-    value.confirmPassword != undefined && value.confirmPassword != value.password
+  validate: ({ value: { password, confirmPassword } }) =>
+    confirmPassword != undefined && confirmPassword != password
       ? { path: 'confirmPassword', code: 'Passwords do not match' }
       : undefined,
 })

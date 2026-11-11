@@ -124,7 +124,11 @@ the input has the field's attributes:
 
 ```tsx
 <label htmlFor={email.id}>Email</label>
-<input {...email.attrs} value={email.value ?? ''} onChange={event => email.setValue(event.target.value)} />
+<input
+  {...email.attrs}
+  value={email.value ?? ''}
+  onChange={event => email.setValue(event.target.value)}
+/>
 <p id={email.errorId}>{email.errorMessage}</p>
 ```
 
@@ -143,7 +147,9 @@ const form = createForm(contactForm, { id: 'contact' })
 
 function bindInput(key: 'name' | 'email' | 'message') {
   const field = form.field(key)
-  const input = document.getElementById(field.id) as HTMLInputElement | HTMLTextAreaElement
+  const input = document.getElementById(field.id) as
+    | HTMLInputElement
+    | HTMLTextAreaElement
   const error = document.getElementById(field.errorId)!
 
   input.addEventListener('input', () => field.setValue(input.value))
@@ -282,7 +288,12 @@ const form = createForm(checkoutForm, {
 // ---cut---
 const delivery = form.group('delivery')
 
-delivery.setErrors([{ path: 'store', code: 'This store has closed for today' }])
+delivery.setErrors([
+  {
+    path: 'store',
+    code: 'This store has closed for today',
+  },
+])
 ```
 
 The error shows at once, whatever the mode, and goes away when the store changes.

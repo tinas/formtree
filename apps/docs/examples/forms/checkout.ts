@@ -15,7 +15,9 @@ export interface CheckoutDeps extends ShippingDeps {
 
 export const checkoutForm = defineGroupWithDeps<CheckoutDeps>()({
   schema: z.object({
-    acceptTerms: z.literal(true, { error: 'Accept the terms to place the order' }),
+    acceptTerms: z.literal(true, {
+      error: 'Accept the terms to place the order',
+    }),
   }),
   children: {
     contact: contactGroup,

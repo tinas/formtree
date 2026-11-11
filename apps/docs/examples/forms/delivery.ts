@@ -17,14 +17,18 @@ const stateField = defineField({
 })
 
 export const addressGroup = defineGroupWithDeps<ShippingDeps>()({
-  schema: ({ deps }) =>
-    z.object({
+  schema: ({ deps }) => {
+    function shipsTo(country: string) {
+      return deps.countries.includes(country)
+    }
+    return z.object({
       street: requiredText('Street is required'),
       city: requiredText('City is required'),
-      country: z
-        .string({ error: 'Country is required' })
-        .refine(country => deps.countries.includes(country), { error: 'We do not ship to this country yet' }),
-    }),
+      country: z.string({ error: 'Country is required' }).refine(shipsTo, {
+        error: 'We do not ship to this country yet',
+      }),
+    })
+  },
   children: { state: stateField },
   activeWhen: {
     state: ({ value }) => value.country == 'US',

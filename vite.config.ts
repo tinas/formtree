@@ -6,7 +6,13 @@ export default defineConfig({
     semi: false,
     printWidth: 120,
     arrowParens: 'avoid',
-    ignorePatterns: ['**/dist/**', '**/.vitepress/cache/**', 'apps/docs/api/**'],
+    ignorePatterns: [
+      '**/dist/**',
+      '**/.vitepress/cache/**',
+      'apps/docs/api/**',
+      'apps/docs/examples/**',
+      'apps/docs/guide/**',
+    ],
   },
   lint: {
     ignorePatterns: ['**/dist/**', '**/.vitepress/cache/**', 'apps/docs/api/**'],

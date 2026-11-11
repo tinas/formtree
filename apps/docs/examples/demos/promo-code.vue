@@ -19,14 +19,21 @@ const apply = form.handleSubmit(value => {
     <div class="demo-field">
       <label :for="code.id">Promo code</label>
       <div class="demo-row">
-        <input v-model="code.model" v-bind="code.attrs" autocomplete="off" style="flex: 1" />
+        <input
+          v-model="code.model"
+          v-bind="code.attrs"
+          autocomplete="off"
+          style="flex: 1"
+        />
         <button type="submit">Apply</button>
       </div>
       <p :id="code.errorId" class="demo-error">
         {{ code.state.requesting ? 'Checking…' : code.errorMessage }}
       </p>
     </div>
-    <p class="demo-hint">Try welcome10 or freeship. Any other code is not valid.</p>
+    <p class="demo-hint">
+      Try welcome10 or freeship. Any other code is not valid.
+    </p>
     <p v-if="applied" class="demo-hint">Applied {{ applied }}</p>
   </form>
 </template>

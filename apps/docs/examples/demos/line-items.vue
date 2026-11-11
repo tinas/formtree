@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { defineGroup, provideFormNode, useForm } from '@formtree/vue'
+import { computed } from 'vue'
 
 import { lineItemsArray } from '../forms/line-items'
 import LineItemRow from './line-item-row.vue'
@@ -18,16 +19,29 @@ const form = useForm(cartForm, {
 })
 
 const lineItems = provideFormNode(form.array('lineItems'))
+
+const cartStatus = computed(() => {
+  if (lineItems.state.dirty) {
+    return 'The cart has unsaved changes'
+  }
+  return 'Everything is saved'
+})
+
+function addItem() {
+  lineItems.push({ quantity: 1 })
+}
 </script>
 
 <template>
   <div class="demo-form">
-    <LineItemRow v-for="lineItem in lineItems.items" :key="lineItem.key" :index="lineItem.index" />
+    <LineItemRow
+      v-for="lineItem in lineItems.items"
+      :key="lineItem.key"
+      :index="lineItem.index"
+    />
     <div class="demo-row">
-      <button type="button" @click="lineItems.push({ quantity: 1 })">Add item</button>
-      <span class="demo-hint">{{
-        lineItems.state.dirty ? 'The cart has unsaved changes' : 'Everything is saved'
-      }}</span>
+      <button type="button" @click="addItem">Add item</button>
+      <span class="demo-hint">{{ cartStatus }}</span>
     </div>
   </div>
 </template>

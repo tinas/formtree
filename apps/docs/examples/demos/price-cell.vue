@@ -17,6 +17,13 @@ const text = computed({
   },
 })
 
+const saveHint = computed(() => {
+  if (cell.state.submitting) {
+    return 'Saving…'
+  }
+  return cell.state.dirty ? 'Press Enter to save' : ''
+})
+
 const savePrice = cell.handleSubmit(async newPrice => {
   cell.reset({ value: await updatePrice(newPrice) })
 })
@@ -24,10 +31,16 @@ const savePrice = cell.handleSubmit(async newPrice => {
 
 <template>
   <form class="demo-row" novalidate @submit.prevent="savePrice">
-    <input v-model="text" v-bind="price.attrs" type="number" step="0.1" style="width: 110px" />
-    <span class="demo-hint">
-      {{ cell.state.submitting ? 'Saving…' : cell.state.dirty ? 'Press Enter to save' : '' }}
+    <input
+      v-model="text"
+      v-bind="price.attrs"
+      type="number"
+      step="0.1"
+      style="width: 110px"
+    />
+    <span class="demo-hint">{{ saveHint }}</span>
+    <span :id="price.errorId" class="demo-error">
+      {{ price.errorMessage }}
     </span>
-    <span :id="price.errorId" class="demo-error">{{ price.errorMessage }}</span>
   </form>
 </template>

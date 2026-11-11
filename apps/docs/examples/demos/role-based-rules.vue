@@ -13,16 +13,34 @@ const ROLE_OPTIONS = [
   { value: ROLE.admin, label: 'Admin' },
 ]
 
-const form = provideFormNode(useForm(accountForm, { initialValue: { role: ROLE.member } }))
+const form = provideFormNode(
+  useForm(accountForm, {
+    initialValue: { role: ROLE.member },
+  }),
+)
 
 const password = form.field('password')
 
+const passwordHint = computed(() => {
+  if (form.state.value.role == ROLE.admin) {
+    return 'Admins need 12 characters.'
+  }
+  return 'Members need 8 characters.'
+})
+
 const passwordCheck = computed(() => {
-  const errors = password.listErrors({ includeHidden: true }).map(error => error.code)
+  const allErrors = password.listErrors({ includeHidden: true })
+  const errors = allErrors.map(error => error.code)
   return JSON.stringify({ valid: password.state.valid, errors }, null, 2)
 })
 
 const output = shallowRef<OutputOf<typeof accountForm>>()
+const outputText = computed(() => {
+  if (output.value == undefined) {
+    return 'Submit to see the output'
+  }
+  return JSON.stringify(output.value, null, 2)
+})
 
 const createAccount = form.handleSubmit(account => {
   output.value = account
@@ -35,9 +53,7 @@ const createAccount = form.handleSubmit(account => {
       <TextField name="email" label="Email" />
       <SelectField name="role" label="Role" :options="ROLE_OPTIONS" />
       <TextField name="password" label="Password" />
-      <p class="demo-hint">
-        {{ form.state.value.role == ROLE.admin ? 'Admins need 12 characters.' : 'Members need 8 characters.' }}
-      </p>
+      <p class="demo-hint">{{ passwordHint }}</p>
       <TextField name="confirmPassword" label="Repeat password" />
       <div class="demo-row">
         <button type="submit">Create account</button>
@@ -48,7 +64,7 @@ const createAccount = form.handleSubmit(account => {
       <p class="demo-hint">The password field, hidden errors included</p>
       <pre class="demo-output">{{ passwordCheck }}</pre>
       <p class="demo-hint">Output</p>
-      <pre class="demo-output">{{ output ? JSON.stringify(output, null, 2) : 'Submit to see the output' }}</pre>
+      <pre class="demo-output">{{ outputText }}</pre>
     </div>
   </div>
 </template>

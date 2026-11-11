@@ -41,20 +41,32 @@ export interface ContactMessage {
 
 let lastLineItemId = 100
 
-export async function checkPromoCode(check: PromoCodeCheck, signal?: AbortSignal): Promise<boolean> {
+export async function checkPromoCode(
+  check: PromoCodeCheck,
+  signal?: AbortSignal,
+): Promise<boolean> {
   await delay(signal)
   return VALID_PROMO_CODES.includes(check.code)
 }
 
-export async function verifyAddress(address: AddressCheck, signal?: AbortSignal): Promise<boolean> {
+export async function verifyAddress(
+  address: AddressCheck,
+  signal?: AbortSignal,
+): Promise<boolean> {
   await delay(signal)
   return /\d/.test(address.street)
 }
 
-export async function saveLineItem(item: LineItemRequest): Promise<SavedLineItem> {
+export async function saveLineItem(
+  item: LineItemRequest,
+): Promise<SavedLineItem> {
   await delay()
   lastLineItemId += 1
-  return { id: item.id ?? lastLineItemId, sku: item.sku, quantity: item.quantity }
+  return {
+    id: item.id ?? lastLineItemId,
+    sku: item.sku,
+    quantity: item.quantity,
+  }
 }
 
 export async function updatePrice(price: number): Promise<number> {
@@ -62,7 +74,9 @@ export async function updatePrice(price: number): Promise<number> {
   return price
 }
 
-export async function sendMessage(contact: ContactMessage): Promise<ContactMessage> {
+export async function sendMessage(
+  contact: ContactMessage,
+): Promise<ContactMessage> {
   await delay()
   return contact
 }
