@@ -6,17 +6,24 @@ import CheckoutForm from './steps/binding-by-hand/checkout-form.vue'
 
 <div class="vue-only">
 
-This tutorial builds a checkout one chapter at a time, and continues where
-[Quick Start](/guide/quick-start) ends. Quick Start binds its inputs with `useField`. This chapter
-binds them by hand, so the next one can show what `useField` takes off your hands.
+This tutorial builds a checkout one chapter at a time, starting from inputs bound by hand. By its
+end, each input of the checkout is one line in the template, a component that finds its field by
+name, and you will know every binding that component makes for you, from the value to the
+attributes a screen reader needs.
+
+::: tip Prerequisites
+The tutorial assumes basic familiarity with Vue and TypeScript. To follow along, install
+`@formtree/vue`, and `zod` for the schemas.
+:::
 
 </div>
 
-## Starting the Checkout
+## Describing the Checkout
 
 <div class="vue-only">
 
-The checkout starts with the customer's name and email:
+A form starts from a definition, which says what the form holds and which rules its values follow.
+Define the checkout with `defineGroup` and a schema:
 
 ```ts twoslash [forms/checkout.ts]
 // @noStaticSemanticInfo
@@ -33,7 +40,16 @@ export const checkoutForm = defineGroup({
 })
 ```
 
-The component creates the form and keeps the order it submits, so the page can show it:
+The schema's messages are the errors the customer sees.
+
+</div>
+
+## Creating the Form
+
+<div class="vue-only">
+
+Create the form from the definition with `useForm`, and wrap the function that places the order in
+the form's `handleSubmit`:
 
 ```vue [checkout-form.vue]
 <script setup lang="ts">
@@ -57,6 +73,9 @@ const placeOrder = form.handleSubmit(checkout => {
   <pre v-if="order">{{ order }}</pre>
 </template>
 ```
+
+The function runs only once every value is valid, and receives the values as the schema outputs
+them. The component keeps the order, so the page shows what a submit sends.
 
 </div>
 

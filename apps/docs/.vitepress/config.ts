@@ -55,7 +55,7 @@ export default defineConfig({
 
     nav: [
       { text: 'Guide', link: '/guide/', activeMatch: '/guide/' },
-      { text: 'Tutorial', link: '/tutorial/', activeMatch: '/tutorial/' },
+      { text: 'Tutorial', link: '/tutorial/checkout/', activeMatch: '/tutorial/' },
       { text: 'Examples', link: '/examples/', activeMatch: '/examples/' },
       { text: 'API', link: '/api/', activeMatch: '/api/' },
     ],
@@ -104,11 +104,22 @@ export default defineConfig({
 
       '/tutorial/': [
         {
-          text: 'Tutorial',
+          text: 'Checkout',
           items: [
-            { text: 'Binding an Input by Hand', link: '/tutorial/' },
-            { text: 'Binding with useField', link: '/tutorial/use-field' },
-            { text: 'Writing an Input Component', link: '/tutorial/input-component' },
+            { text: 'Binding an Input by Hand', link: '/tutorial/checkout/' },
+            { text: 'Binding with useField', link: '/tutorial/checkout/use-field' },
+            { text: 'Writing an Input Component', link: '/tutorial/checkout/input-component' },
+          ],
+        },
+        {
+          text: 'Trip Booking',
+          items: [
+            { text: 'Turning a Field On and Off', link: '/tutorial/trip-booking/' },
+            { text: 'Adding and Removing Rows', link: '/tutorial/trip-booking/rows' },
+            { text: 'Checking Across Rows', link: '/tutorial/trip-booking/list-rules' },
+            { text: 'Passing an Answer Down', link: '/tutorial/trip-booking/row-dependencies' },
+            { text: 'Loading Data from the Server', link: '/tutorial/trip-booking/server-data' },
+            { text: 'Booking in Steps', link: '/tutorial/trip-booking/submitting-steps' },
           ],
         },
       ],
