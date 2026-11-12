@@ -289,6 +289,27 @@
   align-self: flex-start;
 }
 
+.tutorial-demo form div {
+  display: flex;
+  gap: 8px;
+}
+
+.tutorial-demo fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 8px;
+  padding: 8px 12px 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+}
+
+.tutorial-demo legend {
+  padding: 0 6px;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+}
+
 .tutorial-demo pre {
   margin-top: 16px;
 }

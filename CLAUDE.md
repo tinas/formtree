@@ -89,7 +89,7 @@ A decision goes into the `CLAUDE.md` of the package it shapes: what the code doe
 
 - Hover types are hard to read: nested drafts and outputs show as `Simplify<DraftObject<…> & {} & {…}>`, group nodes as `GroupNode<GroupDefinitionOf<…>>`. Until that is fixed, docs use `//    ^?` only where the type reads well.
 - Playgrounds and docs demos have only been checked with scripted headless Chrome flows; the React playground only for a clean first render, since the repo has no browser driver.
-- The tutorial has its first three chapters, in the Vue view only. Still to come are a part in its own component found by its definition (`useFormNode`), a part that applies only sometimes (`activeWhen`), submitting in steps, and the React and JavaScript views of every chapter.
+- The tutorials are in the Vue view only. The checkout has its first three chapters, and still to come is a part in its own component found by its definition (`useFormNode`). The React and JavaScript views of every chapter of both tutorials are still to come.
 - Point the devtools `logo` at the docs site's logo (https://form-tree.netlify.app/logo.svg) instead of the bundled `dynamic_form` icon.
 
 <!--VITE PLUS START-->
