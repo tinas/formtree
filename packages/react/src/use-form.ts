@@ -14,7 +14,7 @@ import type {
 import { createForm } from '@formtree/core'
 import { useEffect, useId, useState } from 'react'
 
-import { useFormDefaults } from './formtree-provider'
+import { useFormDefaults } from './form-tree-provider'
 
 type UniversalForm = UniversalNode & FormControls<unknown>
 
@@ -31,7 +31,7 @@ interface UseFormSettings {
 
 /**
  * Creates a form once per component. It does not re-render the component; read what the component shows with
- * {@link useNodeState} or {@link useField}. Options left out come from the nearest {@link FormtreeProvider}. The form id
+ * {@link useNodeState} or {@link useField}. Options left out come from the nearest {@link FormTreeProvider}. The form id
  * comes from `useId()` unless `id` is given. A new `deps` value is passed to `setDeps`, so dependencies can be written
  * inline. When the component unmounts, pending checks are cancelled.
  *

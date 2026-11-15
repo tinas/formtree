@@ -3,7 +3,7 @@ import type { FormatErrorOption, ValidationMode } from '../src'
 import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, test } from 'vite-plus/test'
 
-import { FormtreeProvider, useField, useForm } from '../src'
+import { FormTreeProvider, useField, useForm } from '../src'
 import { PROFILE_DEPS, profileGroup } from './fixtures/profile'
 
 afterEach(cleanup)
@@ -21,13 +21,13 @@ function NameField({ captured, mode }: { captured: Captured; mode?: ValidationMo
 
 function renderNameField(captured: Captured, defaults: { mode?: ValidationMode; formatError?: FormatErrorOption }) {
   return render(
-    <FormtreeProvider {...defaults}>
+    <FormTreeProvider {...defaults}>
       <NameField captured={captured} />
-    </FormtreeProvider>,
+    </FormTreeProvider>,
   )
 }
 
-describe('FormtreeProvider', () => {
+describe('FormTreeProvider', () => {
   test('gives every form below it its defaults', () => {
     const captured: Captured = {}
     renderNameField(captured, { mode: 'onChange', formatError: error => `!${error.code}` })
@@ -40,9 +40,9 @@ describe('FormtreeProvider', () => {
   test('lets options passed to useForm override the defaults', () => {
     const captured: Captured = {}
     render(
-      <FormtreeProvider mode="onSubmit">
+      <FormTreeProvider mode="onSubmit">
         <NameField captured={captured} mode="onChange" />
-      </FormtreeProvider>,
+      </FormTreeProvider>,
     )
 
     act(() => captured.form?.field('name').setValue(''))
@@ -65,9 +65,9 @@ describe('FormtreeProvider', () => {
     const captured: Captured = {}
     function App({ current }: { current: keyof typeof messages }) {
       return (
-        <FormtreeProvider formatError={() => messages[language]} language={current}>
+        <FormTreeProvider formatError={() => messages[language]} language={current}>
           <NameField captured={captured} />
-        </FormtreeProvider>
+        </FormTreeProvider>
       )
     }
     const { rerender } = render(<App current="en" />)

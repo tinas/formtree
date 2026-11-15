@@ -7,11 +7,11 @@ const FORM_DEFAULTS = createContext<FormDefaults>({})
 const LANGUAGE = createContext<string | undefined>(undefined)
 
 /**
- * Props of {@link FormtreeProvider}: defaults for every form below it.
+ * Props of {@link FormTreeProvider}: defaults for every form below it.
  *
  * @category Form
  */
-export interface FormtreeProviderProps extends FormDefaults {
+export interface FormTreeProviderProps extends FormDefaults {
   /**
    * The current language. When it changes, every component that reads a form below re-renders, so a `formatError`
    * that reads the language shows its messages in the new one.
@@ -25,7 +25,7 @@ export interface FormtreeProviderProps extends FormDefaults {
  *
  * @category Form
  */
-export function FormtreeProvider({
+export function FormTreeProvider({
   mode,
   reValidateMode,
   shouldFocusError,
@@ -33,7 +33,7 @@ export function FormtreeProvider({
   formatError,
   language,
   children,
-}: FormtreeProviderProps): ReactElement {
+}: FormTreeProviderProps): ReactElement {
   const defaults = useMemo(
     () => ({ mode, reValidateMode, shouldFocusError, focusElement, formatError }),
     [mode, reValidateMode, shouldFocusError, focusElement, formatError],

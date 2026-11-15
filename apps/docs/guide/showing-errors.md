@@ -49,7 +49,7 @@ app default, it translates the errors of every form:
 <div class="vue-only">
 
 ```ts [main.ts]
-import { createFormtree } from '@formtree/vue'
+import { createFormTreePlugin } from '@formtree/vue'
 import { createApp } from 'vue'
 import { createI18n } from 'vue-i18n'
 import App from './App.vue'
@@ -60,7 +60,7 @@ const i18n = createI18n({ legacy: false, locale: 'en', messages })
 createApp(App)
   .use(i18n)
   .use(
-    createFormtree({
+    createFormTreePlugin({
       formatError: error => i18n.global.t(error.code, { ...error.params }),
     }),
   )
@@ -73,15 +73,15 @@ createApp(App)
 
 ```tsx [app.tsx]
 import type { FormError } from '@formtree/react'
-import { FormtreeProvider } from '@formtree/react'
+import { FormTreeProvider } from '@formtree/react'
 import i18next from 'i18next'
 import { ContactForm } from './contact-form'
 
 export function App() {
   return (
-    <FormtreeProvider formatError={formatError}>
+    <FormTreeProvider formatError={formatError}>
       <ContactForm />
-    </FormtreeProvider>
+    </FormTreeProvider>
   )
 }
 
@@ -129,11 +129,11 @@ again when the locale of vue-i18n changes.
 
 <div class="react-only">
 
-`<FormtreeProvider>` receives the current language:
+`<FormTreeProvider>` receives the current language:
 
 ```tsx{4,8,11} [app.tsx]
 import type { FormError } from '@formtree/react'
-import { FormtreeProvider } from '@formtree/react'
+import { FormTreeProvider } from '@formtree/react'
 import i18next from 'i18next'
 import { useTranslation } from 'react-i18next'
 import { ContactForm } from './contact-form'
@@ -142,9 +142,9 @@ export function App() {
   const { i18n } = useTranslation()
 
   return (
-    <FormtreeProvider formatError={formatError} language={i18n.language}>
+    <FormTreeProvider formatError={formatError} language={i18n.language}>
       <ContactForm />
-    </FormtreeProvider>
+    </FormTreeProvider>
   )
 }
 

@@ -1,6 +1,6 @@
-# Contributing to formtree
+# Contributing to FormTree
 
-formtree is an open source project, and we welcome contributions of all kinds, from answering a question to sending a pull request.
+FormTree is an open source project, and we welcome contributions of all kinds, from answering a question to sending a pull request.
 
 ## How to contribute
 
@@ -20,7 +20,7 @@ We're always happy to see a pull request.
 
 If you're fixing a bug, check whether an issue describes it. The behaviour may be intended, or the issue may hold context that helps.
 
-If you're working on a feature or a change to how formtree works, open a feature request first and wait for a maintainer to confirm it. That way we agree on the design before you spend time on the code.
+If you're working on a feature or a change to how FormTree works, open a feature request first and wait for a maintainer to confirm it. That way we agree on the design before you spend time on the code.
 
 #### Set up the repository
 
@@ -51,7 +51,7 @@ When your change touches a package, put its name in the scope, as in `fix(vue): 
 We squash and merge pull requests, so the title becomes the commit message. Please write it in the same format as a commit. It's fine to have several commits in a pull request, and there's no need to rebase or force push.
 
 - If your pull request fixes an issue, mention it in the description.
-- If you change how formtree behaves, add a test that fails without your change and update the docs page that describes the behaviour.
+- If you change how FormTree behaves, add a test that fails without your change and update the docs page that describes the behaviour.
 - Make sure `vp run ready` passes before you open the pull request.
 - Keep the pull request to one thing, without unrelated changes such as formatting elsewhere in a file.
 - Leave versions, changelogs and changesets to us. Maintainers handle releases.

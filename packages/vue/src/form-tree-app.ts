@@ -13,19 +13,19 @@ export interface FormRegistry {
   readonly register: (entry: RegisteredForm) => () => void
 }
 
-export interface FormtreeApp {
+export interface FormTreeApp {
   readonly defaults: FormDefaults
   readonly registry: FormRegistry | undefined
 }
 
-export const FORMTREE_APP: InjectionKey<FormtreeApp> = Symbol('formtree.app')
+export const FORM_TREE_APP: InjectionKey<FormTreeApp> = Symbol('formtree.app')
 
-export function injectFormtreeApp(): FormtreeApp | undefined {
-  return hasInjectionContext() ? inject(FORMTREE_APP, undefined) : undefined
+export function injectFormTreeApp(): FormTreeApp | undefined {
+  return hasInjectionContext() ? inject(FORM_TREE_APP, undefined) : undefined
 }
 
-export function registerForm(formtreeApp: FormtreeApp | undefined, form: UniversalForm): (() => void) | undefined {
-  return formtreeApp?.registry?.register({ form, label: componentName() ?? form.id })
+export function registerForm(formTreeApp: FormTreeApp | undefined, form: UniversalForm): (() => void) | undefined {
+  return formTreeApp?.registry?.register({ form, label: componentName() ?? form.id })
 }
 
 function componentName(): string | undefined {

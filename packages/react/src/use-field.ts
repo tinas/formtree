@@ -69,7 +69,7 @@ function resolveFieldNode(nearest: UniversalNode | undefined, source: FieldSourc
     return source
   }
   if (nearest == undefined) {
-    throw new Error('[formtree] useField(name) needs a provided node. Render a FormNodeProvider above this component.')
+    throw new Error('[FormTree] useField(name) needs a provided node. Render a FormNodeProvider above this component.')
   }
   return nearest.field(source) as unknown as FieldNode<unknown, unknown>
 }

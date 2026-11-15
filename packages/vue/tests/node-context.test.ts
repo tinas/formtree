@@ -53,7 +53,7 @@ describe('node context', () => {
     })
 
     expect(() => mount(Lonely)).toThrow(
-      '[formtree] useFormNode(definition) found no provided node for this definition.',
+      '[FormTree] useFormNode(definition) found no provided node for this definition.',
     )
   })
 

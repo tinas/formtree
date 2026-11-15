@@ -4,7 +4,7 @@ import type { RefObject } from 'react'
 import { shallowEqual } from '@formtree/core'
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 
-import { useLanguage } from './formtree-provider'
+import { useLanguage } from './form-tree-provider'
 
 /**
  * Any node: a form, a group, an array, an item or a field.

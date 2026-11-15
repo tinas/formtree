@@ -4,15 +4,15 @@
 
 <div class="vue-only">
 
-The options that every form shares are passed to `createFormtree` when the plugin is installed:
+The options that every form shares are passed to `createFormTreePlugin` when the plugin is installed:
 
 ```ts [main.ts]
-import { createFormtree } from '@formtree/vue'
+import { createFormTreePlugin } from '@formtree/vue'
 import { createApp } from 'vue'
 import App from './App.vue'
 
 createApp(App)
-  .use(createFormtree({ mode: 'onSubmit' }))
+  .use(createFormTreePlugin({ mode: 'onSubmit' }))
   .mount('#app')
 ```
 
@@ -20,17 +20,17 @@ createApp(App)
 
 <div class="react-only">
 
-The options that every form shares are passed to `<FormtreeProvider>` at the root of the app:
+The options that every form shares are passed to `<FormTreeProvider>` at the root of the app:
 
 ```tsx [app.tsx]
-import { FormtreeProvider } from '@formtree/react'
+import { FormTreeProvider } from '@formtree/react'
 import { ContactForm } from './contact-form'
 
 export function App() {
   return (
-    <FormtreeProvider mode="onSubmit">
+    <FormTreeProvider mode="onSubmit">
       <ContactForm />
-    </FormtreeProvider>
+    </FormTreeProvider>
   )
 }
 ```
@@ -130,7 +130,7 @@ A `mode` set in a definition takes precedence over both.
 
 <div class="vue-only">
 
-Once the plugin is installed with `createFormtree`, every form created with `useForm` appears in
+Once the plugin is installed with `createFormTreePlugin`, every form created with `useForm` appears in
 [Vue Devtools](https://devtools.vuejs.org) during development:
 
 ![The FormTree inspector in Vue Devtools, showing a checkout form as a tree of nodes](/devtools-inspector.png)
@@ -151,12 +151,12 @@ Selecting an event shows its path and the value at that path at that moment.
 Passing `devtools: false` keeps the forms out of Vue Devtools during development:
 
 ```ts [main.ts]
-import { createFormtree } from '@formtree/vue'
+import { createFormTreePlugin } from '@formtree/vue'
 import { createApp } from 'vue'
 import App from './App.vue'
 
 createApp(App)
-  .use(createFormtree({ devtools: false }))
+  .use(createFormTreePlugin({ devtools: false }))
   .mount('#app')
 ```
 

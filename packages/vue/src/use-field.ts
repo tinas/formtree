@@ -62,7 +62,7 @@ function resolveFieldNode(base: AnyGroupNode | undefined, source: FieldSource): 
     return source
   }
   if (base == undefined) {
-    throw new Error('[formtree] useField(name) needs a provided node. Call provideFormNode() in an ancestor component.')
+    throw new Error('[FormTree] useField(name) needs a provided node. Call provideFormNode() in an ancestor component.')
   }
   return base.field(source)
 }

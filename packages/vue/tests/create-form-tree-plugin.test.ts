@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, test } from 'vite-plus/test'
 import { defineComponent, h, nextTick, ref } from 'vue'
 
-import { createFormtree, useField, useForm } from '../src'
+import { createFormTreePlugin, useField, useForm } from '../src'
 import { PROFILE_DEPS, profileGroup } from './fixtures/profile'
 
 interface MountOptions {
@@ -34,10 +34,10 @@ function mountNameField({ plugins, mode }: MountOptions) {
   return { wrapper, form }
 }
 
-describe('createFormtree', () => {
+describe('createFormTreePlugin', () => {
   test('gives every form of the app its defaults', async () => {
     const { wrapper, form } = mountNameField({
-      plugins: [createFormtree({ mode: 'onChange', formatError: error => `!${error.code}`, devtools: false })],
+      plugins: [createFormTreePlugin({ mode: 'onChange', formatError: error => `!${error.code}`, devtools: false })],
     })
 
     form.field('name').setValue('')
@@ -48,7 +48,7 @@ describe('createFormtree', () => {
 
   test('lets options passed to useForm override the defaults', async () => {
     const { wrapper, form } = mountNameField({
-      plugins: [createFormtree({ mode: 'onSubmit', devtools: false })],
+      plugins: [createFormTreePlugin({ mode: 'onSubmit', devtools: false })],
       mode: 'onChange',
     })
 
@@ -62,7 +62,7 @@ describe('createFormtree', () => {
     const language = ref<'en' | 'tr'>('en')
     const messages = { en: 'Enter your name', tr: 'Adınızı girin' }
     const { wrapper, form } = mountNameField({
-      plugins: [createFormtree({ formatError: () => messages[language.value], devtools: false })],
+      plugins: [createFormTreePlugin({ formatError: () => messages[language.value], devtools: false })],
     })
     form.field('name').blur()
     await nextTick()

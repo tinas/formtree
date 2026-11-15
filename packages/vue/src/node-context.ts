@@ -47,8 +47,8 @@ export function useFormNode(definition?: Definition): unknown {
   if (found == undefined) {
     throw new Error(
       definition == undefined
-        ? '[formtree] useFormNode() found no provided node. Call provideFormNode() in an ancestor component.'
-        : '[formtree] useFormNode(definition) found no provided node for this definition.',
+        ? '[FormTree] useFormNode() found no provided node. Call provideFormNode() in an ancestor component.'
+        : '[FormTree] useFormNode(definition) found no provided node for this definition.',
     )
   }
   return found.node
