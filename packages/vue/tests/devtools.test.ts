@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vite-plus/tes
 import { defineComponent, h } from 'vue'
 import { z } from 'zod'
 
-import { createFormtree, defineField, defineGroup, useForm } from '../src'
+import { createFormTreePlugin, defineField, defineGroup, useForm } from '../src'
 import { PROFILE_DEPS, profileGroup } from './fixtures/profile'
 
 interface InspectorNode {
@@ -97,7 +97,7 @@ function mountProfileForm(devtools?: boolean) {
       return () => h('form')
     },
   })
-  const wrapper = mount(ProfileForm, { global: { plugins: [createFormtree({ devtools })] } })
+  const wrapper = mount(ProfileForm, { global: { plugins: [createFormTreePlugin({ devtools })] } })
   const [form] = forms
   if (form == undefined) {
     throw new Error('ProfileForm did not create a form')
@@ -172,7 +172,7 @@ describe('devtools', () => {
         return () => h('form')
       },
     })
-    mount(SignUpForm, { global: { plugins: [createFormtree()] } })
+    mount(SignUpForm, { global: { plugins: [createFormTreePlugin()] } })
 
     forms[0]?.field('username').setValue('alice')
     expect(childTagsOf('username')).toContain('waiting')

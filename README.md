@@ -1,16 +1,16 @@
-# formtree
+# FormTree
 
 [![npm](https://img.shields.io/npm/v/@formtree/core)](https://www.npmjs.com/package/@formtree/core)
 [![CI](https://github.com/tinas/formtree/actions/workflows/ci.yml/badge.svg)](https://github.com/tinas/formtree/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/tinas/formtree)](LICENSE)
 
-A headless form library for TypeScript. You describe what a form holds and which rules it follows in a definition, and formtree keeps track of the values, validates them, and hands the valid result to your submit function. It renders nothing, so the markup stays yours.
+A headless form library for TypeScript. You describe what a form holds and which rules it follows in a definition, and FormTree keeps track of the values, validates them, and hands the valid result to your submit function. It renders nothing, so the markup stays yours.
 
 **[Read the documentation](https://form-tree.netlify.app/guide/)**
 
 ## A Form Built from Parts
 
-Forms are made of parts, so a definition can hold a smaller definition for each part, each with its own rules. That nesting is the tree in formtree's name. When you create a form from a definition, every part becomes a node with its own value and errors, and each node can be validated and submitted on its own.
+Forms are made of parts, so a definition can hold a smaller definition for each part, each with its own rules. That nesting is the tree in FormTree's name. When you create a form from a definition, every part becomes a node with its own value and errors, and each node can be validated and submitted on its own.
 
 ```ts
 import { createForm, defineGroup } from '@formtree/core'
@@ -45,7 +45,7 @@ The button of the delivery step checks only that step, so the user is not stoppe
 | [`@formtree/react`](packages/react) | React 18.3 or later, with hooks that re-render a component only for what it reads |
 | [`@formtree/core`](packages/core)   | Plain TypeScript, and the engine both adapters build on                           |
 
-Each adapter includes the core, so an app installs one package. formtree validates with any [Standard Schema](https://standardschema.dev) library and needs TypeScript 5.4 or later.
+Each adapter includes the core, so an app installs one package. FormTree validates with any [Standard Schema](https://standardschema.dev) library and needs TypeScript 5.4 or later.
 
 ## Contributing
 

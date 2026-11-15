@@ -1,5 +1,5 @@
 import type { App } from 'vue'
-import type { FormRegistry, RegisteredForm } from '../formtree-app'
+import type { FormRegistry, RegisteredForm } from '../form-tree-app'
 import type { DevtoolsApi } from './devtools-api'
 
 import { setupDevtoolsPlugin } from '@vue/devtools-api'
@@ -23,7 +23,7 @@ interface DevtoolsSession {
 export function connectDevtools(app: App): FormRegistry {
   const session: DevtoolsSession = { forms: new Map(), api: undefined, formCount: 0 }
   setupDevtoolsPlugin(
-    { id: PLUGIN_ID, label: 'formtree', packageName: '@formtree/vue', logo: SIDEBAR_ICON, app },
+    { id: PLUGIN_ID, label: 'FormTree', packageName: '@formtree/vue', logo: SIDEBAR_ICON, app },
     api => connect(session, api),
   )
   return { register: entry => addForm(session, entry) }
@@ -51,12 +51,12 @@ function connect(session: DevtoolsSession, api: DevtoolsApi): void {
   session.api = api
   api.addInspector({
     id: INSPECTOR_ID,
-    label: 'formtree',
+    label: 'FormTree',
     icon: INSPECTOR_ICON,
     treeFilterPlaceholder: 'Search nodes',
     noSelectionText: 'Select a form or a node',
   })
-  api.addTimelineLayer({ id: TIMELINE_LAYER_ID, label: 'formtree', color: BRAND_COLOR })
+  api.addTimelineLayer({ id: TIMELINE_LAYER_ID, label: 'FormTree', color: BRAND_COLOR })
   api.on.getInspectorTree(payload => {
     if (payload.inspectorId == INSPECTOR_ID) {
       payload.rootNodes = inspectorTree(session.forms, payload.filter)

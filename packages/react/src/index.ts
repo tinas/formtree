@@ -4,8 +4,8 @@
  * @module @formtree/react
  */
 export * from '@formtree/core'
-export { FormtreeProvider } from './formtree-provider'
-export type { FormtreeProviderProps } from './formtree-provider'
+export { FormTreeProvider } from './form-tree-provider'
+export type { FormTreeProviderProps } from './form-tree-provider'
 export { FormNodeProvider, useFormNode } from './node-context'
 export type { AnyGroupNode, FormNodeProviderProps } from './node-context'
 export { useField } from './use-field'

@@ -16,7 +16,7 @@ import type { UniversalForm } from './reactive-node'
 import { createForm } from '@formtree/core'
 import { getCurrentInstance, getCurrentScope, isRef, onScopeDispose, toValue, useId, watch } from 'vue'
 
-import { injectFormtreeApp, registerForm } from './formtree-app'
+import { injectFormTreeApp, registerForm } from './form-tree-app'
 import { announceChange, createFormBridge, reactiveForm } from './reactive-node'
 
 /**
@@ -50,7 +50,7 @@ interface UseFormSettings {
 }
 
 /**
- * Creates a form whose node states are reactive. Options left out come from the app's {@link createFormtree}
+ * Creates a form whose node states are reactive. Options left out come from the app's {@link createFormTreePlugin}
  * defaults. Inside a component the form id comes from `useId()`; when the scope ends, the subscription stops and
  * pending checks are cancelled.
  *
@@ -61,8 +61,8 @@ export function useForm<FormDefinition extends Definition>(
   ...args: UseFormArguments<FormDefinition>
 ): Form<FormDefinition> {
   const [options] = args
-  const formtreeApp = injectFormtreeApp()
-  const settings: UseFormSettings = { ...formtreeApp?.defaults, ...givenOptionsOf(options) }
+  const formTreeApp = injectFormTreeApp()
+  const settings: UseFormSettings = { ...formTreeApp?.defaults, ...givenOptionsOf(options) }
   const form = createForm(definition as Definition, {
     ...settings,
     id: settings.id ?? componentFormId(),
@@ -70,7 +70,7 @@ export function useForm<FormDefinition extends Definition>(
   }) as unknown as UniversalForm
   const bridge = createFormBridge()
   const stopListening = form.subscribe(() => announceChange(bridge))
-  const unregister = registerForm(formtreeApp, form)
+  const unregister = registerForm(formTreeApp, form)
   if (isRef(settings.deps) || typeof settings.deps == 'function') {
     watch(
       () => toValue(settings.deps),

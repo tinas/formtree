@@ -2,17 +2,17 @@ import type { FormDefaults } from '@formtree/core'
 import type { Plugin } from 'vue'
 
 import { connectDevtools } from './devtools'
-import { FORMTREE_APP } from './formtree-app'
+import { FORM_TREE_APP } from './form-tree-app'
 
 declare const process: { readonly env: { readonly NODE_ENV?: string } }
 
 /**
- * Options of {@link createFormtree}: defaults for every form of the app, and whether the forms appear in Vue
+ * Options of {@link createFormTreePlugin}: defaults for every form of the app, and whether the forms appear in Vue
  * Devtools.
  *
  * @category Form
  */
-export interface FormtreeOptions extends FormDefaults {
+export interface FormTreePluginOptions extends FormDefaults {
   /**
    * Shows the app's forms in Vue Devtools while developing. Production builds never include the devtools code.
    *
@@ -27,12 +27,12 @@ export interface FormtreeOptions extends FormDefaults {
  *
  * @category Form
  */
-export function createFormtree(options: FormtreeOptions = {}): Plugin {
+export function createFormTreePlugin(options: FormTreePluginOptions = {}): Plugin {
   const { devtools = true, ...defaults } = options
   return {
     install(app) {
       const registry = devtools && process.env.NODE_ENV != 'production' ? connectDevtools(app) : undefined
-      app.provide(FORMTREE_APP, { defaults, registry })
+      app.provide(FORM_TREE_APP, { defaults, registry })
     },
   }
 }

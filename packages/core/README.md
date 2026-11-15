@@ -4,7 +4,7 @@
 [![CI](https://github.com/tinas/formtree/actions/workflows/ci.yml/badge.svg)](https://github.com/tinas/formtree/actions/workflows/ci.yml)
 [![License](https://img.shields.io/npm/l/@formtree/core)](https://github.com/tinas/formtree/blob/main/LICENSE)
 
-The framework-agnostic engine of [formtree](https://form-tree.netlify.app/guide/?framework=javascript), a headless form library for TypeScript. You describe what a form holds and which rules it follows in a definition, and every part of the form, from a wizard step to a single field, validates and submits on its own. It has no runtime dependencies and runs without a DOM, so the same definition also validates a request on the server.
+The framework-agnostic engine of [FormTree](https://form-tree.netlify.app/guide/?framework=javascript), a headless form library for TypeScript. You describe what a form holds and which rules it follows in a definition, and every part of the form, from a wizard step to a single field, validates and submits on its own. It has no runtime dependencies and runs without a DOM, so the same definition also validates a request on the server.
 
 Vue and React apps install [`@formtree/vue`](https://www.npmjs.com/package/@formtree/vue) or [`@formtree/react`](https://www.npmjs.com/package/@formtree/react) instead. Each includes this package.
 

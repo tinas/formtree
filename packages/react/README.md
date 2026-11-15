@@ -4,7 +4,7 @@
 [![CI](https://github.com/tinas/formtree/actions/workflows/ci.yml/badge.svg)](https://github.com/tinas/formtree/actions/workflows/ci.yml)
 [![License](https://img.shields.io/npm/l/@formtree/react)](https://github.com/tinas/formtree/blob/main/LICENSE)
 
-The React adapter of [formtree](https://form-tree.netlify.app/guide/?framework=react), a headless form library for TypeScript. You describe what a form holds and which rules it follows in a definition, and every part of the form, from a wizard step to a single field, validates and submits on its own. formtree renders nothing, so the markup stays yours.
+The React adapter of [FormTree](https://form-tree.netlify.app/guide/?framework=react), a headless form library for TypeScript. You describe what a form holds and which rules it follows in a definition, and every part of the form, from a wizard step to a single field, validates and submits on its own. FormTree renders nothing, so the markup stays yours.
 
 ## Installation
 
@@ -12,7 +12,7 @@ The React adapter of [formtree](https://form-tree.netlify.app/guide/?framework=r
 pnpm add @formtree/react zod
 ```
 
-The examples use [Zod](https://zod.dev), and any [Standard Schema](https://standardschema.dev) library works in its place. The package includes `@formtree/core`, so it is the only formtree package a React app installs.
+The examples use [Zod](https://zod.dev), and any [Standard Schema](https://standardschema.dev) library works in its place. The package includes `@formtree/core`, so it is the only FormTree package a React app installs.
 
 ## A Contact Form
 
@@ -69,7 +69,7 @@ export function ContactForm() {
 
 ## Going Further
 
-- The [Introduction](https://form-tree.netlify.app/guide/?framework=react) installs formtree and builds a first form.
+- The [Introduction](https://form-tree.netlify.app/guide/?framework=react) installs FormTree and builds a first form.
 - [Submitting](https://form-tree.netlify.app/guide/submitting?framework=react) saves one step or one card of a larger form on its own.
 - [Conditional Fields](https://form-tree.netlify.app/guide/conditional-fields?framework=react) turns on a part of the form only after a certain answer.
 - [Async Validation](https://form-tree.netlify.app/guide/async-validation?framework=react) checks a value with the server next to its schema.

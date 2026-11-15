@@ -26,7 +26,7 @@ body:
     id: versions
     attributes:
       label: Versions
-      description: formtree, TypeScript, the schema library, and Vue or React if you use an adapter.
-      placeholder: formtree 0.1.0, TypeScript 5.9, Zod 4.1, Vue 3.5
+      description: FormTree, TypeScript, the schema library, and Vue or React if you use an adapter.
+      placeholder: FormTree 0.1.0, TypeScript 5.9, Zod 4.1, Vue 3.5
     validations:
       required: true

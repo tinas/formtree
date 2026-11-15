@@ -1,5 +1,5 @@
 name: Feature request
-description: A new capability or a change to how formtree works.
+description: A new capability or a change to how FormTree works.
 labels: [enhancement]
 body:
   - type: textarea
