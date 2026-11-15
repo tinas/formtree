@@ -1,5 +1,5 @@
 /**
- * Framework-agnostic engine of formtree.
+ * Framework-agnostic engine of FormTree.
  *
  * @module @formtree/core
  */
