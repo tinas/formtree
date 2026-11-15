@@ -75,7 +75,7 @@ A decision goes into the `CLAUDE.md` of the package it shapes: what the code doe
 
 ## Tooling
 
-- Packages use TypeScript 7 (tsgo). `apps/vue-playground` and `apps/docs` pin TypeScript ~5.9: vue-tsc and TypeDoc need the TypeScript JS API, which TS 7 does not have.
+- Packages use TypeScript 7 (tsgo). `apps/vue-playground` and `apps/docs` pin TypeScript ~5.9: vue-tsc and TypeDoc need the TypeScript JS API, which TS 7 does not have. `packages/core` installs it as `typescript-5` for the same reason, since its hover test asks the language service for quick info.
 - `vp check` does not type-check `.vue` files; builds that contain SFCs run `vue-tsc --noEmit` first.
 - Apps resolve package sources through tsconfig `paths` and Vite `resolve.tsconfigPaths`, so dev needs no build, and type checks and runtime see the same file.
 - `packages/vue` and `packages/react` pack with `tsconfig.build.json` (no `paths`), so their `.d.ts` imports `@formtree/core` instead of inlining it; `vp run -r build` packs core first.
@@ -87,7 +87,6 @@ A decision goes into the `CLAUDE.md` of the package it shapes: what the code doe
 
 ## Open work
 
-- Hover types are hard to read: nested drafts and outputs show as `Simplify<DraftObject<…> & {} & {…}>`, group nodes as `GroupNode<GroupDefinitionOf<…>>`. Until that is fixed, docs use `//    ^?` only where the type reads well.
 - Playgrounds and docs demos have only been checked with scripted headless Chrome flows; the React playground only for a clean first render, since the repo has no browser driver.
 - The tutorials are in the Vue view only. The checkout has its first three chapters, and still to come is a part in its own component found by its definition (`useFormNode`). The React and JavaScript views of every chapter of both tutorials are still to come.
 - Point the devtools `logo` at the docs site's logo (https://form-tree.netlify.app/logo.svg) instead of the bundled `dynamic_form` icon.

@@ -47,6 +47,7 @@ const form = createForm(checkoutForm, {
 })
 // ---cut---
 const submitDelivery = form.group('delivery').handleSubmit(async delivery => {
+//                                                               ^?
   await saveDelivery(delivery)
   showStep('payment')
 })

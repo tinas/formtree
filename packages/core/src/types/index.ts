@@ -2,7 +2,7 @@ export type Leaf = string | number | boolean | bigint | symbol | null | undefine
 
 export type EmptyObject = Record<never, never>
 
-export type Simplify<Value> = { [Key in keyof Value]: Value[Key] }
+export type Simplify<Value> = { [Key in keyof Value]: Value[Key] } & {}
 
 export type Present<Value> = Exclude<Value, undefined>
 

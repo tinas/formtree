@@ -45,6 +45,7 @@
     "arktype": "catalog:",
     "happy-dom": "catalog:",
     "typescript": "catalog:",
+    "typescript-5": "npm:typescript@~5.9.3",
     "valibot": "catalog:",
     "vite-plus": "catalog:",
     "zod": "catalog:"
