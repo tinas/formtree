@@ -1,5 +1,17 @@
 # @formtree/vue
 
+## 0.4.0
+
+### Minor Changes
+
+- [#62](https://github.com/tinas/formtree/pull/62) [`72a448a`](https://github.com/tinas/formtree/commit/72a448ade9cfb98af00b6c210150c9eae34eeb56) Thanks [@tinas](https://github.com/tinas)! - The library is named FormTree. The Vue plugin is created with `createFormTreePlugin` instead of `createFormtree`, so it no longer reads like `createForm`, and its options type is `FormTreePluginOptions` instead of `FormtreeOptions`. `FormtreeProvider` and `FormtreeProviderProps` are renamed to `FormTreeProvider` and `FormTreeProviderProps`. Error messages start with `[FormTree]`, and the Vue Devtools inspector and timeline are labelled FormTree.
+
+### Patch Changes
+
+- [#64](https://github.com/tinas/formtree/pull/64) [`6e52603`](https://github.com/tinas/formtree/commit/6e5260397dcc119901c020aedb6df40a669d63c1) Thanks [@tinas](https://github.com/tinas)! - Hovers show drafts, outputs and definitions as plain object shapes at every depth. Nested parts no longer show as `Simplify<DraftObject<…> & {} & {…}>`, and a group node shows its values and its children instead of `GroupDefinitionOf<…>` with the schema types and `NoInfer`.
+- Updated dependencies [[`6e52603`](https://github.com/tinas/formtree/commit/6e5260397dcc119901c020aedb6df40a669d63c1)]:
+  - @formtree/core@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes
