@@ -6,10 +6,10 @@ import CheckoutForm from './steps/binding-by-hand/checkout-form.vue'
 
 <div class="vue-only">
 
-This tutorial builds a checkout one chapter at a time, starting from inputs bound by hand. By its
-end, each input of the checkout is one line in the template, a component that finds its field by
-name, and you will know every binding that component makes for you, from the value to the
-attributes a screen reader needs.
+This tutorial builds a checkout one chapter at a time, starting from inputs bound by hand. By the
+end, each input of the checkout is a single line in the template, a component that finds its field
+by name. Because every binding is first written by hand, each one that the component later takes
+over is already familiar, from the value to the attributes a screen reader needs.
 
 ::: tip Prerequisites
 The tutorial assumes basic familiarity with Vue and TypeScript. To follow along, install
@@ -22,8 +22,8 @@ The tutorial assumes basic familiarity with Vue and TypeScript. To follow along,
 
 <div class="vue-only">
 
-A form starts from a definition, which says what the form holds and which rules its values follow.
-Define the checkout with `defineGroup` and a schema:
+Every form starts from a definition, which describes the values the form holds and the rules they
+follow. The checkout is defined with `defineGroup` and a schema:
 
 ```ts twoslash [forms/checkout.ts]
 // @noStaticSemanticInfo
@@ -40,7 +40,7 @@ export const checkoutForm = defineGroup({
 })
 ```
 
-The schema's messages are the errors the customer sees.
+The messages in the schema are the errors that the customer sees.
 
 </div>
 
@@ -48,8 +48,8 @@ The schema's messages are the errors the customer sees.
 
 <div class="vue-only">
 
-Create the form from the definition with `useForm`, and wrap the function that places the order in
-the form's `handleSubmit`:
+The component creates the form from the definition with `useForm`, and wraps the function that
+places the order in the `handleSubmit` of the form:
 
 ```vue [checkout-form.vue]
 <script setup lang="ts">
@@ -75,7 +75,7 @@ const placeOrder = form.handleSubmit(checkout => {
 ```
 
 The function runs only once every value is valid, and receives the values as the schema outputs
-them. The component keeps the order, so the page shows what a submit sends.
+them. The component keeps the placed order, so the page can show what a submit sends.
 
 </div>
 
@@ -83,8 +83,9 @@ them. The component keeps the order, so the page shows what a submit sends.
 
 <div class="vue-only">
 
-Every value in the form has a node, which holds the value and its errors. Get the node for the name
-with `form.field`, show its value in an input, and write what the user types with `setValue`:
+Each value in the form has its own node, which holds the value and its errors. `form.field` finds
+the node of the name, and the input shows the value of that node and passes what the user types to
+`setValue`:
 
 ```vue{8,18-23} [checkout-form.vue]
 <script setup lang="ts">
@@ -117,8 +118,8 @@ const placeOrder = form.handleSubmit(checkout => {
 </template>
 ```
 
-The input shows the node's value, so it also follows changes made in code, such as a reset, and the
-node's `id` connects the label to it.
+Because the input reads its value from the node, it also follows changes made in code, such as a
+reset. The `id` of the node connects the label to the input.
 
 </div>
 
@@ -126,7 +127,8 @@ node's `id` connects the label to it.
 
 <div class="vue-only">
 
-Tell the node when the user leaves the input with `blur`, and show its `errorMessage` below:
+The node also needs to know when the user leaves the input. Calling `blur` tells it, and the
+`errorMessage` of the node is shown below the input:
 
 ```vue{8,10}
 <template>
@@ -146,8 +148,8 @@ Tell the node when the user leaves the input with `blur`, and show its `errorMes
 </template>
 ```
 
-The form checks the value on every change, but `errorMessage` stays empty until the user has left
-the input, so nobody sees an error while still typing.
+The form validates the value on every change, but `errorMessage` stays empty until the user has
+left the input, so no error is shown while the user is still typing.
 
 </div>
 
@@ -155,13 +157,14 @@ the input, so nobody sees an error while still typing.
 
 <div class="vue-only">
 
-Bind the email the same way:
+The email is bound in the same way:
 
 <DemoFrame title="Two inputs bound by hand" class="tutorial-demo">
   <CheckoutForm />
 </DemoFrame>
 
-Leave the name empty and move on to see its error. Then fill in both inputs and press Place order.
+Leave the name empty and move to the next input to see its error. Then fill in both inputs and
+press Place order.
 
 ::: code-group
 

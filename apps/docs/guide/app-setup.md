@@ -1,10 +1,10 @@
-# App Defaults
+# App Setup
 
 ## Setting Defaults
 
 <div class="vue-only">
 
-Pass the options every form shares to `createFormtree` when you install it:
+The options that every form shares are passed to `createFormtree` when the plugin is installed:
 
 ```ts [main.ts]
 import { createFormtree } from '@formtree/vue'
@@ -20,7 +20,7 @@ createApp(App)
 
 <div class="react-only">
 
-Pass the options every form shares to `<FormtreeProvider>` at the root of the app:
+The options that every form shares are passed to `<FormtreeProvider>` at the root of the app:
 
 ```tsx [app.tsx]
 import { FormtreeProvider } from '@formtree/react'
@@ -39,7 +39,7 @@ export function App() {
 
 <div class="javascript-only">
 
-Keep the options every form shares in one object, and pass it to each `createForm`:
+The options that every form shares are kept in one object, which is passed to each `createForm`:
 
 ::: code-group
 
@@ -72,86 +72,12 @@ const form = createForm(contactForm, formDefaults)
 </div>
 
 Every form starts from these options. [Showing Errors](/guide/showing-errors) and
-[Submitting](/guide/submitting) explain what each one does.
-
-## Translating Errors
-
-Add `formatError` to the defaults, and every form shows its errors in the user's language:
-
-<div class="vue-only">
-
-```ts{3,5,7,10,14} [main.ts]
-import { createFormtree } from '@formtree/vue'
-import { createApp } from 'vue'
-import { createI18n } from 'vue-i18n'
-import App from './App.vue'
-import { messages } from './messages'
-
-const i18n = createI18n({ legacy: false, locale: 'en', messages })
-
-createApp(App)
-  .use(i18n)
-  .use(
-    createFormtree({
-      mode: 'onSubmit',
-      formatError: error => i18n.global.t(error.code, { ...error.params }),
-    }),
-  )
-  .mount('#app')
-```
-
-</div>
-
-<div class="react-only">
-
-```tsx{1,3,8,14-16} [app.tsx]
-import type { FormError } from '@formtree/react'
-import { FormtreeProvider } from '@formtree/react'
-import i18next from 'i18next'
-import { ContactForm } from './contact-form'
-
-export function App() {
-  return (
-    <FormtreeProvider mode="onSubmit" formatError={formatError}>
-      <ContactForm />
-    </FormtreeProvider>
-  )
-}
-
-function formatError(error: FormError) {
-  return i18next.t(error.code, { ...error.params })
-}
-```
-
-</div>
-
-<div class="javascript-only">
-
-```ts{2,6} twoslash [form-defaults.ts]
-// @noStaticSemanticInfo
-// @filename: i18next.d.ts
-declare module 'i18next' {
-  const i18next: { t: (key: string, options?: Record<string, unknown>) => string }
-  export default i18next
-}
-// @filename: form-defaults.ts
-// ---cut---
-import type { FormDefaults } from '@formtree/core'
-import i18next from 'i18next'
-
-export const formDefaults: FormDefaults = {
-  mode: 'onSubmit',
-  formatError: error => i18next.t(error.code, { ...error.params }),
-}
-```
-
-</div>
-
-[Binding Inputs](/guide/binding-inputs) shows how errors on screen follow a language switch.
+[Submitting](/guide/submitting) explain what each one does, and `formatError` set here translates
+the errors of every form, as [Translating Errors](/guide/showing-errors#translating-errors) shows.
 
 ## Overriding a Default
 
-An option given to one form wins over the app's default:
+An option given to a single form takes precedence over the default of the app:
 
 <div class="vue-only">
 
@@ -198,6 +124,56 @@ const form = createForm(contactForm, { ...formDefaults, mode: 'onTouched' })
 
 </div>
 
-::: tip Definitions Win
-A `mode` set in a definition wins over both.
-:::
+A `mode` set in a definition takes precedence over both.
+
+## Inspecting Forms in Devtools
+
+<div class="vue-only">
+
+Once the plugin is installed with `createFormtree`, every form created with `useForm` appears in
+[Vue Devtools](https://devtools.vuejs.org) during development:
+
+![The FormTree inspector in Vue Devtools, showing a checkout form as a tree of nodes](/devtools-inspector.png)
+
+Tags show the kind and the state of each node, with errors counted as shown or hidden, and hovering
+a tag explains it. The inspector only reads, so every value and error still comes from the app.
+
+### Following Changes {#vue-only-following-changes}
+
+The Timeline tab records every change, check, and submit while its record button is on:
+
+![The FormTree timeline in Vue Devtools, showing a submit, an asynchronous check and a change](/devtools-timeline.png)
+
+Selecting an event shows its path and the value at that path at that moment.
+
+### Turning Off the Devtools {#vue-only-turning-off-the-devtools}
+
+Passing `devtools: false` keeps the forms out of Vue Devtools during development:
+
+```ts [main.ts]
+import { createFormtree } from '@formtree/vue'
+import { createApp } from 'vue'
+import App from './App.vue'
+
+createApp(App)
+  .use(createFormtree({ devtools: false }))
+  .mount('#app')
+```
+
+Production builds leave the devtools out without this option.
+
+</div>
+
+<div class="react-only">
+
+The devtools come with the Vue adapter, because React DevTools offers no way for a library to add a
+panel of its own.
+
+</div>
+
+<div class="javascript-only">
+
+The devtools come with the Vue adapter and show forms in Vue Devtools, so a form built with the core
+alone does not appear in them.
+
+</div>

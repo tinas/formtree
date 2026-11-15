@@ -6,8 +6,8 @@ import SubmitTree from '../.vitepress/components/submit-tree.vue'
 
 ## Handling a Submit
 
-A submit validates the form, waits for its server checks, and passes on only valid values.
-`handleSubmit` wraps your function in a submit function that does exactly this:
+`handleSubmit` turns a function into a submit function that validates the form, waits for its
+server checks, and calls the function only with valid values:
 
 ```ts twoslash
 import type { OutputOf } from '@formtree/core'
@@ -55,9 +55,7 @@ const submitDelivery = form.group('delivery').handleSubmit(async delivery => {
 <SubmitTree />
 
 The submit covers the node and everything below it, so errors elsewhere neither block it nor become
-visible, and an inactive part resolves to `'skipped'`. When the whole form is submitted later, the
-schemas and rules of the step run again only for values that have changed, while its server checks
-are asked again.
+visible, and an inactive part resolves to `'skipped'`.
 
 ## Showing Errors from the Server
 
@@ -95,8 +93,8 @@ covers it until the user changes that value.
 
 ## Validating on the Server
 
-The server can check a request with the same rules as the form. It creates a form from the same
-definition with the data of the request and calls `validate`:
+The server validates a request with the same definition, by creating a form from the data of the
+request and calling `validate`:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -130,11 +128,14 @@ export async function handleCheckout(request: Request, cartId: string) {
 ```
 
 `validate` resolves to the output, or to the errors with paths from the root, which the submit
-function of the whole form passes to `setErrors` unchanged. It runs every `validateAsync` check at
-once, without waiting for a blur or a debounce, so `run` calls on the server whatever it calls in the
-browser, and the form needs its `deps` there as well. An inactive part is left out of the output. A
-check whose `run` throws leaves no error, only an entry in `failedChecks`, so that request fails as
-unavailable.
+function of the whole form passes to `setErrors` unchanged.
+
+::: details Checks on the Server
+`validate` runs every `validateAsync` check at once, without waiting for a blur or a debounce, so
+`run` calls on the server whatever it calls in the browser, and the form needs its `deps` there as
+well. An inactive part is left out of the output. A check whose `run` throws leaves no error, only an
+entry in `failedChecks`, so that request fails as unavailable.
+:::
 
 ## Focusing the First Error
 
@@ -158,13 +159,16 @@ const send = form.handleSubmit(
 )
 ```
 
-Focus finds the element of a field by the field's `id`, so a custom input, such as a group of
-[radio buttons](/guide/binding-inputs#radio-buttons), puts that `id` on the element that should
-receive focus. `focusElement` determines how an element is focused, for example with smooth
-scrolling. A field hidden on the page, such as one in a closed dialog, is skipped. To focus it
-instead, the dialog can be opened in `onInvalid`, which runs before focus moves. Focus waits for the
-promise it returns, so the dialog can render first. Both options can also be set once for every
-form, as [App Defaults](/guide/app-defaults) describes.
+Focus finds the element of a field by its `id`, so a custom input, such as a group of
+[radio buttons](/guide/binding-inputs#binding-radio-buttons), puts that `id` on the element that should
+receive focus.
+
+::: details Hidden Fields and Custom Focus
+A field hidden on the page, such as one in a closed dialog, is skipped. To focus it instead, the
+dialog can be opened in `onInvalid`, which runs before focus moves, and focus waits for the promise
+it returns. `focusElement` determines how an element is focused, for example with smooth scrolling.
+Every focus option can also be set once for every form in [App Setup](/guide/app-setup).
+:::
 
 ## Submitting from a Button Outside the Form
 
@@ -225,7 +229,7 @@ return (
 
 ## Keeping the Button Enabled
 
-formtree provides no flag that disables the submit button while the form is invalid. Pressing an
+FormTree provides no flag that disables the submit button while the form is invalid. Pressing an
 enabled button shows every error and focuses the first one, whereas a disabled button gives no
 indication of what is wrong. An edit form can disable Save until something changes, as
-[Initial Values and Reset](/guide/initial-values) shows.
+[Initial Values and Reset](/guide/initial-values#detecting-changes) shows.

@@ -1,4 +1,4 @@
-# Inline Edit
+# Inline Price Editing
 
 A table where each price is a form of its own, built from `priceField`.
 

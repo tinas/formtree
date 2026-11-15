@@ -173,7 +173,11 @@ export async function writeMarkdownPages(siteConfig: SiteConfig, siteUrl: string
   )
 
   const sidebar = siteConfig.site.themeConfig.sidebar as Record<string, Array<DefaultTheme.SidebarItem>>
-  const sections = [...sidebar['/guide/'], ...sidebar['/tutorial/'], ...sidebar['/examples/']]
+  const sections = [
+    { text: 'Guide', items: sidebar['/guide/'] },
+    ...sidebar['/tutorial/'],
+    { text: 'Examples', items: sidebar['/examples/'] },
+  ]
   await writeFile(join(siteConfig.outDir, 'llms.txt'), llmsIndex(siteConfig, sections, siteUrl))
   await writeFile(join(siteConfig.outDir, 'llms-full.txt'), llmsFull(sections, markdownOf))
 }

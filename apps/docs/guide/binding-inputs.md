@@ -1,10 +1,11 @@
 # Binding Inputs
 
-## A Reusable Input
+## Writing a Reusable Input
 
 <div class="vue-only">
 
-Give `useField` a field's name instead of its node, and one input component binds every field:
+`useField` also takes the name of a field instead of its node, so one input component binds every
+field:
 
 ::: code-group
 
@@ -48,11 +49,18 @@ const field = useField<string>(() => props.name)
 `useField` looks the name up in the node that `provideFormNode` makes available to the components
 below it. [`FieldView`](/api/@formtree/vue/interfaces/FieldView) lists what it returns.
 
+::: warning useForm Provides Nothing
+`useForm` only creates the form, so `useField` with a name throws until a component above calls
+`provideFormNode`. [Splitting into Components](/guide/components#connecting-components-to-a-form)
+explains why.
+:::
+
 </div>
 
 <div class="react-only">
 
-Give `useField` a field's name instead of its node, and one input component binds every field:
+`useField` also takes the name of a field instead of its node, so one input component binds every
+field:
 
 ::: code-group
 
@@ -99,12 +107,18 @@ export function TextField({ name, label }: { name: string; label: string }) {
 `useField` looks the name up in the node that `<FormNodeProvider>` makes available to the
 components below it. [`FieldView`](/api/@formtree/react/interfaces/FieldView) lists what it returns.
 
+::: warning useForm Provides Nothing
+`useForm` only creates the form, so `useField` with a name throws until a component above renders
+`<FormNodeProvider>`. [Splitting into Components](/guide/components#connecting-components-to-a-form)
+explains why.
+:::
+
 </div>
 
 <div class="javascript-only">
 
-Move `bindInput` into a module of its own and give it a field's node, and one function binds every
-input of every form:
+Moved into a module of its own and given the node of a field, `bindInput` binds every input of
+every form:
 
 ::: code-group
 
@@ -177,15 +191,15 @@ export function setAttributes(element: Element, attributes: FieldAttributes) {
 :::
 
 `bindInput` calls `showField` whenever the field changes and returns the function that stops it.
-`showField` writes the value, the error, and the input's attributes, so a reset shows on the page
-and a screen reader reads the error with the input.
+`showField` writes the value, the error, and the attributes of the input, so a reset reaches the
+page and a screen reader announces the error with the input.
 
 </div>
 
 ## Marking Required Fields
 
-To mark a required field's label, read `state.required`, which is true when the field's schema rejects
-an empty value:
+`state.required` is `true` when the schema of a field rejects an empty value, so the label can mark
+it:
 
 <div class="vue-only">
 
@@ -269,13 +283,17 @@ A CSS rule such as `.required::after { content: '*' }` turns the class into an a
 
 </div>
 
-The input's attributes already carry `aria-required`, so a screen reader announces the field as
-required. The schema is asked once, with the form empty, so typing never asks it again. A part that
-[`activeWhen`](/guide/conditional-fields) turns on is marked while it is on, but a key that another
-answer in the same schema requires is not. Neither is a field that a group's `validate` rule requires,
-or one whose schema answers asynchronously.
+The attributes of the input already carry `aria-required`, so a screen reader announces the field
+as required.
 
-## Number Inputs
+::: details What Counts as Required
+The schema is asked once, with the form empty, so typing never asks it again. A part that
+[`activeWhen`](/guide/conditional-fields) activates is marked while it is active, but a key that
+another answer in the same schema requires is not. Neither is a field that the `validate` rule of a
+group requires, or one whose schema answers asynchronously.
+:::
+
+## Binding a Number Input
 
 A number input converts its text in both directions and writes `undefined` when it is empty:
 
@@ -382,13 +400,13 @@ export function bindNumberInput(
 }
 ```
 
-The check in `showField` leaves a number the user is still typing alone.
+The comparison in `showField` leaves a number that the user is still typing alone.
 
 </div>
 
 Clearing the input empties the field instead of writing `0`.
 
-## Selects
+## Binding a Select
 
 A select starts with a disabled option for the empty field, so nothing looks chosen before the
 user picks:
@@ -526,12 +544,12 @@ export function bindSelect<Value extends string>(
 
 :::
 
-`choices` turns the selected text back into one of the field's values, as in
+`choices` turns the selected text back into one of the values of the field, as in
 `bindSelect(form.field('role'), Object.values(ROLE))`.
 
 </div>
 
-## Checkboxes
+## Binding a Checkbox
 
 A checkbox reads and writes `checked` instead of `value`:
 
@@ -628,9 +646,9 @@ the field empty.
 
 [Checkbox Group](/examples/checkbox-group) binds several boxes to one list.
 
-## Radio Buttons
+## Binding Radio Buttons
 
-Radio buttons share one value, so the field's attributes go on the group around them:
+Radio buttons share one value, so the attributes of the field go on the group around them:
 
 <div class="vue-only">
 
@@ -744,15 +762,15 @@ export function bindRadioGroup(
 
 </div>
 
-The group holds the field's `id` and `tabindex="-1"`, so a failed submit can focus it, and
-`role="radiogroup"` lets screen readers read its error with it. Every radio shares the field's
-`name`, so only one of them is checked at a time. [Radio Group](/examples/radio-group) shows this
+The group holds the `id` of the field and `tabindex="-1"`, so a failed submit can focus it, and
+`role="radiogroup"` lets screen readers announce its error with it. Every radio shares the `name` of
+the field, so only one of them is checked at a time. [Radio Group](/examples/radio-group) shows this
 live.
 
-## Typed Bindings
+## Typing a Binding
 
-A name cannot tell TypeScript what its field holds, but a node can. Bind a field's node, and
-TypeScript rejects a value the schema does not accept:
+A name cannot tell TypeScript what its field holds, but a node can. When a field is bound by its
+node, TypeScript rejects a value that the schema does not accept:
 
 <div class="vue-only">
 
@@ -791,95 +809,6 @@ const form = createForm(accountForm)
 const role = form.field('role')
 
 role.setValue('owner')
-```
-
-</div>
-
-## Switching Languages
-
-<div class="vue-only">
-
-Errors on screen follow a language switch by themselves, because each field runs `formatError`
-again when vue-i18n's locale changes.
-
-</div>
-
-<div class="react-only">
-
-Pass the current language to `<FormtreeProvider>`:
-
-```tsx{4,8,11} [app.tsx]
-import type { FormError } from '@formtree/react'
-import { FormtreeProvider } from '@formtree/react'
-import i18next from 'i18next'
-import { useTranslation } from 'react-i18next'
-import { ContactForm } from './contact-form'
-
-export function App() {
-  const { i18n } = useTranslation()
-
-  return (
-    <FormtreeProvider formatError={formatError} language={i18n.language}>
-      <ContactForm />
-    </FormtreeProvider>
-  )
-}
-
-function formatError(error: FormError) {
-  return i18next.t(error.code, { ...error.params })
-}
-```
-
-When `language` changes, every component that reads a form re-renders, and `formatError` reads the new
-language from i18next.
-
-</div>
-
-<div class="javascript-only">
-
-Call `showField` again when the language changes:
-
-```ts{2,13} twoslash [bind-input.ts]
-// @noStaticSemanticInfo
-// @filename: i18next.d.ts
-declare module 'i18next' {
-  const i18next: { on: (event: 'languageChanged', listener: () => void) => void }
-  export default i18next
-}
-// @filename: bind-input.ts
-// ---cut---
-import type { FieldAttributes, FieldNode } from '@formtree/core'
-import i18next from 'i18next'
-
-type TextInput = HTMLInputElement | HTMLTextAreaElement
-
-export function bindInput(field: FieldNode<string | undefined, unknown>) {
-  const input = document.getElementById(field.id) as TextInput
-  const error = document.getElementById(field.errorId)!
-
-  input.addEventListener('input', () => field.setValue(input.value))
-  input.addEventListener('blur', () => field.blur())
-  showField()
-  i18next.on('languageChanged', showField)
-  return field.subscribe(showField)
-
-  function showField() {
-    input.value = field.state.value ?? ''
-    error.textContent = field.errorMessage ?? ''
-    setAttributes(input, field.attributes)
-  }
-}
-// ---cut-after---
-
-export function setAttributes(element: HTMLElement, attributes: FieldAttributes) {
-  for (const [attribute, value] of Object.entries(attributes)) {
-    if (value == null) {
-      element.removeAttribute(attribute)
-    } else {
-      element.setAttribute(attribute, value)
-    }
-  }
-}
 ```
 
 </div>

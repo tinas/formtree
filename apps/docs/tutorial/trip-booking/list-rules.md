@@ -1,4 +1,4 @@
-# Checking Across Rows
+# Validating the Whole List
 
 <script setup>
 import BookingForm from './steps/list-rules/booking-form.vue'
@@ -6,17 +6,17 @@ import BookingForm from './steps/list-rules/booking-form.vue'
 
 <div class="vue-only">
 
-Each traveler's group checks only its own values, so the booking goes through with no traveler at
-all, or with children traveling alone. A rule about the travelers as a whole needs every row at
-once.
+The group of each traveler validates only its own values, so a booking goes through with no
+traveler at all, or with children traveling alone. A rule about the travelers as a whole needs every
+row at once.
 
 </div>
 
-## Checking the List
+## Validating the List
 
 <div class="vue-only">
 
-Give the list a rule in the `validate` option of `arrayOf`, which receives every traveler:
+Such a rule belongs in the `validate` option of `arrayOf`, which receives every traveler:
 
 ```ts [forms/booking.ts]
 import { arrayOf, defineField, defineGroup } from '@formtree/vue'
@@ -77,11 +77,11 @@ fails the same rule.
 
 </div>
 
-## Showing the List's Error
+## Showing the Error of the List
 
 <div class="vue-only">
 
-The list's node has an `errorMessage` like a field's, so show it below the travelers:
+The node of the list has an `errorMessage` just like a field, so it is shown below the travelers:
 
 ```vue{33}
 <template>
@@ -124,8 +124,8 @@ The list's node has an `errorMessage` like a field's, so show it below the trave
 </template>
 ```
 
-The error shows once the list is touched, which adding or removing a traveler does, or after a
-submit.
+The error becomes visible once the list is touched, which happens when a traveler is added or
+removed, or after a submit.
 
 </div>
 

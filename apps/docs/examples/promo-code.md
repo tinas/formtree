@@ -1,4 +1,4 @@
-# Promo Code
+# Promo Code Check
 
 A promo code that the server checks when the customer leaves the field.
 
@@ -10,7 +10,8 @@ import PromoCode from './demos/promo-code.vue'
   <PromoCode />
 </DemoFrame>
 
-Type a code and leave the field, or press Enter and the submit waits for the check.
+Type a code and leave the field to start the check, or press Enter, and the submit waits until the
+check has finished.
 
 ::: code-group
 

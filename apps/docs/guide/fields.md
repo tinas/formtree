@@ -1,9 +1,12 @@
 # Fields
 
+A field is a single value with rules of its own.
+
 ## Defining a Field
 
-A value that needs rules of its own gets a definition of its own. Define it with `defineField`, and
-add it to a group's `children`:
+A value that needs rules of its own gets a definition of its own, as
+[Choosing Between a Key and a Child](/guide/groups#choosing-between-a-key-and-a-child) explains.
+`defineField` defines it, and a group adds it to its `children`:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -28,11 +31,11 @@ export const productForm = defineGroup({
 })
 ```
 
-Every form that uses `priceField` checks the price with the same rule.
+Every form that uses `priceField` validates the price with the same rule.
 [`DefineFieldOptions`](/api/@formtree/core/interfaces/DefineFieldOptions) lists what else a field
 definition can hold.
 
-## Empty Values
+## Starting Empty
 
 A field starts as `undefined`, never as `0` or an empty string:
 
@@ -64,12 +67,12 @@ const value = price.state.value
 //    ^?
 ```
 
-The schema decides whether an empty value is an error.
+The schema determines whether an empty value is an error.
 
 ## Changing a Value from Code
 
-Input bindings write to a field for you. When a value comes from somewhere else, such as a button
-that picks a price, call `setValue`, and call `blur` when the user is done with the control:
+Input bindings write to a field on their own. A value from anywhere else, such as a button that
+picks a price, goes through `setValue`, and `blur` does what leaving an input does:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -101,7 +104,7 @@ price.setValue(25)
 price.blur()
 ```
 
-## A Field as a Form
+## Using a Field as a Form
 
 Any definition can be the root of a form, a field included. A form made from `priceField` edits
 only the price:
@@ -180,5 +183,26 @@ export function createPriceForm(product: Product) {
 
 </div>
 
-The form's value is the price itself, so `savePrice` receives a number.
-[Inline Edit](/examples/inline-edit) shows a table of these forms.
+The value of the form is the price itself, so `savePrice` receives a number.
+[Inline Price Editing](/examples/inline-edit) shows a table of these forms.
+
+## Defining a Field with Dependencies
+
+A field that reads dependencies, such as a minimum length that depends on a role, is defined with
+`defineFieldWithDeps` and the type of the data:
+
+```ts twoslash
+// @noStaticSemanticInfo
+import { defineFieldWithDeps } from '@formtree/core'
+import { z } from 'zod'
+// ---cut---
+export const passwordField = defineFieldWithDeps<{ minLength: number }>()({
+  schema: ({ deps }) =>
+    z.string({ error: 'Password is required' }).min(deps.minLength, {
+      error: `Use at least ${deps.minLength} characters`,
+    }),
+})
+```
+
+Every function in the options receives `deps`, and the group that holds the field passes them with
+`childDeps`, as [Groups](/guide/groups#deriving-data-from-an-answer) shows.

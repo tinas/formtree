@@ -1,59 +1,274 @@
 # Introduction
 
-## What is formtree?
+## What Is FormTree?
 
-formtree is a headless, framework-agnostic form library for TypeScript. You describe what a form
-holds and which rules it follows, and formtree keeps track of the values, validates them, and hands
-the valid result to your submit function. It renders nothing, so how the form looks stays up to
-you.
+FormTree is a headless, framework-agnostic form library for TypeScript. You describe what a form
+holds and which rules it follows in a definition, and FormTree tracks the values, validates them,
+and hands only valid values to your submit function. Definitions nest, so any part of a form, such
+as a step of a wizard or a row of a list, validates and submits on its own. FormTree renders
+nothing, so the markup and the styles stay yours.
 
-## Why Forms Get Hard
+[Why FormTree](/guide/why-formtree) explains the idea behind it and who it is for.
 
-A form usually begins simply. A few inputs, a schema, and a submit handler are sufficient, and the
-code remains easy to follow.
+::: tip Prerequisites
+The guide assumes basic familiarity with TypeScript, and FormTree needs TypeScript 5.4 or later.
+The examples write schemas with [Zod](https://zod.dev), so install it to follow along. Any
+[Standard Schema](https://standardschema.dev) library can take its place.
+:::
 
-As requirements accumulate, the form grows more complex. Errors appear before the user has interacted
-with a field, so the component gains a flag to hide them. The next requirement adds another flag, and the
-one after it a condition. Eventually the form works as intended, but what it requires can no longer
-be determined without reading the entire component.
+Install FormTree:
 
-## A Form Built from Parts
+<div class="vue-only">
 
-formtree moves the rules of a form out of the component and into a description of the form, called
-a definition, leaving the component responsible only for the markup. Because forms are composed of
-parts, a definition can contain a smaller definition for each part, each with its own rules. This
-nesting is the tree in formtree's name.
+::: code-group
 
-Creating a form from a definition turns every part into a node with its own value and errors, and
-each node can be validated and submitted independently.
+```sh [pnpm]
+pnpm add @formtree/vue
+```
 
-## Submitting a Form in Steps
+```sh [npm]
+npm install @formtree/vue
+```
 
-Long forms are often split into steps. The button that leads to the next step should check only the
-current step, not fields the user has not seen yet.
+```sh [yarn]
+yarn add @formtree/vue
+```
 
-In formtree, each step is a part of the form, so its button can validate and submit just that part.
+:::
 
-## Fields That Depend on Another Answer
+</div>
 
-Some fields matter only after a certain answer. Card details, for example, are needed only when the
-customer pays by card, and someone who pays by invoice should not be stopped by an empty card
-number.
+<div class="react-only">
 
-A definition can say when one of its parts applies. While it does not, the fields in that part are
-not validated and are left out of the submitted values.
+::: code-group
 
-## Checking a Value with the Server
+```sh [pnpm]
+pnpm add @formtree/react
+```
 
-A sign-up form asks for a username, and only the server can determine whether it is still
-available. Checks of this kind are difficult to get right. A response for an earlier value can
-arrive last, and the form then displays the result for a name the user has already changed.
+```sh [npm]
+npm install @formtree/react
+```
 
-In formtree, the check is declared in the definition, alongside the schema. formtree cancels the
-request for any value that has since changed, so the response always corresponds to the value on
-screen.
+```sh [yarn]
+yarn add @formtree/react
+```
 
-## Still Got Questions?
+:::
 
-Open an issue with the [Docs or question](https://github.com/tinas/formtree/issues/new/choose)
-template. A question the docs did not answer is a gap we want to fix.
+</div>
+
+<div class="javascript-only">
+
+::: code-group
+
+```sh [pnpm]
+pnpm add @formtree/core
+```
+
+```sh [npm]
+npm install @formtree/core
+```
+
+```sh [yarn]
+yarn add @formtree/core
+```
+
+:::
+
+</div>
+
+<div class="vue-only">
+
+Here is a complete login form. `defineGroup` describes the values and their rules, and the
+component turns it into a form with `useForm` and binds an input to each field with `useField`:
+
+```vue
+<script setup lang="ts">
+import { defineGroup, useField, useForm } from '@formtree/vue'
+import { z } from 'zod'
+import { logIn } from './api'
+
+const loginForm = defineGroup({
+  schema: z.object({
+    email: z.email({ error: 'Enter a valid email address' }),
+    password: z.string({ error: 'Enter your password' }).min(1, {
+      error: 'Enter your password',
+    }),
+  }),
+})
+
+const form = useForm(loginForm)
+const email = useField(form.field('email'))
+const password = useField(form.field('password'))
+
+const submit = form.handleSubmit(async credentials => {
+  await logIn(credentials)
+})
+</script>
+
+<template>
+  <form novalidate @submit.prevent="submit">
+    <label :for="email.id">Email</label>
+    <input v-model="email.model" v-bind="email.attrs" type="email" />
+    <p :id="email.errorId">{{ email.errorMessage }}</p>
+
+    <label :for="password.id">Password</label>
+    <input v-model="password.model" v-bind="password.attrs" type="password" />
+    <p :id="password.errorId">{{ password.errorMessage }}</p>
+
+    <button type="submit">Log in</button>
+  </form>
+</template>
+```
+
+`v-model` keeps each input and its field in sync, and `v-bind` adds everything else the input needs.
+
+</div>
+
+<div class="react-only">
+
+Here is a complete login form. `defineGroup` describes the values and their rules, and the
+component turns it into a form with `useForm` and binds an input to each field with `useField`:
+
+```tsx
+import { defineGroup, useField, useForm } from '@formtree/react'
+import { z } from 'zod'
+import { logIn } from './api'
+
+const loginForm = defineGroup({
+  schema: z.object({
+    email: z.email({ error: 'Enter a valid email address' }),
+    password: z.string({ error: 'Enter your password' }).min(1, {
+      error: 'Enter your password',
+    }),
+  }),
+})
+
+export function LoginForm() {
+  const form = useForm(loginForm)
+  const email = useField(form.field('email'))
+  const password = useField(form.field('password'))
+
+  const submit = form.handleSubmit(async credentials => {
+    await logIn(credentials)
+  })
+
+  return (
+    <form
+      noValidate
+      onSubmit={event => {
+        event.preventDefault()
+        void submit()
+      }}
+    >
+      <label htmlFor={email.id}>Email</label>
+      <input
+        {...email.attrs}
+        type="email"
+        value={email.value ?? ''}
+        onChange={event => email.setValue(event.target.value)}
+      />
+      <p id={email.errorId}>{email.errorMessage}</p>
+
+      <label htmlFor={password.id}>Password</label>
+      <input
+        {...password.attrs}
+        type="password"
+        value={password.value ?? ''}
+        onChange={event => password.setValue(event.target.value)}
+      />
+      <p id={password.errorId}>{password.errorMessage}</p>
+
+      <button type="submit">Log in</button>
+    </form>
+  )
+}
+```
+
+`value` and `setValue` keep each input and its field in sync, and `attrs` adds everything else the
+input needs. Until the user types, a value is `undefined`, so the input falls back to an empty
+string.
+
+</div>
+
+<div class="javascript-only">
+
+Here is a complete login form. `defineGroup` describes the values and their rules, `createForm`
+turns it into a form, and `bindInput` connects each input to its field by the ids of the field:
+
+::: code-group
+
+```ts twoslash [login-form.ts]
+// @filename: api.ts
+export declare function logIn(credentials: { email: string; password: string }): Promise<void>
+// @filename: login-form.ts
+// ---cut---
+import { createForm, defineGroup } from '@formtree/core'
+import { z } from 'zod'
+import { logIn } from './api'
+
+const loginForm = defineGroup({
+  schema: z.object({
+    email: z.email({ error: 'Enter a valid email address' }),
+    password: z.string({ error: 'Enter your password' }).min(1, {
+      error: 'Enter your password',
+    }),
+  }),
+})
+
+const form = createForm(loginForm, { id: 'login' })
+
+bindInput('email')
+bindInput('password')
+
+const submit = form.handleSubmit(async credentials => {
+  await logIn(credentials)
+})
+
+document.querySelector('form')!.addEventListener('submit', event => {
+  event.preventDefault()
+  void submit()
+})
+
+function bindInput(key: 'email' | 'password') {
+  const field = form.field(key)
+  const input = document.getElementById(field.id) as HTMLInputElement
+  const error = document.getElementById(field.errorId)!
+
+  input.addEventListener('input', () => field.setValue(input.value))
+  input.addEventListener('blur', () => field.blur())
+  field.subscribe(() => {
+    error.textContent = field.errorMessage ?? ''
+  })
+}
+```
+
+```html [index.html]
+<form novalidate>
+  <label for="login:email">Email</label>
+  <input id="login:email" type="email" />
+  <p id="login:email:error"></p>
+
+  <label for="login:password">Password</label>
+  <input id="login:password" type="password" />
+  <p id="login:password:error"></p>
+
+  <button type="submit">Log in</button>
+</form>
+```
+
+:::
+
+`subscribe` runs after every change to a field, so the error on the page stays current.
+
+</div>
+
+The text in each `error` is what the user sees when a value is missing or wrong. It becomes visible
+once the user leaves the input, so no error is shown while the user is still typing. `handleSubmit`
+validates the whole form first, and your function receives the values only when they are valid,
+typed from the schema.
+
+The `novalidate` attribute turns off the validation of the browser, so only your messages are
+shown. `handleSubmit` leaves the submit event alone, so the form prevents the page reload itself,
+with `.prevent` in Vue and `event.preventDefault()` in React and plain JavaScript.

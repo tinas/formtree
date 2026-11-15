@@ -2,8 +2,8 @@
 
 ## Defining a Recursive Group
 
-To let a group contain itself, refer to it through a function in `arrayOf` and give it its type with
-`GroupDefinition`:
+A group that contains itself refers to itself through a function in `arrayOf`, and takes its type
+from `GroupDefinition`:
 
 ```ts twoslash
 import type { GroupDefinition, InputOf } from '@formtree/core'
@@ -44,8 +44,8 @@ under `groups`.
 
 ## Rules and Data at Every Level
 
-Every level runs the same rules. Pass the group's dependencies on to its nested groups in
-`childDeps`:
+Every level runs the same rules, and `childDeps` passes the dependencies of the group on to its
+nested groups:
 
 ```ts{1-5,15-22} twoslash
 import type { GroupDefinition, InputOf } from '@formtree/core'
@@ -100,12 +100,12 @@ export const conditionTreeGroup: GroupDefinition<
 })
 ```
 
-The dependency type is the third argument of `GroupDefinition`. A condition at any depth checks
-against the same attributes, and an empty group at any depth reports its own error.
+The dependency type is the third argument of `GroupDefinition`. A condition at any depth is
+validated against the same attributes, and an empty group at any depth reports its own error.
 
 ## Rendering a Tree
 
-Render the tree with a component that renders one level and itself for each nested group:
+A component that renders one level, and itself for each nested group, renders the whole tree:
 
 <div class="vue-only">
 

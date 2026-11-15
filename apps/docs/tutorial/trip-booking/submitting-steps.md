@@ -1,4 +1,4 @@
-# Booking in Steps
+# Submitting in Steps
 
 <script setup>
 import BookingForm from './steps/submitting-steps/booking-form.vue'
@@ -6,9 +6,9 @@ import BookingForm from './steps/submitting-steps/booking-form.vue'
 
 <div class="vue-only">
 
-The booking asks for everything on one page, and Book trip on an empty booking shows every error at
-once, from the destination down to the last traveler. A booking this long reads better in steps, and
-the button of each step should check only what that step shows.
+The booking asks for everything on one page, and pressing Book trip on an empty booking shows every
+error at once, from the destination down to the last traveler. A booking of this length reads better
+in steps, where the button of each step validates only what that step shows.
 
 </div>
 
@@ -18,7 +18,7 @@ the button of each step should check only what that step shows.
 
 Every node in a form can be submitted on its own, so each step needs a node. The destination already
 has one as a key of the booking, and so do the travelers as a list. Only the dates have none, so
-define them as a group:
+they are defined as a group:
 
 ```ts [forms/booking.ts]
 import type { Destination } from '../api'
@@ -49,7 +49,7 @@ const datesGroup = defineGroup({ // [!code ++]
 }) // [!code ++]
 ```
 
-The group takes the return date along, together with the condition that reads the trip type next to
+The group takes the return date along, together with the condition that reads the trip type beside
 it.
 
 </div>
@@ -58,7 +58,7 @@ it.
 
 <div class="vue-only">
 
-Replace the trip type and the dates in the booking with the group, under the key `dates`:
+In the booking, the group replaces the trip type and the dates, under the key `dates`:
 
 ```ts [forms/booking.ts]
 export const bookingForm = defineGroupWithDeps<BookingDeps>()({
@@ -86,9 +86,9 @@ The booking now holds the dates under `dates`, so their names start with it, suc
 `dates.departureDate`.
 
 ::: info Why the Destination Stays a Key
-A group builds its children's dependencies from its own keys, and a group beside the travelers could
-pass them nothing. The destination decides whether the travelers need a passport number, so it stays
-a key of the booking, the parent of every step.
+A group builds the dependencies of its children from its own keys, so a group beside the travelers
+could pass them nothing. The destination determines whether the travelers need a passport number,
+so it stays a key of the booking, the parent of every step.
 :::
 
 </div>
@@ -97,8 +97,8 @@ a key of the booking, the parent of every step.
 
 <div class="vue-only">
 
-Every node has its own `handleSubmit`. Keep the current step in a ref, and give the destination and
-the dates a submit function each that moves on to the next step:
+Every node has its own `handleSubmit`. The current step is kept in a ref, and the destination and
+the dates each get a submit function that moves on to the next step:
 
 ```vue [booking-form.vue]
 <script setup lang="ts">
@@ -160,8 +160,8 @@ fetchDestinations().then(list => {
 </script>
 ```
 
-A step's submit checks only its node and what is below it, so errors in the other steps neither stop
-it nor show. Book trip still submits the whole booking.
+The submit of a step validates only its node and what is below it, so errors in the other steps
+neither block it nor become visible. Book trip still submits the whole booking.
 
 </div>
 
@@ -169,7 +169,7 @@ it nor show. Book trip still submits the whole booking.
 
 <div class="vue-only">
 
-Give each step a form of its own that submits it, with a Back button to the step before:
+Each step gets a form of its own that submits it, with a Back button to the previous step:
 
 ```vue{2-6,13-14,16-22,25,30-34,36,60-63}
 <template>
@@ -240,8 +240,8 @@ Give each step a form of its own that submits it, with a Back button to the step
 </template>
 ```
 
-Going back takes a step's inputs off the page, but their values stay in the form, so every input
-shows what it held.
+Going back removes the inputs of a step from the page, but their values stay in the form, so every
+input shows what it held before.
 
 </div>
 
@@ -253,7 +253,7 @@ shows what it held.
   <BookingForm />
 </DemoFrame>
 
-Press Continue without a destination, and only its error shows. Then choose Tokyo and the dates, add
+Press Continue without a destination, and only its error is shown. Then choose Tokyo and the dates, add
 a traveler, and go back a step. Every step keeps its values, and the traveler still asks for a
 passport number.
 

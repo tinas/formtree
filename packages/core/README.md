@@ -45,7 +45,7 @@ const placeOrder = form.handleSubmit(submitOrder)
 
 `continueToPayment` validates only the delivery step and passes its parsed values to `saveDelivery`, so the user is not stopped by a payment they have not reached. `placeOrder` validates the whole checkout.
 
-Every node has a `state` with its value, errors, and flags, and `subscribe` calls a listener when that state changes, which is how inputs stay in sync without a framework. [Quick Start](https://form-tree.netlify.app/guide/quick-start?framework=javascript) binds a form to plain inputs step by step.
+Every node has a `state` with its value, errors, and flags, and `subscribe` calls a listener when that state changes, which is how inputs stay in sync without a framework. The [Introduction](https://form-tree.netlify.app/guide/?framework=javascript) binds a form to plain inputs.
 
 ## Requirements
 

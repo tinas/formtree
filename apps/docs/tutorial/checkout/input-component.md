@@ -7,7 +7,7 @@ import CheckoutForm from './steps/input-component/checkout-form.vue'
 <div class="vue-only">
 
 Every input in the checkout repeats a label, the input, and its error. An input component writes
-them once, and it then needs a way to find its field.
+them only once, but it then needs a way to find its field.
 
 </div>
 
@@ -15,7 +15,7 @@ them once, and it then needs a way to find its field.
 
 <div class="vue-only">
 
-Give the component a `name` prop, and pass the name to `useField`:
+The component takes a `name` prop and passes the name to `useField`:
 
 ```vue [text-field.vue]
 <script setup lang="ts">
@@ -33,13 +33,9 @@ const field = useField<string>(() => props.name)
 </template>
 ```
 
-With a name, `useField` looks the field up in the form that a component above it provides. The
-getter keeps the binding in step with the prop.
-
-::: tip Two Forms on One Page
-`useField` looks a name up in the nearest form provided above it, so on a page with two forms, each
-input binds to the form that encloses it.
-:::
+Given a name, `useField` looks the field up in the nearest form that a component above provides,
+so on a page with two forms, each input binds to the form that encloses it. The getter keeps the
+binding in step with the prop.
 
 </div>
 
@@ -47,7 +43,7 @@ input binds to the form that encloses it.
 
 <div class="vue-only">
 
-Pass the form to `provideFormNode` in the component that creates it, and render an input component
+The component that creates the form passes it to `provideFormNode` and renders an input component
 for each field:
 
 ```vue [checkout-form.vue]
@@ -89,12 +85,12 @@ const placeOrder = form.handleSubmit(checkout => {
 </template>
 ```
 
-Every component below the checkout can now find the form, however deep it sits.
+Every component below the checkout can now find the form, at any depth.
 
 ::: info Why the Form Is Provided
-Passing each field down as a prop would work too, but every component between the form and the
-input would then have to take it and pass it on. Nothing is provided on its own, not even by
-`useForm`, so the component that creates a form decides which components see it.
+Passing each field down as a prop would also work, but every component between the form and the
+input would then have to receive it and pass it on. Nothing is provided automatically, not even by
+`useForm`, so the component that creates a form determines which components can see it.
 :::
 
 </div>
@@ -107,7 +103,7 @@ input would then have to take it and pass it on. Nothing is provided on its own,
   <CheckoutForm />
 </DemoFrame>
 
-The checkout works as before, and another field now takes one line in the template.
+The checkout works as before, and each additional field now takes a single line in the template.
 
 ::: code-group
 

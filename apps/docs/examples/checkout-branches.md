@@ -1,17 +1,17 @@
-# Checkout Branches
+# Conditional Checkout
 
-A checkout whose delivery and payment details follow the customer's choices.
+A checkout whose delivery and payment details follow the choices of the customer.
 
 <script setup>
 import CheckoutBranches from './demos/checkout-branches.vue'
 </script>
 
-<DemoFrame title="Parts that follow the customer's answers">
+<DemoFrame title="Parts that follow the answers of the customer">
   <CheckoutBranches />
 </DemoFrame>
 
-Type a cardholder name, switch to invoice, and submit. The draft keeps the name, and the output
-leaves it out.
+Type a cardholder name, switch to invoice, and submit. The name is kept in the draft but left
+out of the output.
 
 ::: code-group
 

@@ -1,9 +1,12 @@
 # Conditional Fields
 
+A conditional part applies only after a certain answer. While it does not, it is neither validated
+nor submitted.
+
 ## Making a Part Conditional
 
-To request certain fields only after a particular answer, such as card details when the customer
-pays by card, place them in a child and declare when it applies with the group's `activeWhen`:
+Fields that apply only after a certain answer, such as card details when the customer pays by card,
+go in a child, and the `activeWhen` option of the group states when it applies:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -28,10 +31,10 @@ export const paymentForm = defineGroup({
 })
 ```
 
-Each function receives the value of the group's own schema and runs again after every change.
+Each function receives the value of the schema of the group and runs again after every change.
 
 ::: tip Option Order
-Write `activeWhen` after `schema` and `children`, because its functions are typed from them, as
+`activeWhen` goes after `schema` and `children`, because its functions are typed from them, as
 [TypeScript](/guide/typescript) explains.
 :::
 
@@ -76,7 +79,7 @@ const placeOrder = form.handleSubmit(async payment => {
 ```
 
 Its value is kept, so a customer who switches back to card finds the details as they left them.
-[Checkout Branches](/examples/checkout-branches) shows this live.
+[Conditional Checkout](/examples/checkout-branches) shows this live.
 
 ## Showing Active Parts
 
@@ -146,7 +149,7 @@ function toggleCardFieldset() {
 Whether an inactive part is hidden is a decision of the page alone, because the form never depends
 on what is rendered.
 
-## Nested Conditions
+## Nesting Conditions
 
 Conditions nest with their groups, so a part inside an inactive part is inactive too:
 
@@ -184,13 +187,14 @@ const deliveryGroup = defineGroup({
 ```
 
 ::: tip Single Values
-`activeWhen` accepts only keys of `children`, so a single value that comes and goes, like the
-state, gets a definition of its own.
+`activeWhen` accepts only keys of `children`, so a single value that comes and goes, such as a
+region that only some countries have, gets a definition of its own, as
+[Choosing Between a Key and a Child](/guide/groups#choosing-between-a-key-and-a-child) explains.
 :::
 
 ## Clearing a Part
 
-To clear an inactive part instead of keeping its values, reset it:
+An inactive part keeps its values, and `reset` clears them:
 
 ```ts twoslash
 // @noStaticSemanticInfo

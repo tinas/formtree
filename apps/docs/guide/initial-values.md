@@ -84,8 +84,8 @@ in `initialValue` instead.
 
 ## Detecting Changes
 
-A form is dirty while any of its values differs from its initial value, and `state.dirty` reports
-it, so a Save button can remain disabled until there is something to save:
+`state.dirty` is `true` while any value differs from its initial value, so a Save button can stay
+disabled until there is something to save:
 
 <div class="vue-only">
 
@@ -130,13 +130,16 @@ function updateSaveButton() {
 
 </div>
 
-Changing a value back to its initial value makes the form clean again. Plain objects, arrays, and
-dates count as the same value when their contents are equal, while any other object, such as a
-`File`, counts as the same only when it is the same object.
+Changing a value back to its initial value makes the form clean again.
+
+::: details How Values Are Compared
+Plain objects, arrays, and dates count as the same value when their contents are equal, while any
+other object, such as a `File`, counts as the same only when it is the same object.
+:::
 
 ## Discarding Changes
 
-To discard the user's changes, `reset` returns the form to its initial values:
+`reset` discards the changes of the user and returns the form to its initial values:
 
 <div class="vue-only">
 
@@ -198,9 +201,8 @@ const save = form.handleSubmit(async contact => {
 })
 ```
 
-The form is clean again. As with `initialValue`, the value may leave parts out, and whatever it
-leaves out starts empty. The same call also fills a form whose data loads after the form was
-created.
+The form is clean again, and parts left out of the value start empty. The same call also fills a
+form whose data loads after the form was created.
 
 A part that is saved on its own, such as a row, is reset in the same way:
 
@@ -226,7 +228,7 @@ Only that row becomes clean, and a newly saved row joins the initial value of th
 ## Refreshing Data While Editing
 
 When fresh data arrives while the user is editing, a reset with `keepDirtyValues` takes it in
-without discarding the user's changes:
+without discarding the changes of the user:
 
 <div class="vue-only">
 

@@ -11,7 +11,7 @@ import { markdownPagesPlugin, writeMarkdownPages } from './page-markdown'
 import { FRAMEWORK_HEAD_SCRIPT, FRAMEWORK_STYLE } from './theme/framework'
 
 const DESCRIPTION =
-  'Headless, framework-agnostic forms. Describe a form once with a schema and its rules, and formtree validates it, submits it, and keeps it typed.'
+  'Headless, framework-agnostic forms. Describe a form once with a schema and its rules, and FormTree validates it, submits it, and keeps it typed.'
 
 const SITE_URL = 'https://form-tree.netlify.app'
 
@@ -44,7 +44,7 @@ const EXAMPLE_FORMS = [
 const API_SIDEBAR_FILE = new URL('../api/typedoc-sidebar.json', import.meta.url)
 
 export default defineConfig({
-  title: 'formtree',
+  title: 'FormTree',
   description: DESCRIPTION,
 
   cleanUrls: true,
@@ -62,83 +62,56 @@ export default defineConfig({
 
     sidebar: {
       '/guide/': [
-        {
-          text: 'Getting Started',
-          items: [
-            { text: 'Introduction', link: '/guide/' },
-            { text: 'Quick Start', link: '/guide/quick-start' },
-          ],
-        },
-        {
-          text: 'Essentials',
-          items: [
-            { text: 'Groups', link: '/guide/groups' },
-            { text: 'Fields', link: '/guide/fields' },
-            { text: 'Arrays', link: '/guide/arrays' },
-            { text: 'Conditional Fields', link: '/guide/conditional-fields' },
-            { text: 'Validation', link: '/guide/validation' },
-            { text: 'Async Validation', link: '/guide/async-validation' },
-            { text: 'Showing Errors', link: '/guide/showing-errors' },
-            { text: 'Submitting', link: '/guide/submitting' },
-            { text: 'Initial Values and Reset', link: '/guide/initial-values' },
-          ],
-        },
-        {
-          text: 'Building the UI',
-          items: [
-            { text: 'App Defaults', link: '/guide/app-defaults' },
-            { text: 'Binding Inputs', link: '/guide/binding-inputs' },
-            { text: 'Splitting into Components', link: '/guide/components' },
-            { text: 'Devtools', link: '/guide/devtools' },
-          ],
-        },
-        {
-          text: 'Going Further',
-          items: [
-            { text: 'Passing Data to Rules', link: '/guide/passing-data' },
-            { text: 'Recursive Forms', link: '/guide/recursive-forms' },
-            { text: 'TypeScript', link: '/guide/typescript' },
-          ],
-        },
+        { text: 'Introduction', link: '/guide/' },
+        { text: 'Why FormTree', link: '/guide/why-formtree' },
+        { text: 'Groups', link: '/guide/groups' },
+        { text: 'Fields', link: '/guide/fields' },
+        { text: 'Validation', link: '/guide/validation' },
+        { text: 'Showing Errors', link: '/guide/showing-errors' },
+        { text: 'Submitting', link: '/guide/submitting' },
+        { text: 'Binding Inputs', link: '/guide/binding-inputs' },
+        { text: 'Initial Values and Reset', link: '/guide/initial-values' },
+        { text: 'Conditional Fields', link: '/guide/conditional-fields' },
+        { text: 'Arrays', link: '/guide/arrays' },
+        { text: 'Async Validation', link: '/guide/async-validation' },
+        { text: 'Splitting into Components', link: '/guide/components' },
+        { text: 'App Setup', link: '/guide/app-setup' },
+        { text: 'TypeScript', link: '/guide/typescript' },
+        { text: 'Recursive Forms', link: '/guide/recursive-forms' },
       ],
 
       '/tutorial/': [
         {
-          text: 'Checkout',
+          text: 'Building a Checkout',
           items: [
             { text: 'Binding an Input by Hand', link: '/tutorial/checkout/' },
-            { text: 'Binding with useField', link: '/tutorial/checkout/use-field' },
+            { text: 'Binding Inputs with useField', link: '/tutorial/checkout/use-field' },
             { text: 'Writing an Input Component', link: '/tutorial/checkout/input-component' },
           ],
         },
         {
-          text: 'Trip Booking',
+          text: 'Building a Trip Booking',
           items: [
-            { text: 'Turning a Field On and Off', link: '/tutorial/trip-booking/' },
+            { text: 'Making a Field Conditional', link: '/tutorial/trip-booking/' },
             { text: 'Adding and Removing Rows', link: '/tutorial/trip-booking/rows' },
-            { text: 'Checking Across Rows', link: '/tutorial/trip-booking/list-rules' },
-            { text: 'Passing an Answer Down', link: '/tutorial/trip-booking/row-dependencies' },
+            { text: 'Validating the Whole List', link: '/tutorial/trip-booking/list-rules' },
+            { text: 'Passing an Answer to Each Row', link: '/tutorial/trip-booking/row-dependencies' },
             { text: 'Loading Data from the Server', link: '/tutorial/trip-booking/server-data' },
-            { text: 'Booking in Steps', link: '/tutorial/trip-booking/submitting-steps' },
+            { text: 'Submitting in Steps', link: '/tutorial/trip-booking/submitting-steps' },
           ],
         },
       ],
 
       '/examples/': [
-        {
-          text: 'Examples',
-          items: [
-            { text: 'Contact Form', link: '/examples/' },
-            { text: 'Radio Group', link: '/examples/radio-group' },
-            { text: 'Checkbox Group', link: '/examples/checkbox-group' },
-            { text: 'Inline Edit', link: '/examples/inline-edit' },
-            { text: 'Promo Code', link: '/examples/promo-code' },
-            { text: 'Role-based Rules', link: '/examples/role-based-rules' },
-            { text: 'Line Items', link: '/examples/line-items' },
-            { text: 'Checkout Branches', link: '/examples/checkout-branches' },
-            { text: 'Segment Builder', link: '/examples/segment-builder' },
-          ],
-        },
+        { text: 'Contact Form', link: '/examples/' },
+        { text: 'Radio Group', link: '/examples/radio-group' },
+        { text: 'Checkbox Group', link: '/examples/checkbox-group' },
+        { text: 'Inline Price Editing', link: '/examples/inline-edit' },
+        { text: 'Promo Code Check', link: '/examples/promo-code' },
+        { text: 'Rules Based on a Role', link: '/examples/role-based-rules' },
+        { text: 'Line Items', link: '/examples/line-items' },
+        { text: 'Conditional Checkout', link: '/examples/checkout-branches' },
+        { text: 'Segment Builder', link: '/examples/segment-builder' },
       ],
 
       '/api/': [
@@ -180,12 +153,12 @@ export default defineConfig({
     ['link', { rel: 'icon', href: '/logo.svg', sizes: 'any', type: 'image/svg+xml' }],
     ['meta', { name: 'author', content: 'Ahmet Tinastepe' }],
     ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:title', content: 'formtree' }],
+    ['meta', { property: 'og:title', content: 'FormTree' }],
     ['meta', { property: 'og:description', content: DESCRIPTION }],
     ['meta', { property: 'og:image', content: OG_IMAGE }],
     ['meta', { property: 'og:image:width', content: '1200' }],
     ['meta', { property: 'og:image:height', content: '630' }],
-    ['meta', { property: 'og:image:alt', content: 'formtree: forms that submit in parts' }],
+    ['meta', { property: 'og:image:alt', content: 'FormTree: headless forms that submit in parts' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     ['meta', { name: 'twitter:image', content: OG_IMAGE }],
   ],

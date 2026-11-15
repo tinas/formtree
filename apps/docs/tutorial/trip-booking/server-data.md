@@ -6,8 +6,8 @@ import BookingForm from './steps/server-data/booking-form.vue'
 
 <div class="vue-only">
 
-The destinations are written into the code twice, once as the select's options and once as the list
-the passport rule reads. A travel site loads them from its server, so the booking needs the loaded
+The destinations are written into the code twice, once as the options of the select and once as
+the list that the passport rule reads. A travel site loads them from its server, so the booking needs the loaded
 list as data from outside the form.
 
 </div>
@@ -16,7 +16,7 @@ list as data from outside the form.
 
 <div class="vue-only">
 
-The site's API sends each destination with whether it is international:
+The API of the site sends each destination together with whether it is international:
 
 ```ts twoslash [api.ts]
 // @noStaticSemanticInfo
@@ -50,8 +50,9 @@ A timer stands in for the request.
 
 <div class="vue-only">
 
-Data from outside the form is a dependency too. Define the booking with `defineGroupWithDeps` and
-the type of the data, and read the destinations from `deps` where the travelers get theirs:
+Data from outside the form is a dependency as well. The booking is defined with
+`defineGroupWithDeps` and the type of the data, and reads the destinations from `deps` where the
+travelers get theirs:
 
 ```ts [forms/booking.ts]
 const INTERNATIONAL_DESTINATIONS = ['lisbon', 'tokyo'] // [!code --]
@@ -82,7 +83,7 @@ export const bookingForm = defineGroupWithDeps<BookingDeps>()({ // [!code ++]
 })
 ```
 
-`childDeps` receives the booking's own dependencies next to its value, and `Destination` is
+`childDeps` receives the dependencies of the booking next to its value, and `Destination` is
 imported from the API as a type.
 
 </div>
@@ -91,8 +92,8 @@ imported from the API as a type.
 
 <div class="vue-only">
 
-Pass the data with the `deps` option of `useForm`, as a getter over the list the page loads, and
-build the select's options from the same list:
+The `deps` option of `useForm` passes the data as a getter over the list that the page loads, and
+the options of the select are built from the same list:
 
 ```vue [booking-form.vue]
 <script setup lang="ts">
@@ -199,7 +200,7 @@ The form reads the getter again when the list arrives, and the passport rule run
 destinations.
 
 ::: info Why the Page Loads the Data
-The page owns the request, so it decides when to load the list, how long to keep it, and what to
+The page owns the request, so it determines when to load the list, how long to keep it, and what to
 show while it loads. The form reads whatever list it is given, and its rules follow the list as it
 changes.
 :::

@@ -10,8 +10,8 @@ import RadioGroup from './demos/radio-group.vue'
   <RadioGroup />
 </DemoFrame>
 
-Press Order before choosing a drink to see the group's error. Then choose a milk, switch back to None,
-and order again. None empties the field, so the output leaves the milk out.
+Press Order before choosing a drink to see the error of the group. Then choose a milk, switch back to None,
+and order again. None empties the field, so the milk is left out of the output.
 
 ::: code-group
 

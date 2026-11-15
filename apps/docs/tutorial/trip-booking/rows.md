@@ -6,8 +6,8 @@ import BookingForm from './steps/rows/booking-form.vue'
 
 <div class="vue-only">
 
-The booking says where the trip goes but not who travels. Every traveler needs a name and a date of
-birth, and one booking may hold a single traveler or a whole family, so the form needs a part that
+The booking says where the trip goes, but not who travels. Every traveler needs a name and a date
+of birth, and a booking may hold a single traveler or a whole family, so the form needs a part that
 repeats.
 
 </div>
@@ -16,7 +16,7 @@ repeats.
 
 <div class="vue-only">
 
-Define one traveler as a group, and wrap it in `arrayOf` to keep a list of them:
+A single traveler is defined as a group, and `arrayOf` wraps it into a list of travelers:
 
 ```ts [forms/booking.ts]
 import { defineField, defineGroup } from '@formtree/vue' // [!code --]
@@ -65,7 +65,7 @@ Each traveler in the list is a node of `travelerGroup`, and a new booking starts
 
 <div class="vue-only">
 
-Get the list's node with `form.array`, and add an empty traveler with its `push`:
+`form.array` finds the node of the list, and its `push` adds an empty traveler:
 
 ```vue{24,48} [booking-form.vue]
 <script setup lang="ts">
@@ -123,7 +123,7 @@ const bookTrip = form.handleSubmit(trip => {
 </template>
 ```
 
-`push({})` adds a traveler with no values yet, because formtree fills in nothing for you.
+`push({})` adds a traveler without any values, because FormTree never invents a value.
 
 </div>
 
@@ -131,8 +131,8 @@ const bookTrip = form.handleSubmit(trip => {
 
 <div class="vue-only">
 
-Render a fieldset for each of the list's `items`, keyed by the item's `key`, and name its inputs
-after the item's `index`:
+Each of the `items` of the list gets a fieldset, keyed by the `key` of the item, and its inputs are
+named after the `index` of the item:
 
 ```vue{17-28}
 <template>
@@ -171,13 +171,14 @@ after the item's `index`:
 </template>
 ```
 
-A name reaches a traveler through its place in the list, such as `travelers.0.fullName` for the
-first one.
+A name reaches a traveler through its position in the list, such as `travelers.0.fullName` for the
+first traveler.
 
 ::: info Why the Rows Are Keyed
-formtree keeps a traveler's errors and touched state under the row's key, not its position, so they
-stay with the traveler when the list changes. Keying the fieldsets the same way keeps each input with
-its traveler, while its name follows the traveler's current position.
+FormTree keeps the errors and the touched state of a traveler under the key of the row, not under
+its position, so they stay with the traveler when the list changes. Keying the fieldsets in the same
+way keeps each input with its traveler, while its name follows the current position of the
+traveler.
 :::
 
 </div>
@@ -186,7 +187,7 @@ its traveler, while its name follows the traveler's current position.
 
 <div class="vue-only">
 
-Give each traveler a button that removes it with `remove` and the traveler's index:
+Each traveler gets a button that removes it by passing the index of the traveler to `remove`:
 
 ```vue{28-30}
 <template>
@@ -228,7 +229,7 @@ Give each traveler a button that removes it with `remove` and the traveler's ind
 </template>
 ```
 
-The travelers after it move up, each with its own values and errors.
+The travelers after it move up, each keeping its own values and errors.
 
 </div>
 
@@ -240,7 +241,7 @@ The travelers after it move up, each with its own values and errors.
   <BookingForm />
 </DemoFrame>
 
-Add three travelers, leave the second one's name empty and move on, then remove the first. The
+Add three travelers, leave the name of the second one empty and move on, then remove the first. The
 error moves up with the traveler it belongs to.
 
 ::: code-group
