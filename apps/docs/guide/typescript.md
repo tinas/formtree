@@ -1,8 +1,8 @@
 # TypeScript
 
-## Reading a Definition's Types
+## Reading the Types of a Definition
 
-Read the types of a definition with `DraftOf`, `InputOf`, and `OutputOf` instead of writing them by
+`DraftOf`, `InputOf`, and `OutputOf` read the types of a definition, so they are never written by
 hand:
 
 ```ts twoslash
@@ -25,11 +25,30 @@ type Birthday = OutputOf<typeof birthdayField>
 ```
 
 The form holds the draft while the user types, the schema accepts the input, and a submit handler
-receives the output. `DepsOf` reads a definition's dependencies the same way.
+receives the output.
+
+## Typing Dependencies
+
+`DepsOf` reads the type of the dependencies from a definition, for example for a function that loads
+the data:
+
+```ts twoslash
+// @noStaticSemanticInfo
+import type { DepsOf } from '@formtree/core'
+import { checkoutForm } from './forms/checkout'
+
+declare function fetchShippingCountries(): Promise<Array<string>>
+// ---cut---
+type CheckoutDeps = DepsOf<typeof checkoutForm>
+
+async function loadCheckoutDeps(cartId: string): Promise<CheckoutDeps> {
+  return { cartId, countries: await fetchShippingCountries() }
+}
+```
 
 ## Typed Paths
 
-Paths passed to `field`, `group`, and `array` are checked as you type:
+TypeScript checks the paths passed to `field`, `group`, and `array`:
 
 ```ts twoslash
 import { createForm } from '@formtree/core'
@@ -100,8 +119,8 @@ shows how a component finds its node.
 
 ## Ordering Options
 
-When a definition's `schema` reads dependencies, write it before the callbacks, because TypeScript
-types functions in the order they are written:
+When the `schema` of a definition reads dependencies, it is written before the callbacks, because
+TypeScript types functions in the order they are written:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -136,8 +155,8 @@ function and `children` can go anywhere, since TypeScript reads plain values bef
 
 ## Reading Hover Types
 
-When a hover shows helper names such as `Simplify` instead of an object, declare a type for the part
-you want to read:
+When a hover shows helper names such as `Simplify` instead of an object, a declared type for the
+part makes it readable:
 
 ```ts twoslash
 import type { OutputOf } from '@formtree/core'

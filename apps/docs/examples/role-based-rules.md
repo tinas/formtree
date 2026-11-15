@@ -1,4 +1,4 @@
-# Role-based Rules
+# Rules Based on a Role
 
 A password whose minimum length depends on the chosen role.
 
@@ -10,7 +10,7 @@ import RoleBasedRules from './demos/role-based-rules.vue'
   <RoleBasedRules />
 </DemoFrame>
 
-Type a ten-character password as a member, then switch to admin. The password is too short at once.
+Type a ten-character password as a member, then switch to admin. The password is immediately too short.
 
 ::: code-group
 

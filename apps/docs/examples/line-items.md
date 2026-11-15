@@ -10,7 +10,8 @@ import LineItems from './demos/line-items.vue'
   <LineItems />
 </DemoFrame>
 
-Change a quantity and save the row, or pick the same product twice to see the rule across rows.
+Change a quantity and save the row, or pick the same product twice to see the error of the rule across
+rows.
 
 ::: code-group
 

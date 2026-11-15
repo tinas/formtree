@@ -1,9 +1,11 @@
 # Validation
 
+A schema validates each value, and `validate` holds the rules that compare values.
+
 ## Comparing Values
 
-Some rules depend on more than one value, such as a confirmation that has to match the password. A
-rule of this kind belongs in `validate`, on the group that holds every value it compares:
+A rule that compares values, such as a confirmation that has to match the password, goes in
+`validate`, on the group that holds both values:
 
 ```ts twoslash
 import { defineGroup } from '@formtree/core'
@@ -25,8 +27,8 @@ export const signUpForm = defineGroup({
 ```
 
 `validate` receives the draft of the group, so a value the user has not filled in yet is
-`undefined`. A list offers a `validate` of its own for rules across its items, as
-[Arrays](/guide/arrays) shows.
+`undefined`. Lists have a `validate` of their own, as [Arrays](/guide/arrays#rules-across-rows)
+shows.
 
 ## Defining Rules in the Schema
 
@@ -53,15 +55,18 @@ export const signUpForm = defineGroup({
 })
 ```
 
+A refinement remains the better choice when the schema has to be complete on its own, for example
+because the server parses it as well.
+
+::: details Why Rules Report Sooner
 Zod runs a refinement only once every key holds a value of the right type, so its error waits for
-fields the rule does not compare, whereas `validate` reports as soon as the compared values
-disagree. A refinement remains the better choice when the schema has to be complete on its own, for
-example because the server parses it as well.
+fields the rule does not compare. `validate` reports as soon as the compared values disagree.
+:::
 
 ## Validating on Every Change
 
-The form checks its values from the moment it is created. Schemas and rules run again after every
-change, before `setValue` returns:
+Schemas and rules run when the form is created and again after every change, before `setValue`
+returns:
 
 ```ts twoslash
 // @noStaticSemanticInfo

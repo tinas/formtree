@@ -10,7 +10,7 @@ import SegmentBuilder from './demos/segment-builder.vue'
   <SegmentBuilder />
 </DemoFrame>
 
-Uncheck the device attribute to see every level reject it, or empty a group to see its rule.
+Uncheck the device attribute to see every level reject it, or empty a group to see the error of its rule.
 
 ::: code-group
 

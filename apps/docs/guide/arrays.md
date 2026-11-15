@@ -1,5 +1,7 @@
 # Arrays
 
+An array holds a list of rows that share one definition.
+
 ## Defining a List
 
 A part that repeats, like the rows of a cart, is defined once for one row and wrapped in `arrayOf`:
@@ -31,7 +33,7 @@ For a list of single values, pass a schema instead, as in `arrayOf(z.email())`.
 
 ## Adding and Removing Rows
 
-`form.array` returns the list's node, which adds and removes rows:
+`form.array` returns the node of the list, which adds and removes rows:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -47,7 +49,7 @@ lineItems.push({})
 lineItems.remove(0)
 ```
 
-`push({})` adds an empty row, because formtree fills in nothing for you.
+`push({})` adds an empty row, because FormTree never invents a value.
 [`ArrayNode`](/api/@formtree/core/interfaces/ArrayNode) lists every operation.
 
 ## Keeping Track of Rows
@@ -73,8 +75,8 @@ lineItems.move(1, 0)
 console.log(row.index) // 0
 ```
 
-A row's errors and touched state are kept under its `key` and move with it, so use `key`, not the
-index, when you render the list.
+The errors and the touched state of a row are kept under its `key` and move with it, so a rendered
+list is keyed by `key`, not by the index.
 
 ## Rules Across Rows
 
@@ -97,12 +99,12 @@ const lineItemsArray = arrayOf(lineItemGroup, {
 })
 ```
 
-The rule receives every row, and each error's path starts with the row's index.
+The rule receives every row, and the path of each error starts with the index of the row.
 
-::: tip Showing It After a Submit
-Adding, removing, or moving a row marks the list as touched, so with the default display mode the
-rule's error shows at once. To wait for a submit, show it only while `form.state.submitCount` is
-above zero.
+::: tip Waiting for a Submit
+Adding, removing, or moving a row marks the list as touched, so with the default mode the error of
+the rule is shown at once. To wait for a submit, the page shows it only while
+`form.state.submitCount` is above zero.
 :::
 
 ## Saving One Row

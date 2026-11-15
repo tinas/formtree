@@ -1,5 +1,58 @@
 # Splitting into Components
 
+## Connecting Components to a Form
+
+<div class="vue-only">
+
+Four functions connect components to a form, and each does one thing:
+
+| Function | What it does |
+| --- | --- |
+| `useForm(definition)` | Creates a form that lives as long as the component. It provides nothing. |
+| `provideFormNode(node)` | Makes a node, the form or one of its parts, available to every component below. |
+| `useField(node)` | Binds a field that the component already holds to an input. |
+| `useField(name)` | Finds the field by name in the nearest provided node, and binds it. |
+| `useFormNode(definition)` | Returns the nearest provided node of that definition, typed by it. |
+
+Nothing is provided on its own, so a form that only its own component reads needs no
+`provideFormNode`, as in the [Introduction](/guide/). A form that components below read is provided
+once, by the component that creates it. `useField(name)` and `useFormNode` throw when no component
+above provided a node.
+
+</div>
+
+<div class="react-only">
+
+Three hooks and one component connect components to a form, and each does one thing:
+
+| Function | What it does |
+| --- | --- |
+| `useForm(definition)` | Creates a form that lives as long as the component. It provides nothing. |
+| `<FormNodeProvider node={node}>` | Makes a node, the form or one of its parts, available to every component below. |
+| `useField(node)` | Binds a field that the component already holds to an input. |
+| `useField(name)` | Finds the field by name in the nearest provided node, and binds it. |
+| `useFormNode(definition)` | Returns the nearest provided node of that definition, typed by it, without re-rendering. |
+
+Nothing is provided on its own, so a form that only its own component reads needs no
+`<FormNodeProvider>`, as in the [Introduction](/guide/). A form that components below read is
+provided once, by the component that creates it. `useField(name)` and `useFormNode` throw when no
+component above provided a node.
+
+</div>
+
+<div class="javascript-only">
+
+Without components, nothing is provided. A function that works on a part of the form receives its
+node as an argument, as the sections below show.
+
+</div>
+
+::: info Why useForm Provides Nothing
+The component that creates a form decides which components see it, and which node they see. It can
+provide a single step instead of the whole form, and two forms on one page never compete for the same
+slot. A component below reads only what its ancestors chose to provide.
+:::
+
 ## Using a Part in a Component
 
 <div class="vue-only">
@@ -62,7 +115,8 @@ The section provides the contact details in turn, so its inputs bind by names re
 
 <div class="javascript-only">
 
-Set up each part in a function that takes the part's node, typed with `NodeOf` from its definition:
+Each part is set up in a function that takes the node of the part, typed with `NodeOf` from its
+definition:
 
 ```ts twoslash [order-form.ts]
 // @noStaticSemanticInfo
@@ -104,7 +158,8 @@ The function knows only the contact definition, so it works for contact details 
 
 <div class="vue-only">
 
-Render one row component per item, keyed by the item's `key`, and pass it the item's `index`:
+The list renders one row component per item, keyed by the `key` of the item, and passes it the
+`index` of the item:
 
 ```vue [line-item-list.vue]
 <script setup lang="ts">
@@ -150,8 +205,8 @@ Keyed by `key`, each component stays with its item when the list is reordered.
 
 <div class="react-only">
 
-Read the items with `useNodeState`, render one row component per item, keyed by the item's `key`,
-and pass it the item's `index`:
+The list reads its items with `useNodeState`, renders one row component per item, keyed by the `key`
+of the item, and passes it the `index` of the item:
 
 ```tsx [line-item-list.tsx]
 import { FormNodeProvider, useFormNode, useNodeState } from '@formtree/react'
@@ -172,7 +227,7 @@ export function LineItemList() {
 }
 ```
 
-The list re-renders when a row is added, removed or moved, not when a value inside a row changes. The
+The list re-renders when a row is added, removed, or moved, not when a value inside a row changes. The
 row reads the list by its definition and provides its item:
 
 ```tsx [line-item-row.tsx]
@@ -199,7 +254,7 @@ Keyed by `key`, each component stays with its item when the list is reordered.
 
 <div class="javascript-only">
 
-Create each row's element once and keep it by the item's `key`:
+The element of each row is created once and kept by the `key` of its item:
 
 ```ts twoslash [line-item-list.ts]
 // @noStaticSemanticInfo
@@ -251,16 +306,16 @@ function createRow(row: NodeOf<typeof lineItemGroup> & ArrayItem) {
 }
 ```
 
-Each element stays with its item when the list is reordered, and `row.index` is always the item's
-current position.
+Each element stays with its item when the list is reordered, and `row.index` is always the current
+position of the item.
 
 </div>
 
-## Showing a Row's State
+## Showing the State of a Row
 
 <div class="vue-only">
 
-Read `row.state` in the template to show what the row is doing, such as a save in progress:
+The template reads `row.state` to show what the row is doing, such as a save in progress:
 
 ```vue{3,10,12-14,20-22} [line-item-row.vue]
 <script setup lang="ts">
@@ -294,7 +349,7 @@ const save = row.handleSubmit(async lineItem => {
 
 <div class="react-only">
 
-Read `submitting` with `useNodeState`, which re-renders the component only when the value it selects
+`useNodeState` reads `submitting` and re-renders the component only when the value it selects
 changes:
 
 ```tsx{1-2,9-12,18-20} [line-item-row.tsx]
@@ -330,7 +385,8 @@ would show the state from the last render.
 
 <div class="javascript-only">
 
-Update the row from its own `subscribe` to show what it is doing, such as a save in progress:
+The row updates itself from its own `subscribe` to show what it is doing, such as a save in
+progress:
 
 ```ts{4,6-15,18} twoslash [line-item-list.ts]
 // @noStaticSemanticInfo

@@ -1,4 +1,4 @@
-# Binding with useField
+# Binding Inputs with useField
 
 <script setup>
 import CheckoutForm from './steps/use-field/checkout-form.vue'
@@ -6,8 +6,8 @@ import CheckoutForm from './steps/use-field/checkout-form.vue'
 
 <div class="vue-only">
 
-Binding by hand takes four bindings on every input, and each input repeats them. `useField` reads
-the same node and turns it into two.
+Binding by hand takes four bindings on every input, and each new input repeats all of them.
+`useField` reads the same node and reduces them to two.
 
 </div>
 
@@ -15,7 +15,7 @@ the same node and turns it into two.
 
 <div class="vue-only">
 
-Pass each node to `useField`, and bind what it returns with `v-model` and `v-bind`:
+Each node is passed to `useField`, and what it returns is bound with `v-model` and `v-bind`:
 
 ```vue [checkout-form.vue]
 <script setup lang="ts">
@@ -67,18 +67,18 @@ const placeOrder = form.handleSubmit(checkout => {
 </template>
 ```
 
-`model` reads the node's value and writes it with `setValue`, and `attrs` carries the input's id and
-`blur` as its blur handler, so the inputs work as they did before.
+`model` reads the value of the node and writes it with `setValue`, while `attrs` carries the id of
+the input and `blur` as its blur handler, so the inputs work as they did before.
 
 </div>
 
-## Connecting the Error
+## Connecting the Error to the Input
 
 <div class="vue-only">
 
-`attrs` also holds attributes the hand-bound inputs lacked, such as the ones that mark an input
-invalid and point a screen reader to its error. Give each error's element the `errorId` they point
-to:
+`attrs` also carries attributes that the inputs bound by hand did not have, such as those that mark
+an input as invalid and point a screen reader to its error. For them to work, the element of each
+error needs the `errorId` they point to:
 
 ```vue
 <template>
@@ -99,7 +99,7 @@ to:
 </template>
 ```
 
-A screen reader now reads an input's error together with the input.
+A screen reader now announces the error of an input together with the input.
 
 </div>
 
@@ -111,7 +111,7 @@ A screen reader now reads an input's error together with the input.
   <CheckoutForm />
 </DemoFrame>
 
-The inputs behave as before. Enter an invalid email, leave the input and inspect it, and its
+The inputs behave as before. Enter an invalid email, leave the input, and inspect it. Its
 `aria-describedby` names the error below it.
 
 ::: code-group

@@ -1,9 +1,12 @@
 # Async Validation
 
+A check asks the server about a value, and FormTree handles its timing, cancellation, and failures.
+
 ## Checking with the Server
 
 Some rules can only be answered by the server, such as the availability of a username. A rule of
-this kind belongs in `validateAsync`, in the definition of the value it checks:
+this kind belongs in `validateAsync`, in the definition of the value it checks, so that value is a
+child rather than a key, as [Groups](/guide/groups#choosing-between-a-key-and-a-child) explains:
 
 ```ts twoslash
 // @filename: api.ts
@@ -38,8 +41,8 @@ way as a rule. A group can declare a check as well, which then receives the outp
 
 ## Changing the Trigger
 
-A check can also wait until the user leaves the input instead of running after each change. To do
-so, set `on` to `'blur'`:
+With `on: 'blur'`, a check waits until the user leaves the input instead of running after each
+change:
 
 ```ts{6} twoslash
 // @noStaticSemanticInfo
@@ -196,9 +199,8 @@ export const accountForm = defineGroupWithDeps<AccountDeps>()({
 ```
 
 The deps are set when the account loads and after each save, as
-[Passing Data](/guide/passing-data) shows. A check runs again whenever its deps change, so it runs
-at those moments too, finds the saved value, and returns without a request. Because
-`state.requesting` stays `false`, no hint flashes.
+[Groups](/guide/groups#providing-the-data) shows. A check also runs when its deps change, finds the
+saved value, and returns without a request, so no hint flashes.
 
 ## Cancelling Stale Requests
 
@@ -227,7 +229,7 @@ const usernameField = defineField({
 })
 ```
 
-formtree also ignores any answer for an older value, so the result always corresponds to the value
+FormTree also ignores any answer for an older value, so the result always corresponds to the value
 on the screen.
 
 ## Waiting for Other Rules
@@ -302,12 +304,13 @@ const signUp = form.handleSubmit(async account => {
 })
 ```
 
-`validate()` asks every check again in the same way. A schema and a rule, by contrast, run again
-only when their value changes, which is why a rule that only the server can answer belongs in a
-check.
+`validate()` asks every check again in the same way, while schemas and rules run again only when
+their value changes.
 
-A check sends a request every time it runs, even for a value it has checked before. To answer a
-repeated value without a new request, cache the request inside `run`.
+::: tip Fewer Requests
+A check sends a request every time it runs, even for a value it has checked before. Caching the
+request inside `run` answers a repeated value without a new request.
+:::
 
 ## Handling Failed Requests
 

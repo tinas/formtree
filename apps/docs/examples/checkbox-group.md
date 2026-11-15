@@ -10,8 +10,8 @@ import CheckboxGroup from './demos/checkbox-group.vue'
   <CheckboxGroup />
 </DemoFrame>
 
-Uncheck every channel and press Save to see the group's error. Then check a few and save again, and
-the output lists them.
+Uncheck every channel and press Save to see the error of the group. Then check a few and save again, and
+they are listed in the output.
 
 ::: code-group
 

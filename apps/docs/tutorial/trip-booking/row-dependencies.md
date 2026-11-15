@@ -1,4 +1,4 @@
-# Passing an Answer Down
+# Passing an Answer to Each Row
 
 <script setup>
 import BookingForm from './steps/row-dependencies/booking-form.vue'
@@ -7,8 +7,8 @@ import BookingForm from './steps/row-dependencies/booking-form.vue'
 <div class="vue-only">
 
 A trip abroad needs a passport number from every traveler, and only the destination tells whether
-the trip goes abroad. A traveler's group sees only its own values, so the booking has to hand the
-answer down to every row.
+the trip goes abroad. The group of a traveler sees only its own values, so the booking has to hand
+the answer down to every row.
 
 </div>
 
@@ -16,9 +16,9 @@ answer down to every row.
 
 <div class="vue-only">
 
-A definition that needs data from its parent declares that data as dependencies. Define the
-traveler with `defineGroupWithDeps` and the type of the data, and turn the passport number on with
-it:
+A definition that needs data from its parent declares that data as dependencies. The traveler is
+defined with `defineGroupWithDeps` and the type of the data, which then activates the passport
+number:
 
 ```ts [forms/booking.ts]
 import { arrayOf, defineField, defineGroup } from '@formtree/vue' // [!code --]
@@ -66,12 +66,12 @@ Every function in the options receives `deps`, so the passport number applies on
 
 </div>
 
-## Passing the Answer to Each Row
+## Handing the Answer to the Rows
 
 <div class="vue-only">
 
-A group hands its children their dependencies with `childDeps`, here built from the booking's own
-destination:
+A group hands its children their dependencies with `childDeps`, which the booking builds here from
+its own destination:
 
 ```ts [forms/booking.ts]
 const INTERNATIONAL_DESTINATIONS = ['lisbon', 'tokyo'] // [!code ++]
@@ -94,13 +94,13 @@ export const bookingForm = defineGroup({
 })
 ```
 
-The list passes them on to every traveler, so choosing Lisbon turns on the passport number in every
+The list passes them on to every traveler, so choosing Lisbon activates the passport number in every
 row at once.
 
 ::: info Why Data Flows Down
 Dependencies flow only from a parent to its children, and a row never reads the form around it. The
-traveler's definition works in any form that tells it whether the trip is international, and the
-booking decides that in one place.
+definition of the traveler works in any form that tells it whether the trip is international, and
+the booking determines that in one place.
 :::
 
 </div>
@@ -109,7 +109,8 @@ booking decides that in one place.
 
 <div class="vue-only">
 
-Each of `travelers.items` is a traveler's node, so render its passport number while it is active:
+Each of the `travelers.items` is the node of a traveler, so its passport number is rendered while
+it is active:
 
 ```vue{28-32}
 <template>
@@ -169,8 +170,8 @@ A traveler added to an international trip asks for the passport number from the 
   <BookingForm />
 </DemoFrame>
 
-Add two travelers and choose Lisbon. Both ask for a passport number, and choosing Denver turns them
-off again.
+Add two travelers and choose Lisbon. Both ask for a passport number, and choosing Denver deactivates
+them again.
 
 ::: code-group
 

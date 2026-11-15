@@ -1,4 +1,4 @@
-# Turning a Field On and Off
+# Making a Field Conditional
 
 <script setup>
 import BookingForm from './steps/field-on-and-off/booking-form.vue'
@@ -6,10 +6,10 @@ import BookingForm from './steps/field-on-and-off/booking-form.vue'
 
 <div class="vue-only">
 
-This tutorial builds a trip booking one chapter at a time. By its end, the booking asks for the
+This tutorial builds a trip booking one chapter at a time. By the end, the booking asks for the
 destination, the dates, and the travelers in three steps, and the Continue button of each step
-checks only that step. On the way there, the booking learns to follow the traveler's answers, from a
-return date that only a round trip needs to a passport number for everyone on a trip abroad.
+validates only that step. Along the way, the booking learns to follow the answers of the traveler,
+from a return date that only a round trip needs to a passport number for everyone on a trip abroad.
 
 ::: tip Prerequisites
 The tutorial assumes basic familiarity with Vue and TypeScript. To follow along, install
@@ -22,7 +22,7 @@ The tutorial assumes basic familiarity with Vue and TypeScript. To follow along,
 
 <div class="vue-only">
 
-The booking starts with the trip itself:
+The booking starts with the trip itself, defined as a group:
 
 ```ts twoslash [forms/booking.ts]
 // @noStaticSemanticInfo
@@ -44,9 +44,9 @@ export const bookingForm = defineGroup({
 })
 ```
 
-Its inputs are two small components, a text input that passes a `type` on for the dates and a
-select. Each one binds the field its `name` points to with `useField`, which finds the field in the
-form that a component above provides:
+Its inputs are two small components, a text input that passes a `type` on for the dates, and a
+select. Each of them binds the field that its `name` points to with `useField`, which finds the
+field in the form that a component above provides:
 
 ::: code-group
 
@@ -56,7 +56,7 @@ form that a component above provides:
 
 :::
 
-The booking's component creates the form, provides it to the inputs, and keeps the booking it
+The component of the booking creates the form, provides it to the inputs, and keeps the booking it
 submits, so the page can show it:
 
 ```vue [booking-form.vue]
@@ -106,8 +106,9 @@ const bookTrip = form.handleSubmit(trip => {
 </template>
 ```
 
-A one-way trip has no return date, yet the schema asks for one on every booking, so a one-way trip
-cannot be booked. Making the date optional would let a round trip go without one.
+A one-way trip has no return date, yet the schema requires one on every booking, so a one-way trip
+cannot be booked. Making the date optional would not help either, because a round trip could then be
+booked without one.
 
 </div>
 
@@ -115,8 +116,8 @@ cannot be booked. Making the date optional would let a round trip go without one
 
 <div class="vue-only">
 
-A group turns its children on and off, so move the return date out of the schema into a child with
-a definition of its own:
+A group can activate and deactivate its children, but not the keys of its schema. The return date
+therefore moves out of the schema into a child with a definition of its own:
 
 ```ts [forms/booking.ts]
 import { defineGroup } from '@formtree/vue' // [!code --]
@@ -143,22 +144,23 @@ export const bookingForm = defineGroup({
 })
 ```
 
-The booking's value keeps its shape, and the return date is now a child that a condition can turn
-off.
+The value of the booking keeps its shape, and the return date is now a child that a condition can
+deactivate.
 
 ::: info Why the Date Leaves the Schema
-A key of the schema takes its rules from the group's schema, which checks every key in one run. A
+A key of the schema takes its rules from the schema of the group, which validates every key in one
+run. A
 child brings its own definition, so the group can leave it out of validation and out of the
 submitted value.
 :::
 
 </div>
 
-## Turning It On for Round Trips
+## Activating the Date for Round Trips
 
 <div class="vue-only">
 
-Say when the child applies with the group's `activeWhen`:
+The `activeWhen` option of the group states when the child applies:
 
 ```ts{20-22} [forms/booking.ts]
 import { defineField, defineGroup } from '@formtree/vue'
@@ -186,17 +188,17 @@ export const bookingForm = defineGroup({
 })
 ```
 
-An inactive child is not validated and is left out of the submitted booking, so a one-way trip books
-without a return date.
+An inactive child is not validated and is left out of the submitted booking, so a one-way trip can
+be booked without a return date.
 
 </div>
 
-## Showing It Only for Round Trips
+## Showing the Date Only for Round Trips
 
 <div class="vue-only">
 
-`state.active` tells the page whether the child applies, so render the return date's input only
-while it does:
+`state.active` tells the page whether the child applies, so the input of the return date is
+rendered only while it does:
 
 ```vue [booking-form.vue]
 <script setup lang="ts">
@@ -253,10 +255,11 @@ const bookTrip = form.handleSubmit(trip => {
 </template>
 ```
 
-The input leaves the page on a one-way trip, and comes back with the date it had on a round trip.
+On a one-way trip the input leaves the page, and on a round trip it returns with the date it held
+before.
 
 ::: info Why the Page Asks the Form
-The condition lives in the definition, where it also decides what is validated and submitted.
+The condition lives in the definition, where it also determines what is validated and submitted.
 Reading `state.active` keeps the input in step with it, so the template never repeats the rule.
 :::
 
@@ -270,8 +273,8 @@ Reading `state.active` keeps the input in step with it, so the template never re
   <BookingForm />
 </DemoFrame>
 
-Choose a round trip and a return date, then switch to one way and book. The booking leaves the date
-out, and switching back shows the date as you left it.
+Choose a round trip and a return date, then switch to one way and book. The date is left out of the
+booking, and switching back shows it as it was.
 
 ::: code-group
 

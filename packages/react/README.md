@@ -69,7 +69,7 @@ export function ContactForm() {
 
 ## Going Further
 
-- [Quick Start](https://form-tree.netlify.app/guide/quick-start?framework=react) builds this form step by step.
+- The [Introduction](https://form-tree.netlify.app/guide/?framework=react) installs formtree and builds a first form.
 - [Submitting](https://form-tree.netlify.app/guide/submitting?framework=react) saves one step or one card of a larger form on its own.
 - [Conditional Fields](https://form-tree.netlify.app/guide/conditional-fields?framework=react) turns on a part of the form only after a certain answer.
 - [Async Validation](https://form-tree.netlify.app/guide/async-validation?framework=react) checks a value with the server next to its schema.
