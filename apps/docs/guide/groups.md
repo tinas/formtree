@@ -32,15 +32,14 @@ export const checkoutForm = defineGroup({
 ```
 
 The form holds the address's values under `address`, and any other form can reuse `addressGroup`.
+Each key of the schema, such as `email`, is also a node. Because its rules come from the group's
+schema rather than from a definition of its own, it is called a lens node rather than a child.
 
-::: tip Keys Are Nodes Too
-A key of the schema, such as `email`, is a node too, but it takes its rules from the group, so it is
-called a lens node, not a child.
-:::
+## Accessing a Part
 
-## Reaching a Part
-
-`form.group` returns the node of a part, and the keys you give it are looked up inside that part:
+Each part of a form has its own node, which `form.group` finds by the part's name. From there,
+`field` and `group` look inside that part, so `address.field('city')` finds the city within the
+address:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -73,13 +72,14 @@ const address = form.group('address')
 const city = address.field('city')
 ```
 
-::: tip Dotted Paths
-A dotted path from the root, `form.field('address.city')`, returns the same node.
+::: tip
+Passing the full path from the root, as in `form.field('address.city')`, returns the same node.
 :::
 
-## Checking a Part's State
+## Reading the Validity of a Part
 
-A group's state covers everything inside it. Read `valid` to know whether a part has no errors:
+A part's node also describes everything inside it. Its `state.valid` is `true` once none of the
+part's fields has an error, so a list of steps can mark the address as complete:
 
 <div class="vue-only">
 
@@ -162,5 +162,5 @@ address.subscribe(() => {
 
 </div>
 
-[`NodeState`](/api/@formtree/core/interfaces/NodeState) lists the other flags, such as `dirty`,
-that cover a group's parts in the same way.
+The other flags in [`NodeState`](/api/@formtree/core/interfaces/NodeState), such as `dirty`,
+describe the whole part in the same way.
