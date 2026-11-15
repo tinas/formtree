@@ -1,9 +1,9 @@
 # Conditional Fields
 
-## Turning a Part On and Off
+## Making a Part Conditional
 
-To ask for some fields only after a certain answer, such as card details for a card payment, put
-them in a child and say when it applies with the group's `activeWhen`:
+To request certain fields only after a particular answer, such as card details when the customer
+pays by card, place them in a child and declare when it applies with the group's `activeWhen`:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -143,9 +143,8 @@ function toggleCardFieldset() {
 
 </div>
 
-::: tip Hiding Is Up to the Page
-Hiding a part is only the page's choice, because the form never depends on what is rendered.
-:::
+Whether an inactive part is hidden is a decision of the page alone, because the form never depends
+on what is rendered.
 
 ## Nested Conditions
 

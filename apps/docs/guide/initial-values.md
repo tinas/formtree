@@ -2,7 +2,7 @@
 
 ## Setting Initial Values
 
-To open a form with saved values, pass them as `initialValue`:
+A form that edits saved data opens with those values, which it receives through `initialValue`:
 
 <div class="vue-only">
 
@@ -59,11 +59,12 @@ export function createContactForm(contact: Contact) {
 
 </div>
 
-Keys you leave out start empty.
+Any key left out of the initial value starts empty.
 
-## Defaulting Empty Values
+## Providing Defaults for Empty Values
 
-A schema default fills a value the user left empty, in the submitted output only:
+A default declared in the schema fills a value that the user left empty, though only in the
+submitted output:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -78,12 +79,13 @@ export const invoiceGroup = defineGroup({
 })
 ```
 
-The input stays empty, and the submit handler receives 30. When the user should see the value, use
-`initialValue` instead.
+The input remains empty, while the submit handler receives 30. A value the user should see belongs
+in `initialValue` instead.
 
 ## Detecting Changes
 
-`state.dirty` is true while a value differs from its initial value. Use it to enable a Save button:
+A form is dirty while any of its values differs from its initial value, and `state.dirty` reports
+it, so a Save button can remain disabled until there is something to save:
 
 <div class="vue-only">
 
@@ -128,12 +130,13 @@ function updateSaveButton() {
 
 </div>
 
-Changing a value back makes the form clean again. Plain objects, arrays, and dates count as the same value when their
-contents are equal, and any other object, such as a `File`, only when it is the same object.
+Changing a value back to its initial value makes the form clean again. Plain objects, arrays, and
+dates count as the same value when their contents are equal, while any other object, such as a
+`File`, counts as the same only when it is the same object.
 
 ## Discarding Changes
 
-`reset` returns the form to its initial values:
+To discard the user's changes, `reset` returns the form to its initial values:
 
 <div class="vue-only">
 
@@ -169,12 +172,12 @@ discardButton.addEventListener('click', () => form.reset())
 
 </div>
 
-Rows added to or removed from a list are undone too.
+Rows added to or removed from a list are restored as well.
 [`ResetOptions`](/api/@formtree/core/interfaces/ResetOptions) lists what a reset can keep.
 
 ## Resetting After a Save
 
-After a save, pass the stored values to `reset` to make them the new initial values:
+Once a save succeeds, passing the stored values to `reset` makes them the new initial values:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -195,14 +198,11 @@ const save = form.handleSubmit(async contact => {
 })
 ```
 
-The form is clean again. Like `initialValue`, the value may leave parts out, and what it leaves out
-starts empty.
+The form is clean again. As with `initialValue`, the value may leave parts out, and whatever it
+leaves out starts empty. The same call also fills a form whose data loads after the form was
+created.
 
-::: tip Data That Loads Later
-The same call fills a form whose data loads after it was created.
-:::
-
-A part that saves on its own, such as a row, resets the same way:
+A part that is saved on its own, such as a row, is reset in the same way:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -221,11 +221,12 @@ const saveRow = row.handleSubmit(async lineItem => {
 })
 ```
 
-Only that row becomes clean, and a saved new row joins the list's initial value.
+Only that row becomes clean, and a newly saved row joins the initial value of the list.
 
 ## Refreshing Data While Editing
 
-To take in fresh data without losing what the user has changed, reset with `keepDirtyValues`:
+When fresh data arrives while the user is editing, a reset with `keepDirtyValues` takes it in
+without discarding the user's changes:
 
 <div class="vue-only">
 
@@ -301,12 +302,14 @@ export function showLatestContact(
 
 </div>
 
-Values the user changed stay as they are, and everything else shows the fresh data. A list the user changed keeps all
-its rows, and a changed value that the fresh data now also has becomes clean.
+Values the user has changed remain as they are, and everything else shows the fresh data. A list
+the user has changed keeps all of its rows, and a changed value that now matches the fresh data
+becomes clean.
 
-## Warning Before Leaving
+## Warning About Unsaved Changes
 
-To warn before the page closes with unsaved changes, cancel `beforeunload` while the form is dirty:
+The browser asks for confirmation before closing a page whose `beforeunload` event is cancelled, so
+cancelling that event while the form is dirty protects unsaved changes:
 
 <div class="vue-only">
 

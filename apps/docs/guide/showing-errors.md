@@ -1,9 +1,9 @@
 # Showing Errors
 
-## When Errors Appear
+## Choosing When Errors Appear
 
-By default, an error shows once the user has left its input. Use the `mode` option to pick another
-moment, such as the first submit:
+By default, an error becomes visible once the user has left its input. The `mode` option chooses a
+different moment, such as the first submit:
 
 <div class="vue-only">
 
@@ -37,16 +37,13 @@ const form = createForm(contactForm, { mode: 'onSubmit' })
 
 </div>
 
-The form still validates on every change, so `state.valid` is right before any error shows.
-[`VALIDATION_MODE`](/api/@formtree/core/variables/VALIDATION_MODE) lists the modes.
-
-::: tip After a Submit
-`reValidateMode` decides when errors update after a submit.
-:::
+The form still validates on every change, so `state.valid` is accurate before any error is shown.
+[`VALIDATION_MODE`](/api/@formtree/core/variables/VALIDATION_MODE) lists the modes. Once the form
+has been submitted, `reValidateMode` determines when its errors are updated.
 
 ## Translating Errors
 
-Write translation keys as the schema's messages, and turn each error into text with `formatError`:
+The schema's messages can be translation keys, which `formatError` then turns into text:
 
 <div class="vue-only">
 
@@ -98,17 +95,14 @@ const form = createForm(contactForm, {
 
 </div>
 
-Every `errorMessage` now passes through your function, which reads the key from `code` and values
-such as `minimum` from `params`.
-
-::: tip Every Form at Once
-[App Defaults](/guide/app-defaults) sets `formatError` once for every form.
-:::
+Every `errorMessage` now passes through this function, which reads the key from `code` and values
+such as `minimum` from `params`. To use the same `formatError` in every form, set it once as an app
+default, as [App Defaults](/guide/app-defaults) describes.
 
 ## Connecting Errors to Inputs
 
-A screen reader reads an error with its input when the error element has the field's `errorId` and
-the input has the field's attributes:
+A screen reader announces an error together with its input when the error element carries the
+field's `errorId` and the input carries the field's attributes:
 
 <div class="vue-only">
 
@@ -175,19 +169,18 @@ function bindInput(key: 'name' | 'email' | 'message') {
 
 :::
 
-The form's `id` is the prefix of every id, so the HTML can use them.
+Every id begins with the form's `id`, so the HTML can refer to them directly.
 
 </div>
 
-::: tip ARIA Attributes
-While an error shows, the input gets `aria-invalid="true"` and an `aria-describedby` that points at
-the error element.
-:::
+While an error is shown, the input receives `aria-invalid="true"` and an `aria-describedby` that
+points to the error element.
 
 ## Listing All Errors
 
-For an error summary, `listErrors({ deep: true })` returns the shown errors of a node and everything
-below it, each with the id of the input it belongs to:
+An error summary presents every visible error in one place. `listErrors({ deep: true })` returns
+the visible errors of a node and of everything below it, each with the id of the input it belongs
+to:
 
 <div class="vue-only">
 
@@ -267,15 +260,15 @@ function summaryItem(error: ListedError): HTMLLIElement {
 
 </div>
 
-`form.formatError` gives each error the text its input shows. The errors come in the order of the
-definition, so in a form laid out as it is defined, the first link leads to the field a failed submit
-focuses. The `summaryId` and `tabindex="-1"` let a failed submit focus the list, as
-[Submitting](/guide/submitting) shows.
+`form.formatError` gives each error the same text that its input shows. The errors follow the order
+of the definition, so in a form laid out as it is defined, the first link leads to the field that a
+failed submit focuses. The `summaryId` and `tabindex="-1"` allow a failed submit to focus the list,
+as [Submitting](/guide/submitting) shows.
 
-## Setting Errors Yourself
+## Setting Errors from Code
 
-To show an error the definition cannot know about, such as a store that has just closed, call
-`setErrors` on a node, with paths relative to that node:
+Some errors depend on information the definition cannot know, such as a store that has just closed.
+`setErrors` places such an error on a node, with paths relative to that node:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -296,16 +289,10 @@ delivery.setErrors([
 ])
 ```
 
-The error shows at once, whatever the mode, and goes away when the store changes.
+The error is shown immediately, regardless of the mode, and is removed when the store changes.
+[`SetErrorsOptions`](/api/@formtree/core/interfaces/SetErrorsOptions) covers keeping an error
+longer. Schema runs replace only schema errors, so they never remove an error set this way.
 
-::: tip Warnings That Do Not Block
-An error, one you set included, always stops a submit. A warning that should not, such as a likely
-typo in an email address, is text derived from the value, so compute it from the field's
-`state.value` and show it next to the input.
-:::
-
-[`SetErrorsOptions`](/api/@formtree/core/interfaces/SetErrorsOptions) covers keeping an error longer.
-
-::: tip One Owner per Error
-Schema runs replace only schema errors, so they never remove an error you set.
-:::
+Every error, including one set from code, stops a submit. A warning that should not block, such as a
+likely typo in an email address, is therefore text derived from the value, computed from the field's
+`state.value` and shown next to the input.

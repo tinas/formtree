@@ -1,8 +1,9 @@
 # Validation
 
-## Rules Across Values
+## Comparing Values
 
-A rule that compares values goes in `validate` on the group that holds them:
+Some rules depend on more than one value, such as a confirmation that has to match the password. A
+rule of this kind belongs in `validate`, on the group that holds every value it compares:
 
 ```ts twoslash
 import { defineGroup } from '@formtree/core'
@@ -23,15 +24,13 @@ export const signUpForm = defineGroup({
 })
 ```
 
-`validate` receives the group's draft, so a value the user has not filled in yet is `undefined`.
+`validate` receives the draft of the group, so a value the user has not filled in yet is
+`undefined`. A list offers a `validate` of its own for rules across its items, as
+[Arrays](/guide/arrays) shows.
 
-::: tip Lists
-A list has a `validate` of its own for rules across its items, as [Arrays](/guide/arrays) shows.
-:::
+## Defining Rules in the Schema
 
-## Rules in the Schema
-
-A rule that compares keys of one schema can also stay in that schema as a refinement:
+A rule that compares keys of a single schema can also remain in that schema, as a refinement:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -55,13 +54,14 @@ export const signUpForm = defineGroup({
 ```
 
 Zod runs a refinement only once every key holds a value of the right type, so its error waits for
-fields the rule does not compare, while `validate` reports as soon as the compared values disagree.
-Keep the refinement when the schema has to be complete on its own, for example because the server
-parses it too.
+fields the rule does not compare, whereas `validate` reports as soon as the compared values
+disagree. A refinement remains the better choice when the schema has to be complete on its own, for
+example because the server parses it as well.
 
 ## Validating on Every Change
 
-Schemas and rules run when the form is created and after every change, before `setValue` returns:
+The form checks its values from the moment it is created. Schemas and rules run again after every
+change, before `setValue` returns:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -89,13 +89,13 @@ email.setValue('ada@')
 const { valid, errors } = email.state
 ```
 
-`valid` is already `false`, while `errors` holds only the errors the user should see now, which
-[Showing Errors](/guide/showing-errors) explains.
+At this point `valid` is already `false`, while `errors` holds only the errors the user should see
+now, as [Showing Errors](/guide/showing-errors) explains.
 
-## Order of Checks
+## Running Schemas and Rules Together
 
-A group's schema and its `validate` run in the same step, so one change can produce errors from
-both:
+The schema of a group and its `validate` run in the same step, so a single change can produce
+errors from both:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -124,5 +124,5 @@ password.setValue('short')
 confirmPassword.setValue('shorter')
 ```
 
-Each replaces only its own errors. A server check comes last, once neither reports an error on its
-value, as [Async Validation](/guide/async-validation) shows.
+Each of them replaces only its own errors. A server check runs last, once neither reports an error
+on its value, as [Async Validation](/guide/async-validation) shows.

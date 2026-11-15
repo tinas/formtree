@@ -313,3 +313,10 @@
 .tutorial-demo pre {
   margin-top: 16px;
 }
+
+.twoslash .twoslash-error-line {
+  box-sizing: border-box;
+  width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

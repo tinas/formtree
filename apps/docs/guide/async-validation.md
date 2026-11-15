@@ -2,8 +2,8 @@
 
 ## Checking with the Server
 
-A rule only the server can answer, such as whether a username is still free, goes in
-`validateAsync` of the value's definition:
+Some rules can only be answered by the server, such as the availability of a username. A rule of
+this kind belongs in `validateAsync`, in the definition of the value it checks:
 
 ```ts twoslash
 // @filename: api.ts
@@ -33,16 +33,13 @@ export const signUpForm = defineGroup({
 })
 ```
 
-`run` receives the value the schema outputs and returns an error or `undefined`, as a rule does.
-
-::: tip Checks on Groups
-A group can have a check too, which receives the group's output.
-:::
+`run` receives the value that the schema outputs and returns an error or `undefined`, in the same
+way as a rule. A group can declare a check as well, which then receives the output of the group.
 
 ## Changing the Trigger
 
-To check the value when the user leaves the input instead of after each change, set `on` to
-`'blur'`:
+A check can also wait until the user leaves the input instead of running after each change. To do
+so, set `on` to `'blur'`:
 
 ```ts{6} twoslash
 // @noStaticSemanticInfo
@@ -67,12 +64,12 @@ const usernameField = defineField({
 })
 ```
 
-[`AsyncValidationOptions`](/api/@formtree/core/interfaces/AsyncValidationOptions) lists every
-trigger and the pause a check waits after it.
+Every trigger, together with the pause a check waits after it, is listed in
+[`AsyncValidationOptions`](/api/@formtree/core/interfaces/AsyncValidationOptions).
 
 ## Showing a Pending Check
 
-`state.requesting` is `true` while a check runs, so the input can show a hint:
+While a check is running, `state.requesting` is `true`, which lets the input show a hint:
 
 <div class="vue-only">
 
@@ -155,15 +152,13 @@ username.subscribe(() => {
 
 </div>
 
-::: tip Waiting for the Answer
-`state.validating` is also `true` while a check waits after its trigger, so a mark that says a value is
-free waits until `validating` is `false`.
-:::
+`state.validating` is also `true` while a check waits after its trigger, so a mark confirming that a
+value is available should wait until `validating` is `false`.
 
 ## Skipping the Saved Value
 
-On an edit form, the record already owns its value, so pass the saved value down as deps and return
-early for it:
+On an edit form, the value already saved with the record needs no check. Passing the saved value
+down as deps lets `run` return early for it:
 
 ```ts twoslash
 // @filename: api.ts
@@ -200,14 +195,15 @@ export const accountForm = defineGroupWithDeps<AccountDeps>()({
 })
 ```
 
-Set the deps when the account loads and after each save, as [Passing Data](/guide/passing-data)
-shows. A check runs again whenever its deps change, so it runs then too, finds the saved value and
-returns without a request. `state.requesting` stays `false`, so no hint flashes.
+The deps are set when the account loads and after each save, as
+[Passing Data](/guide/passing-data) shows. A check runs again whenever its deps change, so it runs
+at those moments too, finds the saved value, and returns without a request. Because
+`state.requesting` stays `false`, no hint flashes.
 
 ## Cancelling Stale Requests
 
-Pass the `signal` that `run` receives on to the request, so a request for a value that has changed
-since is cancelled:
+A request for a value that has changed in the meantime is no longer needed. Passing the `signal`
+that `run` receives on to the request cancels it:
 
 ```ts{6-8} twoslash
 // @noStaticSemanticInfo
@@ -231,13 +227,13 @@ const usernameField = defineField({
 })
 ```
 
-formtree also ignores an answer for an older value, so the result always belongs to the value on the
-screen.
+formtree also ignores any answer for an older value, so the result always corresponds to the value
+on the screen.
 
 ## Waiting for Other Rules
 
-A check waits while its value has a schema or rule error, including one that a parent's rule puts
-there:
+A check is held back while its value has a schema or rule error, including an error that a rule of
+a parent places on it:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -270,12 +266,13 @@ export const paymentGroup = defineGroup({
 })
 ```
 
-While invoice is selected, the promo code has the rule's error, so its server check does not run.
+While invoice is selected, the promo code carries the error of that rule, so its server check does
+not run.
 
 ## Submitting During a Check
 
-`handleSubmit` asks every check again and waits for one that is already running, so the handler
-receives only a value the server has just confirmed:
+`handleSubmit` asks every check again and waits for any check that is already running, so the
+handler receives only a value the server has just confirmed:
 
 ```ts twoslash
 // @noStaticSemanticInfo
@@ -305,17 +302,16 @@ const signUp = form.handleSubmit(async account => {
 })
 ```
 
-`validate()` asks again in the same way. A schema and a rule run again only when their value changes,
-so a rule only the server can answer belongs in a check.
+`validate()` asks every check again in the same way. A schema and a rule, by contrast, run again
+only when their value changes, which is why a rule that only the server can answer belongs in a
+check.
 
-::: tip Fewer Requests
 A check sends a request every time it runs, even for a value it has checked before. To answer a
-repeated value without one, cache the request inside `run`.
-:::
+repeated value without a new request, cache the request inside `run`.
 
 ## Handling Failed Requests
 
-When the request fails, throw from `run`. The check then fails, so a value the server could not
+When the request fails, `run` should throw. The check then fails, so a value the server could not
 check never passes:
 
 ```ts twoslash
@@ -342,16 +338,16 @@ const usernameField = defineField({
 ```
 
 A failed check runs again on its next trigger, even for the same value. A submit whose check fails
-again resolves to `'unchecked'` and focuses its field.
+once more resolves to `'unchecked'` and focuses the field of that check.
 
 ::: warning Error Statuses
-`fetch` rejects only when the network fails, so `run` throws for an error status itself.
+`fetch` rejects only when the network fails, so `run` has to throw for an error status itself.
 :::
 
-## Trying a Failed Check Again
+## Retrying a Failed Check
 
-To show a failed check with a button that tries again, read `state.failedChecks` and call
-`validate()` on the field's node:
+A failed check can be shown together with a button that tries again. `state.failedChecks` tells the
+page that a check has failed, and `validate()` on the node of the field runs it again:
 
 <div class="vue-only">
 
