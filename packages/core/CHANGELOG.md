@@ -1,5 +1,11 @@
 # @formtree/core
 
+## 0.4.0
+
+### Patch Changes
+
+- [#64](https://github.com/tinas/formtree/pull/64) [`6e52603`](https://github.com/tinas/formtree/commit/6e5260397dcc119901c020aedb6df40a669d63c1) Thanks [@tinas](https://github.com/tinas)! - Hovers show drafts, outputs and definitions as plain object shapes at every depth. Nested parts no longer show as `Simplify<DraftObject<…> & {} & {…}>`, and a group node shows its values and its children instead of `GroupDefinitionOf<…>` with the schema types and `NoInfer`.
+
 ## 0.3.0
 
 ### Minor Changes
