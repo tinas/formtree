@@ -1,5 +1,5 @@
 /**
- * Vue adapter for formtree. Re-exports @formtree/core.
+ * Vue adapter for FormTree. Re-exports @formtree/core.
  *
  * @module @formtree/vue
  */

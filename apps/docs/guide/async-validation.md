@@ -39,6 +39,39 @@ export const signUpForm = defineGroup({
 `run` receives the value that the schema outputs and returns an error or `undefined`, in the same
 way as a rule. A group can declare a check as well, which then receives the output of the group.
 
+## Waiting Until Typing Stops
+
+A check waits after each change and runs once the user stops typing, so a username typed in one go
+costs one request instead of one per character. `debounceMs` sets how long it waits:
+
+```ts{6} twoslash
+// @noStaticSemanticInfo
+// @filename: api.ts
+export declare function isUsernameAvailable(username: string): Promise<boolean>
+// @filename: sign-up.ts
+import { defineField } from '@formtree/core'
+import { z } from 'zod'
+import { isUsernameAvailable } from './api'
+// ---cut---
+const usernameField = defineField({
+  schema: z.string({ error: 'Choose a username' }).trim().min(3, {
+    error: 'Use at least 3 characters',
+  }),
+  validateAsync: {
+    debounceMs: 500,
+    run: async username => {
+      const available = await isUsernameAvailable(username)
+      return available ? undefined : { code: 'This username is taken' }
+    },
+  },
+})
+```
+
+Each change starts the wait again, so the check runs only for the value the user stopped at. A slow
+or costly request can wait longer, and
+[`AsyncValidationOptions`](/api/@formtree/core/interfaces/AsyncValidationOptions) lists how long a
+check waits without `debounceMs`.
+
 ## Changing the Trigger
 
 With `on: 'blur'`, a check waits until the user leaves the input instead of running after each
@@ -67,7 +100,7 @@ const usernameField = defineField({
 })
 ```
 
-Every trigger, together with the pause a check waits after it, is listed in
+Every trigger is listed in
 [`AsyncValidationOptions`](/api/@formtree/core/interfaces/AsyncValidationOptions).
 
 ## Showing a Pending Check

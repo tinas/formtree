@@ -134,13 +134,15 @@ export type DefineGroupOptions<Schema, Children, ActiveKeys extends PropertyKey,
   ChildDepsRequirement<Schema, Children, Deps> &
   DisjointKeysRequirement<Schema, Children>
 
-export type GroupDefinitionOf<Schema, Children, ActiveKeys extends PropertyKey, Deps> = GroupDefinition<
-  GroupInput<Schema, Children>,
-  GroupOutput<Schema, Children, ActiveKeys>,
-  Deps,
-  GroupDraft<Schema, Children>,
-  Children
->
+export type GroupDefinitionOf<Schema, Children, ActiveKeys extends PropertyKey, Deps> = [Schema] extends [unknown]
+  ? GroupDefinition<
+      GroupInput<Schema, Children>,
+      GroupOutput<Schema, Children, ActiveKeys>,
+      Deps,
+      GroupDraft<Schema, Children>,
+      Simplify<Children>
+    >
+  : never
 
 /**
  * The function {@link defineGroupWithDeps} returns: it takes the options once the dependency type is fixed.

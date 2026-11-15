@@ -38,11 +38,9 @@ export interface DefineFieldOptions<Schema extends StandardSchemaV1, Deps> {
   readonly reValidateMode?: ReValidateMode
 }
 
-export type FieldDefinitionOf<Schema extends StandardSchemaV1, Deps> = FieldDefinition<
-  InferSchemaInput<Schema>,
-  InferSchemaOutput<Schema>,
-  Deps
->
+export type FieldDefinitionOf<Schema extends StandardSchemaV1, Deps> = [Schema] extends [unknown]
+  ? FieldDefinition<InferSchemaInput<Schema>, InferSchemaOutput<Schema>, Deps>
+  : never
 
 /**
  * The function {@link defineFieldWithDeps} returns: it takes the options once the dependency type is fixed.

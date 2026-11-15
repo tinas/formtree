@@ -152,18 +152,3 @@ export const addressGroup = defineGroupWithDeps<ShippingDeps>()({
 
 A callback written above the schema function would see none of its keys. A schema that is not a
 function and `children` can go anywhere, since TypeScript reads plain values before any function.
-
-## Reading Hover Types
-
-When a hover shows helper names such as `Simplify` instead of an object, a declared type for the
-part makes it readable:
-
-```ts twoslash
-import type { OutputOf } from '@formtree/core'
-import { addressGroup } from './forms/delivery'
-// ---cut---
-type Address = OutputOf<typeof addressGroup>
-//   ^?
-```
-
-For a node, hover one of its fields instead of the node itself.

@@ -1,5 +1,5 @@
 /**
- * React adapter for formtree. Re-exports @formtree/core.
+ * React adapter for FormTree. Re-exports @formtree/core.
  *
  * @module @formtree/react
  */

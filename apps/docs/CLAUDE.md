@@ -52,7 +52,7 @@ The site is deployed on Netlify at https://form-tree.netlify.app. `og:image` is 
 ## Code blocks
 
 - Code blocks are type-checked with twoslash. Setup lines go above `// ---cut---`, and shared definitions are imported rather than repeated. Twoslash resolves only `@formtree/core` and `@formtree/vue`, so React blocks are plain `ts`/`tsx` and Vue SFC blocks plain `vue`; check those by hand against a twoslash-checked twin. A local module in a twoslash block is declared with a hidden `// @filename: api.ts`.
-- Type queries (`//    ^?`) go only where the displayed type reads well.
+- Type queries (`//    ^?`) go only where the displayed type reads well. Drafts and outputs read well at any depth. A group node shows its input, output and draft before its children, so a query on a node goes on one of its fields.
 - Hovers add to the page size, so a block whose hovers add nothing starts with `// @noStaticSemanticInfo`. It keeps the type check and drops the hovers.
 - Vue templates use `@submit.prevent`.
 - A block that repeats an earlier step's code highlights its new lines with fence meta such as `vue{2,6,10-12}`, so the reader sees what the step added.

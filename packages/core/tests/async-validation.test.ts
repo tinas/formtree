@@ -263,6 +263,31 @@ describe('async validation', () => {
     expect(nameChecks).toHaveLength(1)
   })
 
+  test('changes within the pause run a change-triggered check once, for the last value', async () => {
+    const checked: Array<string> = []
+    const lookupField = defineField({
+      schema: z.string(),
+      validateAsync: {
+        on: 'change',
+        debounceMs: 100,
+        run: value => {
+          checked.push(value)
+          return undefined
+        },
+      },
+    })
+    const lookup = createForm(lookupField)
+
+    lookup.setValue('a')
+    await vi.advanceTimersByTimeAsync(60)
+    lookup.setValue('ab')
+    await vi.advanceTimersByTimeAsync(60)
+    lookup.setValue('abc')
+    await vi.advanceTimersByTimeAsync(100)
+
+    expect(checked).toEqual(['abc'])
+  })
+
   test('a change-triggered check is aborted by the next change', async () => {
     const signals: Array<AbortSignal> = []
     const lookupField = defineField({
